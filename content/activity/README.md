@@ -25,7 +25,8 @@ Activity bodies support CommonMark and GitHub Flavored Markdown, including
 tables, task lists, strikethrough, autolinks, footnotes, and LaTeX math rendered
 with KaTeX. Use `$...$` for inline math and `$$...$$` on separate lines for
 display math. Sanitized `<details>` and `<summary>` elements can be used for
-collapsible sections.
+collapsible sections. GitHub-style `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`,
+`[!WARNING]`, and `[!CAUTION]` blockquotes render as color-coded callouts.
 
 ```md
 ---
@@ -39,4 +40,7 @@ tags:
 # Activity content
 
 The activity body starts here.
+
+> [!NOTE]
+> Callouts are supported in activity Markdown too.
 ```

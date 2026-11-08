@@ -12,3 +12,12 @@ task lists, strikethrough, autolinks, footnotes, and LaTeX math rendered with
 KaTeX. Use `$...$` for inline math and `$$...$$` on separate lines for display
 math. Sanitized `<details>` and `<summary>` elements can be used for
 collapsible sections.
+
+GitHub-style callouts are available with `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`,
+`[!WARNING]`, and `[!CAUTION]`. Put the marker at the start of a blockquote;
+each type gets its own color style:
+
+```md
+> [!TIP]
+> Use a callout to highlight useful information.
+```
