@@ -229,30 +229,16 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
               </>
             )}
 
-            {step == "account" && (
+            {step === "account" && (
               <>
-                <Link
-                  href={step === "account" || !selectedId ? "/" : accountUrl}
-                  className="back-link"
-                >
-                  ←{" "}
-                  {step === "account" || !selectedId
-                    ? "Back to plans"
-                    : "Back to account"}
+                <Link href="/" className="back-link">
+                  ← Back to plans
                 </Link>
                 <div className="section-heading">
-                  <span className="step-number">
-                    {step === "account" ? "02" : "03"}
-                  </span>
+                  <span className="step-number">02</span>
                   <div>
-                    <h2>
-                      {step === "account" ? "Your account" : "Payment details"}
-                    </h2>
-                    <p>
-                      {step === "account"
-                        ? "Create an account or sign in to continue."
-                        : "Review your order and complete your subscription."}
-                    </p>
+                    <h2>Your account</h2>
+                    <p>Create an account or sign in to continue.</p>
                   </div>
                 </div>
                 {!selectedId ? (
@@ -262,93 +248,103 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
                       View plans <span>↗</span>
                     </Link>
                   </div>
-                ) : null}
+                ) : !isLoaded ? (
+                  <p className="muted-indent">Loading your account...</p>
+                ) : isSignedIn ? (
+                  <div className="step-message">
+                    <p className="complete-state">
+                      <span>✓</span> You&apos;re signed in and ready to continue.
+                    </p>
+                    <Link className="primary-button" href={paymentUrl}>
+                      Continue to payment <span>↗</span>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="auth-container">
+                    <div className="auth-tabs">
+                      <Link
+                        scroll={false}
+                        className={authMode === "sign-up" ? "active" : ""}
+                        href={`${accountUrl}&auth=sign-up`}
+                      >
+                        Create account
+                      </Link>
+                      <Link
+                        scroll={false}
+                        className={authMode === "sign-in" ? "active" : ""}
+                        href={`${accountUrl}&auth=sign-in`}
+                      >
+                        Sign in
+                      </Link>
+                    </div>
+                    {authMode === "sign-in" ? (
+                      <SignIn
+                        routing="hash"
+                        forceRedirectUrl={paymentUrl}
+                        signUpUrl={`${accountUrl}&auth=sign-up`}
+                        appearance={authAppearance}
+                      />
+                    ) : (
+                      <SignUp
+                        routing="hash"
+                        forceRedirectUrl={paymentUrl}
+                        signInUrl={`${accountUrl}&auth=sign-in`}
+                        appearance={authAppearance}
+                      />
+                    )}
+                  </div>
+                )}
               </>
             )}
 
-            {step == "payment" && (
+            {step === "payment" && (
               <>
-                <div className="selection-row">
-                  <div>
-                    <strong>
-                      {plans.data?.find((plan) => plan.id === selectedId)
-                        ?.name || "Selected plan"}
-                    </strong>
-                    <span>
-                      {period === "month" ? "Monthly" : "Yearly"} billing
-                    </span>
-                  </div>
-                  <Link href="/" className="text-button">
-                    Change
-                  </Link>
-                </div>
-                {!isLoaded ? (
-                  <p className="muted-indent">Loading your account...</p>
-                ) : step === "account" ? (
-                  isSignedIn ? (
-                    <div className="step-message">
-                      <p className="complete-state">
-                        <span>✓</span> You&apos;re signed in and ready to
-                        continue.
-                      </p>
-                      <Link className="primary-button" href={paymentUrl}>
-                        Continue to payment <span>↗</span>
-                      </Link>
-                    </div>
-                  ) : (
-                    <div className="auth-container">
-                      <div className="auth-tabs">
-                        <Link
-                          scroll={false}
-                          className={authMode === "sign-up" ? "active" : ""}
-                          href={`${accountUrl}&auth=sign-up`}
-                        >
-                          Create account
-                        </Link>
-                        <Link
-                          scroll={false}
-                          className={authMode === "sign-in" ? "active" : ""}
-                          href={`${accountUrl}&auth=sign-in`}
-                        >
-                          Sign in
-                        </Link>
-                      </div>
-                      {authMode === "sign-in" ? (
-                        <SignIn
-                          routing="hash"
-                          forceRedirectUrl={paymentUrl}
-                          signUpUrl={`${accountUrl}&auth=sign-up`}
-                          appearance={authAppearance}
-                        />
-                      ) : (
-                        <SignUp
-                          routing="hash"
-                          forceRedirectUrl={paymentUrl}
-                          signInUrl={`${accountUrl}&auth=sign-in`}
-                          appearance={authAppearance}
-                        />
-                      )}
-                    </div>
-                  )
-                ) : isSignedIn ? (
-                  <CheckoutProvider
-                    key={`${selectedId}-${period}`}
-                    for="user"
-                    planId={selectedId}
-                    planPeriod={period}
-                  >
-                    <Checkout />
-                  </CheckoutProvider>
-                ) : (
+                {!selectedId ? (
                   <div className="step-message">
-                    <p>
-                      Sign in or create an account before entering payment
-                      details.
-                    </p>
-                    <Link href={accountUrl} className="primary-button">
-                      Continue to account <span>↗</span>
+                    <p>Please choose a plan before continuing.</p>
+                    <Link className="primary-button" href="/">
+                      View plans <span>↗</span>
                     </Link>
                   </div>
+                ) : (
+                  <>
+                    <div className="selection-row">
+                      <div>
+                        <strong>
+                          {plans.data?.find((plan) => plan.id === selectedId)
+                            ?.name || "Selected plan"}
+                        </strong>
+                        <span>
+                          {period === "month" ? "Monthly" : "Yearly"} billing
+                        </span>
+                      </div>
+                      <Link href="/" className="text-button">
+                        Change
+                      </Link>
+                    </div>
+                    {!isLoaded ? (
+                      <p className="muted-indent">Loading your account...</p>
+                    ) : isSignedIn ? (
+                      <CheckoutProvider
+                        key={`${selectedId}-${period}`}
+                        for="user"
+                        planId={selectedId}
+                        planPeriod={period}
+                      >
+                        <Checkout />
+                      </CheckoutProvider>
+                    ) : (
+                      <div className="step-message">
+                        <p>
+                          Sign in or create an account before entering payment
+                          details.
+                        </p>
+                        <Link href={accountUrl} className="primary-button">
+                          Continue to account <span>↗</span>
+                        </Link>
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}

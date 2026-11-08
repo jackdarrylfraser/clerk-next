@@ -32,6 +32,17 @@ h1, .side-panel h2 { font-family: Georgia, "Times New Roman", serif; letter-spac
 .home-intro { max-width: 760px; margin: auto; padding: 120px 32px; }
 .home-cta { display: inline-flex; align-items: center; gap: 18px; margin-top: 30px; padding: 14px 18px; border-radius: 4px; background: #4a624d; color: #fff; font-size: 12px; font-weight: 700; }
 .home-cta:hover { background: #354c3a; }
+.markdown-page { max-width: 860px; width: 100%; margin: 0 auto; padding: 72px 32px; }
+.markdown-content { color: var(--ink); font-size: 15px; line-height: 1.75; overflow-wrap: anywhere; }
+.markdown-content h1, .markdown-content h2, .markdown-content h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; line-height: 1.2; margin: 1.8em 0 .6em; }
+.markdown-content h1 { font-size: clamp(36px, 5vw, 52px); margin-top: 0; }
+.markdown-content h2 { font-size: 30px; }
+.markdown-content h3 { font-size: 22px; }
+.markdown-content p, .markdown-content ul, .markdown-content ol, .markdown-content blockquote { margin: 0 0 1.2em; }
+.markdown-content a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+.markdown-content pre { overflow-x: auto; padding: 16px; border-radius: 4px; background: #edf2e8; font-size: 13px; }
+.markdown-content code { font-size: .9em; }
+.markdown-content blockquote { border-left: 3px solid #9db190; padding-left: 18px; color: var(--muted); }
 .progress { max-width: 760px; margin: 0 auto 34px; }
 .progress ol { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; list-style: none; padding: 0; margin: 0; }
 .progress li { display: flex; gap: 10px; align-items: center; justify-content: center; color: #a4aca0; font-size: 11px; }
