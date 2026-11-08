@@ -18,7 +18,7 @@ type Step = "plan" | "account" | "payment";
 
 const steps: { key: Step; title: string; description: string }[] = [
   { key: "plan", title: "Choose a plan", description: "Find the right fit" },
-  { key: "account", title: "Your account", description: "Sign in or sign up" },
+  { key: "account", title: "Your account", description: "Subscribe or sign in" },
   { key: "payment", title: "Payment", description: "Complete checkout" },
 ];
 
@@ -238,7 +238,7 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
                   <span className="step-number">02</span>
                   <div>
                     <h2>Your account</h2>
-                    <p>Create an account or sign in to continue.</p>
+                    <p>Subscribe to create an account, or sign in to continue.</p>
                   </div>
                 </div>
                 {!selectedId ? (
@@ -267,7 +267,7 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
                         className={authMode === "sign-up" ? "active" : ""}
                         href={`${accountUrl}&auth=sign-up`}
                       >
-                        Create account
+                        Subscribe to create account
                       </Link>
                       <Link
                         scroll={false}
