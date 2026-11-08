@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Subscribe } from "../../subscribe";
+import { Subscribe } from "@/components/subscribe";
 
 export default function SubscribeAccountPage() {
   return (

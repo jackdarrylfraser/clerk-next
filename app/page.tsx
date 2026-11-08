@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { join } from "node:path";
 import { Suspense } from "react";
-import ActivityCard from "@/app/activity-card";
+import ActivityCard from "@/components/activity-card";
 import { getMarkdownParams, getMarkdownTitle } from "@/lib/markdown";
 
 const activityDirectory = join(process.cwd(), "content", "activity");
