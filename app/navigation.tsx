@@ -15,7 +15,6 @@ export default function Navigation() {
         {isLoaded &&
           (isSignedIn ? (
             <>
-              <Link href="/activity/README">Activities</Link>
               <Link href="/account">Your account</Link>
               <UserButton />
             </>

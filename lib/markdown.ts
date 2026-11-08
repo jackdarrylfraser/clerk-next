@@ -19,7 +19,23 @@ export async function getMarkdownParams(
 
       return slugPattern.test(entry.name.slice(0, -3));
     })
-    .map((entry) => ({ [parameter]: entry.name.slice(0, -3) }));
+    .map((entry) => ({ [parameter]: entry.name.slice(0, -3) }))
+    .sort((a, b) => a[parameter].localeCompare(b[parameter]));
+}
+
+export async function getMarkdownTitle(
+  directory: string,
+  slug: string,
+): Promise<string> {
+  const source = await readFile(join(directory, `${slug}.md`), "utf8");
+  const heading = source.match(/^#\s+(.+)$/m)?.[1]?.trim();
+  if (heading) {
+    return heading;
+  }
+
+  return slug
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 export async function renderMarkdown(
