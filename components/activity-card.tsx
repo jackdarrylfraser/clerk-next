@@ -4,8 +4,9 @@ import { getTagSlug } from "@/lib/tags";
 type ActivityCardProps = {
   slug: string;
   title: string;
-  description?: string;
-  tags?: string[];
+  description: string;
+  tags: string[];
+  isCurrent?: boolean;
 };
 
 export default function ActivityCard({
@@ -13,34 +14,39 @@ export default function ActivityCard({
   title,
   description,
   tags,
+  isCurrent = false,
 }: ActivityCardProps) {
+  const copy = (
+    <span className="activity-card-copy">
+      <span className="activity-card-title">{title}</span>
+      <span className="activity-card-description">{description}</span>
+    </span>
+  );
+
   return (
     <div className="activity-card">
-      <Link
-        className="activity-card-link"
-        href={`/activity/${encodeURIComponent(slug)}`}
-      >
-        <span className="activity-card-copy">
-          <span>{title}</span>
-          {description && (
-            <span className="activity-card-description">{description}</span>
-          )}
-        </span>
-        <span aria-hidden="true">→</span>
-      </Link>
-      {tags && tags.length > 0 && (
-        <span className="activity-card-tags" aria-label="Tags">
-          {tags.map((tag) => (
-            <Link
-              className="activity-card-tag"
-              href={`/tag/${getTagSlug(tag)}`}
-              key={tag}
-            >
-              {tag}
-            </Link>
-          ))}
-        </span>
+      {isCurrent ? (
+        <div className="activity-card-link">{copy}</div>
+      ) : (
+        <Link
+          className="activity-card-link"
+          href={`/activity/${encodeURIComponent(slug)}`}
+        >
+          {copy}
+          <span aria-hidden="true">→</span>
+        </Link>
       )}
+      <span className="activity-card-tags" aria-label="Tags">
+        {tags.map((tag) => (
+          <Link
+            className="activity-card-tag"
+            href={`/tag/${getTagSlug(tag)}`}
+            key={tag}
+          >
+            {tag}
+          </Link>
+        ))}
+      </span>
     </div>
   );
 }

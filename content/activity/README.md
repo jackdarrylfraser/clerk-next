@@ -12,13 +12,20 @@ Markdown files in this directory are converted to HTML and served from
 `/activity/<filename-without-extension>`. Access requires an active Clerk user
 plan with the `site_access` feature.
 
-Activities can optionally start with YAML frontmatter. `title` overrides the
-first Markdown heading in the activity list, and `description` adds supporting
-text to the list card. `tags` is an optional YAML list displayed as links on
-the card; each link opens `/tag/<tag-slug>` with activities that share the tag.
-Tag slugs are lowercase, with runs of non-alphanumeric characters replaced by
-hyphens. Without a `title`, the first heading is used, then the filename if
-there is no heading. Frontmatter is not included in the rendered activity body.
+Every activity must start with YAML frontmatter containing a non-empty `title`,
+`description`, and a `tags` list with at least one non-empty tag. Missing or
+invalid metadata causes the build to fail. The title and description are shown
+on the activity card. Tags are displayed as links; each link opens
+`/tag/<tag-slug>` with activities that share the tag. Tag slugs are lowercase,
+with runs of non-alphanumeric characters replaced by hyphens. The activity
+page shows the summary card before the rendered Markdown body. Frontmatter is
+not included in the rendered activity body.
+
+Activity bodies support CommonMark and GitHub Flavored Markdown, including
+tables, task lists, strikethrough, autolinks, footnotes, and LaTeX math rendered
+with KaTeX. Use `$...$` for inline math and `$$...$$` on separate lines for
+display math. Sanitized `<details>` and `<summary>` elements can be used for
+collapsible sections.
 
 ```md
 ---

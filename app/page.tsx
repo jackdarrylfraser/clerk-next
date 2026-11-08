@@ -4,7 +4,10 @@ import { join } from "node:path";
 import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import { getMarkdownMetadata, getMarkdownParams } from "@/lib/markdown";
+import {
+  getActivityMarkdownParams,
+  getMarkdownMetadata,
+} from "@/lib/markdown";
 
 const activityDirectory = join(process.cwd(), "content", "activity");
 const activitiesPerPage = 5;
@@ -32,7 +35,10 @@ async function HomeContent({
     const { page: pageParam } = await searchParams;
     const requestedPage =
       typeof pageParam === "string" ? Number(pageParam) : Number.NaN;
-    const activities = await getMarkdownParams(activityDirectory, "content");
+    const activities = await getActivityMarkdownParams(
+      activityDirectory,
+      "content",
+    );
     const pageCount = Math.max(1, Math.ceil(activities.length / activitiesPerPage));
     const currentPage = Number.isSafeInteger(requestedPage)
       ? Math.min(pageCount, Math.max(1, requestedPage))

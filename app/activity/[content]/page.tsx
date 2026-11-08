@@ -3,12 +3,17 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { join } from "node:path";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import { getMarkdownParams, renderMarkdown } from "@/lib/markdown";
+import ActivityCard from "@/components/activity-card";
+import {
+  getActivityMarkdownParams,
+  getMarkdownMetadata,
+  renderMarkdown,
+} from "@/lib/markdown";
 
 const activityDirectory = join(process.cwd(), "content", "activity");
 
 export async function generateStaticParams() {
-  return getMarkdownParams(activityDirectory, "content");
+  return getActivityMarkdownParams(activityDirectory, "content");
 }
 
 async function PermissionedActivityPage({
@@ -25,11 +30,15 @@ async function PermissionedActivityPage({
   if (renderedContent === null) {
     notFound();
   }
+  const metadata = await getMarkdownMetadata(activityDirectory, slug);
 
   return (
     <main className="markdown-page">
+      <div className="activity-detail-card">
+        <ActivityCard {...metadata} slug={slug} isCurrent />
+      </div>
       <article
-        className="markdown-content"
+        className="markdown-content activity-content"
         dangerouslySetInnerHTML={{ __html: renderedContent }}
       />
     </main>

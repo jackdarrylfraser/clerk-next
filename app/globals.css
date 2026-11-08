@@ -41,15 +41,17 @@ h1, .side-panel h2 { font-family: Georgia, "Times New Roman", serif; letter-spac
 .activity-heading > p:last-child { color: #858c81; font-size: 14px; line-height: 1.7; margin: 0; }
 .activity-list-container { align-self: center; max-width: 640px; width: 100%; }
 .activity-count { color: #858c81; font-size: 11px; margin: 0 0 12px; }
-.activity-list { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
-.activity-card { display: grid; gap: 10px; padding: 19px 20px; border: 1px solid #e1e6dd; border-radius: 5px; background: #fff; }
-.activity-card-link { display: flex; justify-content: space-between; align-items: center; gap: 16px; color: var(--green); font-size: 14px; }
+.activity-list { display: grid; gap: 0; list-style: none; margin: 0; padding: 0; }
+.activity-list > li + li { margin-top: 14px; padding-top: 14px; border-top: 1px solid #e1e6dd; }
+.activity-card { display: grid; gap: 10px; }
+.activity-card-link { display: flex; justify-content: space-between; align-items: center; gap: 16px; color: var(--ink); font-size: 14px; }
 .activity-card-copy { display: grid; gap: 4px; }
-.activity-card-description { color: #858c81; font-size: 12px; line-height: 1.5; }
+.activity-card-title { font-size: 18px; }
+.activity-card-description { color: var(--ink); font-size: 12px; line-height: 1.5; }
 .activity-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .activity-card-tag { padding: 3px 7px; border-radius: 999px; background: #edf2e9; color: #536b4f; font-size: 10px; line-height: 1.2; }
 .activity-card-tag:hover, .activity-card-tag:focus-visible { background: #dfe9d8; text-decoration: underline; }
-.activity-card:hover { border-color: #9db190; background: #fbfcf9; }
+.activity-detail-card { margin-bottom: 32px; }
 .activity-pagination { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 24px; color: #858c81; font-size: 12px; }
 .activity-pagination a { color: var(--green); font-weight: 700; }
 .activity-pagination [aria-disabled="true"] { opacity: .5; }
@@ -58,9 +60,30 @@ h1, .side-panel h2 { font-family: Georgia, "Times New Roman", serif; letter-spac
 .markdown-content { color: var(--ink); font-size: 15px; line-height: 1.75; overflow-wrap: anywhere; }
 .markdown-content h1, .markdown-content h2, .markdown-content h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; line-height: 1.2; margin: 1.8em 0 .6em; }
 .markdown-content h1 { font-size: clamp(36px, 5vw, 52px); margin-top: 0; }
+.activity-content h1 { font-size: clamp(24px, 3vw, 30px); }
 .markdown-content h2 { font-size: 30px; }
 .markdown-content h3 { font-size: 22px; }
-.markdown-content p, .markdown-content ul, .markdown-content ol, .markdown-content blockquote { margin: 0 0 1.2em; }
+.markdown-content p, .markdown-content blockquote { margin: 0 0 1.2em; }
+.markdown-content ul, .markdown-content ol { margin: 0 0 1.2em; padding-inline-start: 1.5em; }
+.markdown-content ul { list-style-type: disc; }
+.markdown-content ol { list-style-type: decimal; }
+.markdown-content ul ul, .markdown-content ol ul { list-style-type: circle; }
+.markdown-content ul ul ul, .markdown-content ol ul ul { list-style-type: square; }
+.markdown-content li > ul, .markdown-content li > ol { margin: .35em 0; }
+.markdown-content table { width: 100%; margin: 0 0 1.2em; border-collapse: collapse; }
+.markdown-content th, .markdown-content td { padding: .5em .7em; border: 1px solid var(--line); text-align: left; }
+.markdown-content th { background: #edf2e8; }
+.markdown-content .contains-task-list { padding-inline-start: 0; list-style: none; }
+.markdown-content .task-list-item input[type="checkbox"] { appearance: auto; margin: 0 .5em 0 0; accent-color: var(--green); }
+.markdown-content [data-footnotes] { margin-top: 2em; padding-top: 1em; border-top: 1px solid var(--line); font-size: 13px; }
+.markdown-content [data-footnotes] .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.markdown-content [data-footnotes] ol { margin: 0; }
+.markdown-content [data-footnotes] li + li { margin-top: .5em; }
+.markdown-content [data-footnotes] p { margin: 0; }
+.markdown-content [data-footnote-backref] { margin-left: .35em; text-decoration: none; }
+.markdown-content details { margin: 0 0 1.2em; }
+.markdown-content details > summary { cursor: pointer; font-family: Georgia, "Times New Roman", serif; font-size: 30px; font-weight: 400; line-height: 1.2; margin: 1.8em 0 .6em; }
+.markdown-content details[open] > summary { margin-bottom: .6em; }
 .markdown-content a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
 .markdown-content pre { overflow-x: auto; padding: 16px; border-radius: 4px; background: #edf2e8; font-size: 13px; }
 .markdown-content code { font-size: .9em; }

@@ -4,14 +4,20 @@ import { Suspense } from "react";
 import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import { getMarkdownMetadata, getMarkdownParams } from "@/lib/markdown";
+import {
+  getActivityMarkdownParams,
+  getMarkdownMetadata,
+} from "@/lib/markdown";
 import { getTagSlug } from "@/lib/tags";
 
 const activityDirectory = join(process.cwd(), "content", "activity");
 const tagSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 async function getActivities() {
-  const activityParams = await getMarkdownParams(activityDirectory, "content");
+  const activityParams = await getActivityMarkdownParams(
+    activityDirectory,
+    "content",
+  );
   return Promise.all(
     activityParams.map(async ({ content }) => ({
       content,
