@@ -1,5 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
+import type { Element, Root as HtmlRoot } from "hast";
 import matter from "gray-matter";
 import type { Blockquote, Paragraph, Root } from "mdast";
 import { remark } from "remark";
@@ -43,6 +44,10 @@ const markdownSanitizeSchema: Options = {
 
 function isBlockquote(node: Node): node is Blockquote {
   return node.type === "blockquote";
+}
+
+function isElement(node: Node): node is Element {
+  return node.type === "element";
 }
 
 function isParent(node: Node): node is Parent {
@@ -106,6 +111,45 @@ function remarkCallouts() {
     };
 
     visit(tree);
+  };
+}
+
+function rehypeRepairSanitizedFragments() {
+  return (tree: HtmlRoot) => {
+    const ids = new Set<string>();
+    const links: Element[] = [];
+
+    const visit = (node: Node) => {
+      if (isElement(node)) {
+        if (typeof node.properties.id === "string") {
+          ids.add(node.properties.id);
+        }
+        if (node.tagName === "a") {
+          links.push(node);
+        }
+      }
+
+      if (isParent(node)) {
+        node.children.forEach(visit);
+      }
+    };
+
+    visit(tree);
+
+    // The sanitizer prefixes IDs, so keep local fragment links in sync.
+    const prefix = markdownSanitizeSchema.clobberPrefix ?? "";
+    for (const link of links) {
+      const href = link.properties.href;
+      if (typeof href !== "string" || !href.startsWith("#")) {
+        continue;
+      }
+
+      const fragment = href.slice(1);
+      const sanitizedId = `${prefix}${fragment}`;
+      if (!ids.has(fragment) && ids.has(sanitizedId)) {
+        link.properties.href = `#${sanitizedId}`;
+      }
+    }
   };
 }
 
@@ -203,6 +247,7 @@ export async function renderMarkdown(
       .use(remarkRehype, { allowDangerousHtml: true })
       .use(rehypeRaw)
       .use(rehypeSanitize, markdownSanitizeSchema)
+      .use(rehypeRepairSanitizedFragments)
       .use(rehypeKatex)
       .use(rehypeStringify)
       .process(matter(source).content),
