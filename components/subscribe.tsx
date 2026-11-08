@@ -9,6 +9,7 @@ import {
   usePaymentElement,
   usePlans,
 } from "@clerk/nextjs/experimental";
+import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -35,6 +36,7 @@ function money(amount: { currencySymbol: string; amountFormatted: string }) {
 
 export function Subscribe({ step = "plan" }: { step?: Step }) {
   const { isLoaded, isSignedIn } = useAuth();
+  const devAuthBypassEnabled = useDevAuthBypass();
   const params = useSearchParams();
   const selectedId = params.get("plan");
   const period: Period = params.get("period") === "annual" ? "annual" : "month";
@@ -57,6 +59,12 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
             <span>●</span> SECURE CHECKOUT
           </span>
         </div>
+        {devAuthBypassEnabled && isLoaded && !isSignedIn && (
+          <p className="dev-auth-notice" role="status">
+            Development access is enabled for member content. Account
+            management and checkout still require a Clerk sign-in.
+          </p>
+        )}
         <nav className="progress" aria-label="Subscription progress">
           <ol>
             {steps.map((item, index) => {

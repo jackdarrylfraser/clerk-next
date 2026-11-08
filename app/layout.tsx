@@ -1,7 +1,9 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { DevAuthBypassProvider } from "@/components/dev-auth-bypass-provider";
 import Navigation from "@/components/navigation";
+import { isDevAuthBypassEnabled } from "@/lib/auth";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 
@@ -28,8 +30,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <ClerkProvider>
-          <Navigation />
-          {children}
+          <DevAuthBypassProvider enabled={isDevAuthBypassEnabled}>
+            <Navigation />
+            {children}
+          </DevAuthBypassProvider>
         </ClerkProvider>
       </body>
     </html>

@@ -1,10 +1,12 @@
 "use client";
 
 import { UserButton, useAuth } from "@clerk/nextjs";
+import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
 import Link from "next/link";
 
 export default function Navigation() {
   const { isLoaded, isSignedIn } = useAuth();
+  const devAuthBypassEnabled = useDevAuthBypass();
 
   return (
     <header className="site-header">
@@ -17,6 +19,11 @@ export default function Navigation() {
             <>
               <Link href="/account">Your account</Link>
               <UserButton />
+            </>
+          ) : devAuthBypassEnabled ? (
+            <>
+              <Link href="/account">Your account</Link>
+              <span className="dev-access-label">Dev access</span>
             </>
           ) : (
             <>

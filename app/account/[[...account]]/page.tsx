@@ -1,5 +1,6 @@
 import { UserProfile } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
+import Link from "next/link";
 import { Suspense } from "react";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 
@@ -8,19 +9,23 @@ export default function AccountPage() {
 }
 
 async function Account() {
-  if (isDevAuthBypassEnabled) {
+  const { isAuthenticated, redirectToSignIn } = await auth();
+  if (!isAuthenticated && isDevAuthBypassEnabled) {
     return (
       <main className="account-page">
         <div className="account-heading">
           <div className="eyebrow"><span /> YOUR MEMBERSHIP</div>
           <h1>Your account.</h1>
-          <p>Account management requires a signed-in Clerk session.</p>
+          <p>
+            Development access is enabled for member content, but account
+            management requires a Clerk session.{" "}
+            <Link href="/sign-in">Sign in</Link> to continue.
+          </p>
         </div>
       </main>
     );
   }
 
-  const { isAuthenticated, redirectToSignIn } = await auth();
   if (!isAuthenticated) return redirectToSignIn({ returnBackUrl: "/account" });
 
   return (
