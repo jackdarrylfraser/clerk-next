@@ -1,6 +1,6 @@
 "use client";
 
-import { SignIn, SignUp, useAuth, UserButton } from "@clerk/nextjs";
+import { SignIn, SignUp, useAuth } from "@clerk/nextjs";
 import {
   CheckoutProvider,
   PaymentElement,
@@ -51,26 +51,12 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
 
   return (
     <div className="site-shell">
-      <header className="site-header">
-        <Link href="/" className="brand" aria-label="Subscribe home">
-          <span className="brand-mark">✳</span> MEMBERSHIP
-        </Link>
-        <div className="header-right">
+      <main className="main-content">
+        <div className="checkout-security">
           <span className="secure-label">
             <span>●</span> SECURE CHECKOUT
           </span>
-          {isLoaded && isSignedIn && (
-            <>
-              <Link href="/account" className="account-link">
-                My account
-              </Link>
-              <UserButton />
-            </>
-          )}
         </div>
-      </header>
-
-      <main className="main-content">
         <nav className="progress" aria-label="Subscription progress">
           <ol>
             {steps.map((item, index) => {
