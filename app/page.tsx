@@ -5,8 +5,7 @@ import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import {
-  getActivityMarkdownParams,
-  getMarkdownMetadata,
+  getMarkdownParamsWithMetadata,
 } from "@/lib/markdown";
 
 const activityDirectory = join(process.cwd(), "content", "activity");
@@ -35,7 +34,7 @@ async function HomeContent({
     const { page: pageParam } = await searchParams;
     const requestedPage =
       typeof pageParam === "string" ? Number(pageParam) : Number.NaN;
-    const activities = await getActivityMarkdownParams(
+    const activities = await getMarkdownParamsWithMetadata(
       activityDirectory,
       "content",
     );
@@ -43,16 +42,9 @@ async function HomeContent({
     const currentPage = Number.isSafeInteger(requestedPage)
       ? Math.min(pageCount, Math.max(1, requestedPage))
       : 1;
-    const pageActivities = await Promise.all(
-      activities
-        .slice(
-          (currentPage - 1) * activitiesPerPage,
-          currentPage * activitiesPerPage,
-        )
-        .map(async ({ content }) => ({
-          content,
-          ...(await getMarkdownMetadata(activityDirectory, content)),
-        })),
+    const pageActivities = activities.slice(
+      (currentPage - 1) * activitiesPerPage,
+      currentPage * activitiesPerPage,
     );
     const firstActivity = (currentPage - 1) * activitiesPerPage + 1;
     const lastActivity = Math.min(

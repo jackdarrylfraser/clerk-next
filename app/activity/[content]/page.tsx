@@ -5,15 +5,19 @@ import { join } from "node:path";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import ActivityCard from "@/components/activity-card";
 import {
-  getActivityMarkdownParams,
   getMarkdownMetadata,
+  getMarkdownParamsWithMetadata,
   renderMarkdown,
 } from "@/lib/markdown";
 
 const activityDirectory = join(process.cwd(), "content", "activity");
 
 export async function generateStaticParams() {
-  return getActivityMarkdownParams(activityDirectory, "content");
+  const pages = await getMarkdownParamsWithMetadata(
+    activityDirectory,
+    "content",
+  );
+  return pages.map(({ content }) => ({ content }));
 }
 
 async function PermissionedActivityPage({

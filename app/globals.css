@@ -206,3 +206,87 @@ button.text-button { margin: 18px 0 0 43px; }
   .progress-number { flex-basis: 27px; height: 27px; }
   .site-footer { gap: 20px; font-size: 8px; }
 }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --ink: #edf1eb;
+    --muted: #aab5a8;
+    --line: #39443a;
+    --green: #b4cdaa;
+  }
+
+  body { background: #151a16; }
+  button:focus-visible, a:focus-visible { outline-color: #b4cdaa; }
+  .site-header { border-color: #303a31; }
+  .brand-mark, .dev-access-label, .eyebrow, .activity-pagination a,
+  .markdown-content a, .back-link, .resume-checkout a, .text-button {
+    color: #b4cdaa;
+  }
+  .header-right .subscribe-link, .home-cta, .primary-button {
+    background: #526b55;
+    color: #fff;
+  }
+  .header-right .subscribe-link:hover, .home-cta:hover,
+  .primary-button:not(:disabled):hover { background: #617c63; }
+  .dev-auth-notice {
+    border-color: #3d4b3b;
+    background: #202a21;
+    color: #c4d2be;
+  }
+  .secure-label, .intro > p, .activity-heading > p:last-child,
+  .activity-count, .activity-pagination, .activity-empty,
+  .section-heading p, .muted-indent, .plan-top p, .plan-price span,
+  .trial-note, .renewal-note, .step-message > p, .resume-checkout,
+  .selection-row span, .auth-tabs a, .checkout-content > p, .payment-note,
+  .status-message, .side-panel > p, .site-footer, .loading-page,
+  .account-heading p { color: #aab5a8; }
+  .secure-label span, .eyebrow span, .intro h1 em, .side-panel h2 em,
+  .activity-card-tag, .progress li.current, .complete-state,
+  .features li span, .step-number, .plan-sparkle, .art-center,
+  .aside-label, .aside-bottom {
+    color: #b4cdaa;
+  }
+  .activity-heading > p:last-child, .activity-count, .activity-empty,
+  .activity-pagination, .status-message { color: #aab5a8; }
+  .activity-list > li + li { border-color: #303a31; }
+  .activity-card-tag { background: #29372a; }
+  .activity-card-tag:hover, .activity-card-tag:focus-visible {
+    background: #354635;
+  }
+  .markdown-content th, .markdown-content pre { background: #222c23; }
+  .markdown-content blockquote { border-color: #829b79; }
+  .markdown-content blockquote.markdown-callout { color: var(--ink); }
+  .markdown-content blockquote.markdown-callout-note { border-color: #83b9e8; background: #1d2b37; }
+  .markdown-content blockquote.markdown-callout-note > p:first-child strong { color: #a5d2f5; }
+  .markdown-content blockquote.markdown-callout-tip { border-color: #8fbd83; background: #202e1f; }
+  .markdown-content blockquote.markdown-callout-tip > p:first-child strong { color: #b6dcae; }
+  .markdown-content blockquote.markdown-callout-important { border-color: #b69ad2; background: #2b2334; }
+  .markdown-content blockquote.markdown-callout-important > p:first-child strong { color: #d3b8ef; }
+  .markdown-content blockquote.markdown-callout-warning { border-color: #d4ae69; background: #332b1e; }
+  .markdown-content blockquote.markdown-callout-warning > p:first-child strong { color: #f0ca85; }
+  .markdown-content blockquote.markdown-callout-caution { border-color: #df8d86; background: #352322; }
+  .markdown-content blockquote.markdown-callout-caution > p:first-child strong { color: #f1aaa4; }
+  .progress li { color: #aab5a8; }
+  .progress-number { border-color: #465146; }
+  .progress li.current { color: #d8e8d1; }
+  .progress li.current .progress-number { background: #526b55; border-color: #526b55; }
+  .progress li.completed .progress-number { color: #c4dabb; background: #29372a; border-color: #3d4b3b; }
+  .flow-panel, .side-panel { border-color: #303a31; }
+  .flow-panel { background: #1b211c; }
+  .step-number { border-color: #465146; }
+  .period-toggle { background: #242c25; }
+  .period-toggle button { color: #aab5a8; }
+  .period-toggle button.active { background: #354035; color: #edf1eb; }
+  .plan-card { border-color: #39483a; background: #1d241e; }
+  .features { border-color: #303a31; }
+  .features li { color: #c0c9bd; }
+  .selection-row { border-color: #39483a; background: #1d241e; }
+  .auth-tabs a.active { color: #c4dabb; border-color: #8fac84; }
+  .checkout-summary { background: #222923; }
+  .error-message { color: #f09a91; }
+  .side-panel { background: #222c23; }
+  .art-orbit { border-color: #465746; }
+  .art-dot { background: #9db991; }
+  .aside-bottom { border-color: #39483a; }
+}

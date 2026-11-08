@@ -1,6 +1,11 @@
 import { join } from "node:path";
 import { notFound } from "next/navigation";
-import { getMarkdownParams, renderMarkdown } from "@/lib/markdown";
+import ActivityCard from "@/components/activity-card";
+import {
+  getMarkdownMetadata,
+  getMarkdownParams,
+  renderMarkdown,
+} from "@/lib/markdown";
 
 const markdownDirectory = join(process.cwd(), "content", "markdown");
 
@@ -20,9 +25,19 @@ export default async function PublicMarkdownPage({
   if (content === null) {
     notFound();
   }
+  const metadata = await getMarkdownMetadata(markdownDirectory, slug);
 
   return (
     <main className="markdown-page">
+      <div className="activity-detail-card">
+        <ActivityCard
+          {...metadata}
+          slug={slug}
+          isCurrent
+          detailBasePath="/more"
+          tagBasePath="/more/tag"
+        />
+      </div>
       <article
         className="markdown-content"
         dangerouslySetInnerHTML={{ __html: content }}

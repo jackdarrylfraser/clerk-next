@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { join } from "node:path";
 import { Suspense } from "react";
-import { getMarkdownParams } from "@/lib/markdown";
+import ActivityCard from "@/components/activity-card";
+import { getMarkdownParamsWithMetadata } from "@/lib/markdown";
 
 const markdownDirectory = join(process.cwd(), "content", "markdown");
 const pagesPerPage = 2;
@@ -26,14 +27,15 @@ async function MorePageContent({
   const { page: pageParam } = await searchParams;
   const requestedPage =
     typeof pageParam === "string" ? Number(pageParam) : Number.NaN;
-  const pages = await getMarkdownParams(markdownDirectory, "slug");
+  const pages = await getMarkdownParamsWithMetadata(markdownDirectory, "slug");
   const pageCount = Math.max(1, Math.ceil(pages.length / pagesPerPage));
   const currentPage = Number.isSafeInteger(requestedPage)
     ? Math.min(pageCount, Math.max(1, requestedPage))
     : 1;
-  const pageSlugs = pages
-    .slice((currentPage - 1) * pagesPerPage, currentPage * pagesPerPage)
-    .map(({ slug }) => slug);
+  const pageEntries = pages.slice(
+    (currentPage - 1) * pagesPerPage,
+    currentPage * pagesPerPage,
+  );
   const firstPage = (currentPage - 1) * pagesPerPage + 1;
   const lastPage = Math.min(currentPage * pagesPerPage, pages.length);
 
@@ -45,22 +47,23 @@ async function MorePageContent({
         <p>Browse the public pages available on this site.</p>
       </div>
       <div className="activity-list-container">
-        {pageSlugs.length > 0 ? (
+        {pageEntries.length > 0 ? (
           <>
             <p className="activity-count">
               Showing {firstPage}-{lastPage} of {pages.length}{" "}
               {pages.length === 1 ? "page" : "pages"}
             </p>
             <ul className="activity-list">
-              {pageSlugs.map((slug) => (
-                <li key={slug}>
-                  <Link
-                    href={`/more/${slug}`}
-                    className="activity-card-link"
-                  >
-                    <span className="activity-card-title">{slug}</span>
-                    <span aria-hidden="true">→</span>
-                  </Link>
+              {pageEntries.map((page) => (
+                <li key={page.slug}>
+                  <ActivityCard
+                    slug={page.slug}
+                    title={page.title}
+                    description={page.description}
+                    tags={page.tags}
+                    detailBasePath="/more"
+                    tagBasePath="/more/tag"
+                  />
                 </li>
               ))}
             </ul>

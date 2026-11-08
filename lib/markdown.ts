@@ -153,10 +153,10 @@ function rehypeRepairSanitizedFragments() {
   };
 }
 
-export async function getMarkdownParams(
+export async function getMarkdownParams<Parameter extends string>(
   directory: string,
-  parameter: string,
-): Promise<Record<string, string>[]> {
+  parameter: Parameter,
+): Promise<Array<Record<Parameter, string>>> {
   const entries = await readdir(directory, { withFileTypes: true });
 
   return entries
@@ -167,19 +167,26 @@ export async function getMarkdownParams(
 
       return slugPattern.test(entry.name.slice(0, -3));
     })
-    .map((entry) => ({ [parameter]: entry.name.slice(0, -3) }))
+    .map(
+      (entry) =>
+        ({ [parameter]: entry.name.slice(0, -3) }) as Record<Parameter, string>,
+    )
     .sort((a, b) => a[parameter].localeCompare(b[parameter]));
 }
 
-export async function getActivityMarkdownParams(
+export async function getMarkdownParamsWithMetadata<Parameter extends string>(
   directory: string,
-  parameter: string,
-): Promise<Record<string, string>[]> {
+  parameter: Parameter,
+): Promise<
+  Array<Record<Parameter, string> & { title: string; description: string; tags: string[] }>
+> {
   const params = await getMarkdownParams(directory, parameter);
-  await Promise.all(
-    params.map((entry) => getMarkdownMetadata(directory, entry[parameter])),
+  return Promise.all(
+    params.map(async (entry) => ({
+      ...entry,
+      ...(await getMarkdownMetadata(directory, entry[parameter])),
+    })),
   );
-  return params;
 }
 
 export async function getMarkdownMetadata(
@@ -205,7 +212,7 @@ export async function getMarkdownMetadata(
 
   if (missingFields.length) {
     throw new Error(
-      `Invalid activity metadata in ${join(directory, `${slug}.md`)}: required frontmatter is missing or invalid for ${missingFields.join(", ")}.`,
+      `Invalid markdown metadata in ${join(directory, `${slug}.md`)}: required frontmatter is missing or invalid for ${missingFields.join(", ")}.`,
     );
   }
 

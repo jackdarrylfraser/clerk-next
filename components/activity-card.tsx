@@ -7,6 +7,8 @@ type ActivityCardProps = {
   description: string;
   tags: string[];
   isCurrent?: boolean;
+  detailBasePath?: string;
+  tagBasePath?: string;
 };
 
 export default function ActivityCard({
@@ -15,6 +17,8 @@ export default function ActivityCard({
   description,
   tags,
   isCurrent = false,
+  detailBasePath = "/activity",
+  tagBasePath = "/activity/tag",
 }: ActivityCardProps) {
   const copy = (
     <span className="activity-card-copy">
@@ -30,7 +34,7 @@ export default function ActivityCard({
       ) : (
         <Link
           className="activity-card-link"
-          href={`/activity/${encodeURIComponent(slug)}`}
+          href={`${detailBasePath}/${encodeURIComponent(slug)}`}
         >
           {copy}
           <span aria-hidden="true">→</span>
@@ -40,7 +44,7 @@ export default function ActivityCard({
         {tags.map((tag) => (
           <Link
             className="activity-card-tag"
-            href={`/tag/${getTagSlug(tag)}`}
+            href={`${tagBasePath}/${getTagSlug(tag)}`}
             key={tag}
           >
             {tag}
