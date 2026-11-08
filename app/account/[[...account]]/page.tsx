@@ -1,12 +1,25 @@
 import { UserProfile } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { Suspense } from "react";
+import { isDevAuthBypassEnabled } from "@/lib/auth";
 
 export default function AccountPage() {
   return <Suspense fallback={<main className="loading-page">Loading your account...</main>}><Account /></Suspense>;
 }
 
 async function Account() {
+  if (isDevAuthBypassEnabled) {
+    return (
+      <main className="account-page">
+        <div className="account-heading">
+          <div className="eyebrow"><span /> YOUR MEMBERSHIP</div>
+          <h1>Your account.</h1>
+          <p>Account management requires a signed-in Clerk session.</p>
+        </div>
+      </main>
+    );
+  }
+
   const { isAuthenticated, redirectToSignIn } = await auth();
   if (!isAuthenticated) return redirectToSignIn({ returnBackUrl: "/account" });
 

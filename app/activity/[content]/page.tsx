@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { join } from "node:path";
+import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { getMarkdownParams, renderMarkdown } from "@/lib/markdown";
 
 const activityDirectory = join(process.cwd(), "content", "activity");
@@ -15,7 +16,9 @@ async function PermissionedActivityPage({
 }: {
   params: Promise<{ content: string }>;
 }) {
-  await auth.protect({ feature: "user:site_access" });
+  if (!isDevAuthBypassEnabled) {
+    await auth.protect({ feature: "user:site_access" });
+  }
 
   const { content: slug } = await params;
   const renderedContent = await renderMarkdown(activityDirectory, slug);

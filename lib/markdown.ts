@@ -1,7 +1,9 @@
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
+import matter from "gray-matter";
 import { remark } from "remark";
 import html from "remark-html";
+import { getTagSlug } from "@/lib/tags";
 
 const slugPattern = /^[a-z0-9_-]+$/i;
 
@@ -23,19 +25,31 @@ export async function getMarkdownParams(
     .sort((a, b) => a[parameter].localeCompare(b[parameter]));
 }
 
-export async function getMarkdownTitle(
+export async function getMarkdownMetadata(
   directory: string,
   slug: string,
-): Promise<string> {
+): Promise<{ title: string; description?: string; tags?: string[] }> {
   const source = await readFile(join(directory, `${slug}.md`), "utf8");
-  const heading = source.match(/^#\s+(.+)$/m)?.[1]?.trim();
-  if (heading) {
-    return heading;
-  }
+  const { content, data } = matter(source);
+  const frontmatterTitle =
+    typeof data.title === "string" ? data.title.trim() : "";
+  const frontmatterDescription =
+    typeof data.description === "string" ? data.description.trim() : "";
+  const frontmatterTags = Array.isArray(data.tags)
+    ? data.tags.filter((tag): tag is string => typeof tag === "string")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag && getTagSlug(tag))
+    : [];
+  const heading = content.match(/^#\s+(.+)$/m)?.[1]?.trim();
 
-  return slug
-    .replace(/[-_]+/g, " ")
-    .replace(/\b\w/g, (character) => character.toUpperCase());
+  return {
+    title:
+      frontmatterTitle ||
+      heading ||
+      slug.replace(/[-_]+/g, " ").replace(/\b\w/g, (character) => character.toUpperCase()),
+    ...(frontmatterDescription ? { description: frontmatterDescription } : {}),
+    ...(frontmatterTags.length > 0 ? { tags: frontmatterTags } : {}),
+  };
 }
 
 export async function renderMarkdown(
@@ -61,5 +75,5 @@ export async function renderMarkdown(
     throw error;
   }
 
-  return String(await remark().use(html).process(source));
+  return String(await remark().use(html).process(matter(source).content));
 }

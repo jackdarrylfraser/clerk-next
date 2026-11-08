@@ -3,7 +3,8 @@ import Link from "next/link";
 import { join } from "node:path";
 import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
-import { getMarkdownParams, getMarkdownTitle } from "@/lib/markdown";
+import { isDevAuthBypassEnabled } from "@/lib/auth";
+import { getMarkdownMetadata, getMarkdownParams } from "@/lib/markdown";
 
 const activityDirectory = join(process.cwd(), "content", "activity");
 const activitiesPerPage = 5;
@@ -25,7 +26,8 @@ async function HomeContent({
 }: {
   searchParams: Promise<{ page?: string | string[] }>;
 }) {
-  const { isAuthenticated } = await auth();
+  const isAuthenticated =
+    isDevAuthBypassEnabled || (await auth()).isAuthenticated;
   if (isAuthenticated) {
     const { page: pageParam } = await searchParams;
     const requestedPage =
@@ -43,7 +45,7 @@ async function HomeContent({
         )
         .map(async ({ content }) => ({
           content,
-          title: await getMarkdownTitle(activityDirectory, content),
+          ...(await getMarkdownMetadata(activityDirectory, content)),
         })),
     );
     const firstActivity = (currentPage - 1) * activitiesPerPage + 1;
@@ -69,7 +71,12 @@ async function HomeContent({
               <ul className="activity-list">
                 {pageActivities.map((activity) => (
                   <li key={activity.content}>
-                    <ActivityCard slug={activity.content} title={activity.title} />
+                    <ActivityCard
+                      slug={activity.content}
+                      title={activity.title}
+                      description={activity.description}
+                      tags={activity.tags}
+                    />
                   </li>
                 ))}
               </ul>

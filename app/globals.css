@@ -42,7 +42,13 @@ h1, .side-panel h2 { font-family: Georgia, "Times New Roman", serif; letter-spac
 .activity-list-container { align-self: center; max-width: 640px; width: 100%; }
 .activity-count { color: #858c81; font-size: 11px; margin: 0 0 12px; }
 .activity-list { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
-.activity-card { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 19px 20px; border: 1px solid #e1e6dd; border-radius: 5px; background: #fff; color: var(--green); font-size: 14px; }
+.activity-card { display: grid; gap: 10px; padding: 19px 20px; border: 1px solid #e1e6dd; border-radius: 5px; background: #fff; }
+.activity-card-link { display: flex; justify-content: space-between; align-items: center; gap: 16px; color: var(--green); font-size: 14px; }
+.activity-card-copy { display: grid; gap: 4px; }
+.activity-card-description { color: #858c81; font-size: 12px; line-height: 1.5; }
+.activity-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.activity-card-tag { padding: 3px 7px; border-radius: 999px; background: #edf2e9; color: #536b4f; font-size: 10px; line-height: 1.2; }
+.activity-card-tag:hover, .activity-card-tag:focus-visible { background: #dfe9d8; text-decoration: underline; }
 .activity-card:hover { border-color: #9db190; background: #fbfcf9; }
 .activity-pagination { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 24px; color: #858c81; font-size: 12px; }
 .activity-pagination a { color: var(--green); font-weight: 700; }

@@ -23,6 +23,8 @@ pnpm dev
 bun dev
 ```
 
+To browse member activities without signing in locally, add `DEV_AUTH_BYPASS=true` to `.env.local` and restart the development server. This bypass is active only with `next dev`; production builds and deployments always use Clerk authentication and permissions. The `/account` page displays a notice instead of Clerk's profile while the bypass is enabled.
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
