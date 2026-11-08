@@ -56,21 +56,48 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
           <span className="brand-mark">✳</span> MEMBERSHIP
         </Link>
         <div className="header-right">
-          <span className="secure-label"><span>●</span> SECURE CHECKOUT</span>
-          {isLoaded && isSignedIn && <><Link href="/account" className="account-link">My account</Link><UserButton /></>}
+          <span className="secure-label">
+            <span>●</span> SECURE CHECKOUT
+          </span>
+          {isLoaded && isSignedIn && (
+            <>
+              <Link href="/account" className="account-link">
+                My account
+              </Link>
+              <UserButton />
+            </>
+          )}
         </div>
       </header>
 
       <main className="main-content">
-
         <nav className="progress" aria-label="Subscription progress">
           <ol>
             {steps.map((item, index) => {
-              const completed = index < stepIndex && (item.key === "plan" ? !!selectedId : item.key === "account" && !!isSignedIn);
+              const completed =
+                index < stepIndex &&
+                (item.key === "plan"
+                  ? !!selectedId
+                  : item.key === "account" && !!isSignedIn);
               return (
-                <li key={item.key} className={index === stepIndex ? "current" : completed ? "completed" : ""} aria-current={index === stepIndex ? "step" : undefined}>
-                  <span className="progress-number">{completed ? "✓" : `0${index + 1}`}</span>
-                  <span><strong>{item.title}</strong><small>{item.description}</small></span>
+                <li
+                  key={item.key}
+                  className={
+                    index === stepIndex
+                      ? "current"
+                      : completed
+                        ? "completed"
+                        : ""
+                  }
+                  aria-current={index === stepIndex ? "step" : undefined}
+                >
+                  <span className="progress-number">
+                    {completed ? "✓" : `0${index + 1}`}
+                  </span>
+                  <span>
+                    <strong>{item.title}</strong>
+                    <small>{item.description}</small>
+                  </span>
                 </li>
               );
             })}
@@ -83,85 +110,254 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
               <>
                 <div className="section-heading">
                   <span className="step-number">01</span>
-                  <div><h2>Choose your plan</h2><p>Find the right fit for you.</p></div>
+                  <div>
+                    <h2>Choose your plan</h2>
+                    <p>Find the right fit for you.</p>
+                  </div>
                 </div>
                 <div className="period-toggle" aria-label="Billing period">
-                  <button type="button" className={chosenPeriod === "month" ? "active" : ""} aria-pressed={chosenPeriod === "month"} onClick={() => setChosenPeriod("month")}>Monthly</button>
-                  <button type="button" className={chosenPeriod === "annual" ? "active" : ""} aria-pressed={chosenPeriod === "annual"} onClick={() => setChosenPeriod("annual")}>Yearly</button>
+                  <button
+                    type="button"
+                    className={chosenPeriod === "month" ? "active" : ""}
+                    aria-pressed={chosenPeriod === "month"}
+                    onClick={() => setChosenPeriod("month")}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    type="button"
+                    className={chosenPeriod === "annual" ? "active" : ""}
+                    aria-pressed={chosenPeriod === "annual"}
+                    onClick={() => setChosenPeriod("annual")}
+                  >
+                    Yearly
+                  </button>
                 </div>
-                {plans.isLoading && <p className="status-message">Loading available plans...</p>}
-                {plans.isError && <p className="error-message" role="alert">Couldn&apos;t load plans. Please refresh the page and try again.</p>}
-                {!plans.isLoading && !plans.isError && plans.data?.length === 0 && <p className="status-message">No plans are available yet. Please check back soon.</p>}
+                {plans.isLoading && (
+                  <p className="status-message">Loading available plans...</p>
+                )}
+                {plans.isError && (
+                  <p className="error-message" role="alert">
+                    Couldn&apos;t load plans. Please refresh the page and try
+                    again.
+                  </p>
+                )}
+                {!plans.isLoading &&
+                  !plans.isError &&
+                  plans.data?.length === 0 && (
+                    <p className="status-message">
+                      No plans are available yet. Please check back soon.
+                    </p>
+                  )}
                 <div className="plans">
                   {plans.data?.map((plan) => {
-                    const price = chosenPeriod === "annual" ? plan.annualFee : plan.fee;
-                    const available = chosenPeriod === "month" ? !!plan.fee || !plan.hasBaseFee : !!plan.annualFee;
+                    const price =
+                      chosenPeriod === "annual" ? plan.annualFee : plan.fee;
+                    const available =
+                      chosenPeriod === "month"
+                        ? !!plan.fee || !plan.hasBaseFee
+                        : !!plan.annualFee;
                     return (
                       <article className="plan-card" key={plan.id}>
-                        <div className="plan-top"><div><h3>{plan.name}</h3><p>{plan.description || "A membership made for you."}</p></div><span className="plan-sparkle">✳</span></div>
-                        <div className="plan-price">{price ? money(price) : available ? "Free" : "Unavailable"}{price && <span> / {chosenPeriod === "month" ? "month" : "year"}</span>}</div>
-                        {plan.freeTrialEnabled && plan.freeTrialDays && <p className="trial-note">{plan.freeTrialDays}-day free trial, if eligible</p>}
-                        {plan.features.length > 0 && <ul className="features">{plan.features.map((feature) => <li key={feature.id}><span>✓</span>{feature.name}</li>)}</ul>}
-                        {available ? <Link className="primary-button" href={`/subscribe/account?plan=${encodeURIComponent(plan.id)}&period=${chosenPeriod}`}>Choose this plan <span>↗</span></Link> : <button className="primary-button" disabled>Not available yearly <span>↗</span></button>}
+                        <div className="plan-top">
+                          <div>
+                            <h3>{plan.name}</h3>
+                            <p>
+                              {plan.description || "A membership made for you."}
+                            </p>
+                          </div>
+                          <span className="plan-sparkle">✳</span>
+                        </div>
+                        <div className="plan-price">
+                          {price
+                            ? money(price)
+                            : available
+                              ? "Free"
+                              : "Unavailable"}
+                          {price && (
+                            <span>
+                              {" "}
+                              / {chosenPeriod === "month" ? "month" : "year"}
+                            </span>
+                          )}
+                        </div>
+                        {plan.freeTrialEnabled && plan.freeTrialDays && (
+                          <p className="trial-note">
+                            {plan.freeTrialDays}-day free trial, if eligible
+                          </p>
+                        )}
+                        {plan.features.length > 0 && (
+                          <ul className="features">
+                            {plan.features.map((feature) => (
+                              <li key={feature.id}>
+                                <span>✓</span>
+                                {feature.name}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {available ? (
+                          <Link
+                            className="primary-button"
+                            href={`/subscribe/account?plan=${encodeURIComponent(plan.id)}&period=${chosenPeriod}`}
+                          >
+                            Choose this plan <span>↗</span>
+                          </Link>
+                        ) : (
+                          <button className="primary-button" disabled>
+                            Not available yearly <span>↗</span>
+                          </button>
+                        )}
                       </article>
                     );
                   })}
                 </div>
-                {plans.hasNextPage && <button className="text-button" onClick={() => plans.fetchNext()}>Load more plans +</button>}
-                {selectedId && <p className="resume-checkout">Already chose a plan? <Link href={accountUrl}>Continue checkout →</Link></p>}
-              </>
-            )}
-
-            {step !== "plan" && (
-              <>
-                <Link href={step === "account" || !selectedId ? "/" : accountUrl} className="back-link">← {step === "account" || !selectedId ? "Back to plans" : "Back to account"}</Link>
-                <div className="section-heading">
-                  <span className="step-number">{step === "account" ? "02" : "03"}</span>
-                  <div>
-                    <h2>{step === "account" ? "Your account" : "Payment details"}</h2>
-                    <p>{step === "account" ? "Create an account or sign in to continue." : "Review your order and complete your subscription."}</p>
-                  </div>
-                </div>
-                {!selectedId ? (
-                  <div className="step-message"><p>Please choose a plan before continuing.</p><Link className="primary-button" href="/">View plans <span>↗</span></Link></div>
-                ) : (
-                  <>
-                    <div className="selection-row">
-                      <div><strong>{plans.data?.find((plan) => plan.id === selectedId)?.name || "Selected plan"}</strong><span>{period === "month" ? "Monthly" : "Yearly"} billing</span></div>
-                      <Link href="/" className="text-button">Change</Link>
-                    </div>
-                    {!isLoaded ? <p className="muted-indent">Loading your account...</p> : step === "account" ? (
-                      isSignedIn ? (
-                        <div className="step-message"><p className="complete-state"><span>✓</span> You&apos;re signed in and ready to continue.</p><Link className="primary-button" href={paymentUrl}>Continue to payment <span>↗</span></Link></div>
-                      ) : (
-                        <div className="auth-container">
-                          <div className="auth-tabs">
-                            <Link scroll={false} className={authMode === "sign-up" ? "active" : ""} href={`${accountUrl}&auth=sign-up`}>Create account</Link>
-                            <Link scroll={false} className={authMode === "sign-in" ? "active" : ""} href={`${accountUrl}&auth=sign-in`}>Sign in</Link>
-                          </div>
-                          {authMode === "sign-in" ? (
-                            <SignIn routing="hash" forceRedirectUrl={paymentUrl} signUpUrl={`${accountUrl}&auth=sign-up`} appearance={authAppearance} />
-                          ) : (
-                            <SignUp routing="hash" forceRedirectUrl={paymentUrl} signInUrl={`${accountUrl}&auth=sign-in`} appearance={authAppearance} />
-                          )}
-                        </div>
-                      )
-                    ) : isSignedIn ? (
-                      <CheckoutProvider key={`${selectedId}-${period}`} for="user" planId={selectedId} planPeriod={period}>
-                        <Checkout />
-                      </CheckoutProvider>
-                    ) : (
-                      <div className="step-message"><p>Sign in or create an account before entering payment details.</p><Link href={accountUrl} className="primary-button">Continue to account <span>↗</span></Link></div>
-                    )}
-                  </>
+                {plans.hasNextPage && (
+                  <button
+                    className="text-button"
+                    onClick={() => plans.fetchNext()}
+                  >
+                    Load more plans +
+                  </button>
+                )}
+                {selectedId && (
+                  <p className="resume-checkout">
+                    Already chose a plan?{" "}
+                    <Link href={accountUrl}>Continue checkout →</Link>
+                  </p>
                 )}
               </>
             )}
 
-          </section>
+            {step == "account" && (
+              <>
+                <Link
+                  href={step === "account" || !selectedId ? "/" : accountUrl}
+                  className="back-link"
+                >
+                  ←{" "}
+                  {step === "account" || !selectedId
+                    ? "Back to plans"
+                    : "Back to account"}
+                </Link>
+                <div className="section-heading">
+                  <span className="step-number">
+                    {step === "account" ? "02" : "03"}
+                  </span>
+                  <div>
+                    <h2>
+                      {step === "account" ? "Your account" : "Payment details"}
+                    </h2>
+                    <p>
+                      {step === "account"
+                        ? "Create an account or sign in to continue."
+                        : "Review your order and complete your subscription."}
+                    </p>
+                  </div>
+                </div>
+                {!selectedId ? (
+                  <div className="step-message">
+                    <p>Please choose a plan before continuing.</p>
+                    <Link className="primary-button" href="/">
+                      View plans <span>↗</span>
+                    </Link>
+                  </div>
+                ) : null}
+              </>
+            )}
 
+            {step == "payment" && (
+              <>
+                <div className="selection-row">
+                  <div>
+                    <strong>
+                      {plans.data?.find((plan) => plan.id === selectedId)
+                        ?.name || "Selected plan"}
+                    </strong>
+                    <span>
+                      {period === "month" ? "Monthly" : "Yearly"} billing
+                    </span>
+                  </div>
+                  <Link href="/" className="text-button">
+                    Change
+                  </Link>
+                </div>
+                {!isLoaded ? (
+                  <p className="muted-indent">Loading your account...</p>
+                ) : step === "account" ? (
+                  isSignedIn ? (
+                    <div className="step-message">
+                      <p className="complete-state">
+                        <span>✓</span> You&apos;re signed in and ready to
+                        continue.
+                      </p>
+                      <Link className="primary-button" href={paymentUrl}>
+                        Continue to payment <span>↗</span>
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="auth-container">
+                      <div className="auth-tabs">
+                        <Link
+                          scroll={false}
+                          className={authMode === "sign-up" ? "active" : ""}
+                          href={`${accountUrl}&auth=sign-up`}
+                        >
+                          Create account
+                        </Link>
+                        <Link
+                          scroll={false}
+                          className={authMode === "sign-in" ? "active" : ""}
+                          href={`${accountUrl}&auth=sign-in`}
+                        >
+                          Sign in
+                        </Link>
+                      </div>
+                      {authMode === "sign-in" ? (
+                        <SignIn
+                          routing="hash"
+                          forceRedirectUrl={paymentUrl}
+                          signUpUrl={`${accountUrl}&auth=sign-up`}
+                          appearance={authAppearance}
+                        />
+                      ) : (
+                        <SignUp
+                          routing="hash"
+                          forceRedirectUrl={paymentUrl}
+                          signInUrl={`${accountUrl}&auth=sign-in`}
+                          appearance={authAppearance}
+                        />
+                      )}
+                    </div>
+                  )
+                ) : isSignedIn ? (
+                  <CheckoutProvider
+                    key={`${selectedId}-${period}`}
+                    for="user"
+                    planId={selectedId}
+                    planPeriod={period}
+                  >
+                    <Checkout />
+                  </CheckoutProvider>
+                ) : (
+                  <div className="step-message">
+                    <p>
+                      Sign in or create an account before entering payment
+                      details.
+                    </p>
+                    <Link href={accountUrl} className="primary-button">
+                      Continue to account <span>↗</span>
+                    </Link>
+                  </div>
+                )}
+              </>
+            )}
+          </section>
         </div>
-        <footer className="site-footer"><span>© {new Date().getFullYear()} MEMBERSHIP</span><span>YOUR NEXT CHAPTER STARTS HERE ↗</span></footer>
+        <footer className="site-footer">
+          <span>© {new Date().getFullYear()} MEMBERSHIP</span>
+          <span>YOUR NEXT CHAPTER STARTS HERE ↗</span>
+        </footer>
       </main>
     </div>
   );
@@ -175,7 +371,8 @@ function Checkout() {
     setError("");
     try {
       const result = await checkout.start();
-      if (result.error) setError(result.error.longMessage || result.error.message);
+      if (result.error)
+        setError(result.error.longMessage || result.error.message);
     } catch (err) {
       console.error("Unable to start checkout", err);
       setError("Unable to start checkout. Please try again.");
@@ -183,15 +380,60 @@ function Checkout() {
   }
 
   if (checkout.status === "needs_initialization") {
-    return <div className="checkout-content"><p>Review your total and enter your payment details securely.</p>{error && <p className="error-message" role="alert">{error}</p>}<button className="primary-button" onClick={start} disabled={fetchStatus === "fetching"}>{fetchStatus === "fetching" ? "Preparing checkout..." : "Continue to payment"} <span>↗</span></button></div>;
+    return (
+      <div className="checkout-content">
+        <p>Review your total and enter your payment details securely.</p>
+        {error && (
+          <p className="error-message" role="alert">
+            {error}
+          </p>
+        )}
+        <button
+          className="primary-button"
+          onClick={start}
+          disabled={fetchStatus === "fetching"}
+        >
+          {fetchStatus === "fetching"
+            ? "Preparing checkout..."
+            : "Continue to payment"}{" "}
+          <span>↗</span>
+        </button>
+      </div>
+    );
   }
 
   return (
     <div className="checkout-content">
-      <div className="checkout-summary"><span>{checkout.plan.name} · {checkout.planPeriod === "month" ? "Monthly" : "Yearly"}</span><strong>Due today: {checkout.totals.totalDueNow ? money(checkout.totals.totalDueNow) : "See payment details"}</strong></div>
-      {checkout.totals.totalDuePerPeriod && <p className="renewal-note">Renews at {money(checkout.totals.totalDuePerPeriod)} per {checkout.planPeriod === "month" ? "month" : "year"} unless canceled.</p>}
-      {checkout.freeTrialEndsAt && <p className="renewal-note">Trial ends {new Date(checkout.freeTrialEndsAt).toLocaleDateString()}.</p>}
-      {!checkout.needsPaymentMethod ? <PaymentForm /> : <PaymentElementProvider checkout={checkout}><PaymentForm withPayment /></PaymentElementProvider>}
+      <div className="checkout-summary">
+        <span>
+          {checkout.plan.name} ·{" "}
+          {checkout.planPeriod === "month" ? "Monthly" : "Yearly"}
+        </span>
+        <strong>
+          Due today:{" "}
+          {checkout.totals.totalDueNow
+            ? money(checkout.totals.totalDueNow)
+            : "See payment details"}
+        </strong>
+      </div>
+      {checkout.totals.totalDuePerPeriod && (
+        <p className="renewal-note">
+          Renews at {money(checkout.totals.totalDuePerPeriod)} per{" "}
+          {checkout.planPeriod === "month" ? "month" : "year"} unless canceled.
+        </p>
+      )}
+      {checkout.freeTrialEndsAt && (
+        <p className="renewal-note">
+          Trial ends {new Date(checkout.freeTrialEndsAt).toLocaleDateString()}.
+        </p>
+      )}
+      {!checkout.needsPaymentMethod ? (
+        <PaymentForm />
+      ) : (
+        <PaymentElementProvider checkout={checkout}>
+          <PaymentForm withPayment />
+        </PaymentElementProvider>
+      )}
     </div>
   );
 }
@@ -202,10 +444,18 @@ function PaymentForm({ withPayment = false }: { withPayment?: boolean }) {
 
 function NewPaymentForm() {
   const { submit, isFormReady } = usePaymentElement();
-  return <ConfirmPayment submitPayment={submit} ready={isFormReady}><PaymentElement fallback={<p>Loading secure payment form...</p>} /></ConfirmPayment>;
+  return (
+    <ConfirmPayment submitPayment={submit} ready={isFormReady}>
+      <PaymentElement fallback={<p>Loading secure payment form...</p>} />
+    </ConfirmPayment>
+  );
 }
 
-function ConfirmPayment({ submitPayment, ready = true, children }: {
+function ConfirmPayment({
+  submitPayment,
+  ready = true,
+  children,
+}: {
   submitPayment?: ReturnType<typeof usePaymentElement>["submit"];
   ready?: boolean;
   children?: React.ReactNode;
@@ -217,7 +467,12 @@ function ConfirmPayment({ submitPayment, ready = true, children }: {
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if ((!ready && checkout.status !== "completed") || processing || fetchStatus === "fetching") return;
+    if (
+      (!ready && checkout.status !== "completed") ||
+      processing ||
+      fetchStatus === "fetching"
+    )
+      return;
     setProcessing(true);
     setError("");
     try {
@@ -226,7 +481,10 @@ function ConfirmPayment({ submitPayment, ready = true, children }: {
         if (submitPayment) {
           const result = await submitPayment();
           if (result.error) {
-            setError(result.error.error.message || "Please check your payment details.");
+            setError(
+              result.error.error.message ||
+                "Please check your payment details.",
+            );
             return;
           }
           payment = result.data;
@@ -244,7 +502,8 @@ function ConfirmPayment({ submitPayment, ready = true, children }: {
           else router.push(url);
         },
       });
-      if (result.error) setError(result.error.longMessage || result.error.message);
+      if (result.error)
+        setError(result.error.longMessage || result.error.message);
     } catch (err) {
       console.error("Checkout failed", err);
       setError("We couldn't complete checkout. Please try again.");
@@ -253,5 +512,33 @@ function ConfirmPayment({ submitPayment, ready = true, children }: {
     }
   }
 
-  return <form onSubmit={submit} className="payment-form">{checkout.status !== "completed" && children}{error && <p className="error-message" role="alert">{error}</p>}<button type="submit" className="primary-button" disabled={(!ready && checkout.status !== "completed") || processing || fetchStatus === "fetching"}>{processing || fetchStatus === "fetching" ? "Processing..." : checkout.status === "completed" ? "Finish checkout" : "Complete subscription"} <span>↗</span></button><p className="payment-note">Your payment information is securely handled by Clerk and Stripe.</p></form>;
+  return (
+    <form onSubmit={submit} className="payment-form">
+      {checkout.status !== "completed" && children}
+      {error && (
+        <p className="error-message" role="alert">
+          {error}
+        </p>
+      )}
+      <button
+        type="submit"
+        className="primary-button"
+        disabled={
+          (!ready && checkout.status !== "completed") ||
+          processing ||
+          fetchStatus === "fetching"
+        }
+      >
+        {processing || fetchStatus === "fetching"
+          ? "Processing..."
+          : checkout.status === "completed"
+            ? "Finish checkout"
+            : "Complete subscription"}{" "}
+        <span>↗</span>
+      </button>
+      <p className="payment-note">
+        Your payment information is securely handled by Clerk and Stripe.
+      </p>
+    </form>
+  );
 }
