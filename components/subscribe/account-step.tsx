@@ -9,8 +9,6 @@ const authAppearance = {
 };
 
 export function AccountStep({
-  selectedId,
-  isLoaded,
   isSignedIn,
   authMode,
   plansUrl,
@@ -18,8 +16,6 @@ export function AccountStep({
   termsUrl,
   onClearTermsAcceptance,
 }: {
-  selectedId: string | null;
-  isLoaded: boolean;
   isSignedIn: boolean;
   authMode: "sign-in" | "sign-up";
   plansUrl: string;
@@ -43,16 +39,7 @@ export function AccountStep({
           <p>Subscribe to create an account, or sign in to continue.</p>
         </div>
       </div>
-      {!selectedId ? (
-        <div className="step-message">
-          <p>Please choose a plan before continuing.</p>
-          <Link className="primary-button" href="/">
-            View plans <span>↗</span>
-          </Link>
-        </div>
-      ) : !isLoaded ? (
-        <p className="muted-indent">Loading your account...</p>
-      ) : isSignedIn ? (
+      {isSignedIn ? (
         <div className="step-message">
           <p className="complete-state">
             <span>✓</span> You&apos;re signed in and ready to continue.
