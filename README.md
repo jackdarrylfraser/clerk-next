@@ -4,10 +4,23 @@ The subscription flow has three pages: choose a Clerk Billing user plan at `/`, 
 
 ## Clerk configuration
 
-- Configure `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` in `.env.local`.
+- Configure `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` in `.env.local`. These required values are validated at build time.
 - Enable [Clerk Billing for users](https://clerk.com/docs/nextjs/guides/billing/for-b2c), connect a payment provider, and create publicly visible user plans in the Clerk Dashboard. The checkout uses the live plan names, prices, features, and trial settings; no plan IDs are hard-coded.
 - Enable the desired sign-in and sign-up methods in Clerk. Clerk's embedded authentication handles the configured verification and multi-factor requirements. Checkout must authenticate before securely collecting payment details.
 - Test payments in a development instance with [Stripe test cards](https://docs.stripe.com/testing). Clerk Billing checkout APIs are experimental; see [Clerk's version pinning guidance](https://clerk.com/docs/pinning) before deploying.
+
+## Subscription emails
+
+The app sends a welcome email when Clerk emits a `subscription.created` event for a user subscription. The email is sent asynchronously after checkout and does not delay the checkout flow.
+
+- Set `RESEND_API_KEY` to a Resend API key and `RESEND_FROM_EMAIL` to a sender address on a domain verified with Resend.
+- Set `APP_URL` to the app's origin, such as `https://example.com`; the email links to `/account`.
+- Add a Clerk webhook endpoint at `${APP_URL}/api/webhooks/clerk`, subscribe it to `subscription.created`, and set its signing secret as `CLERK_WEBHOOK_SIGNING_SECRET`.
+- Configure these variables in `.env.local` for local development and in the deployment environment for production.
+
+The webhook verifies each request with Clerk before processing it. Resend idempotency keys prevent duplicate sends for the same subscription during Resend's 24-hour key-retention window.
+
+Environment variables are validated with Zod through T3 Env in [env.ts](./env.ts). The Resend settings and `APP_URL` are required at build time; the Clerk webhook signing secret is optional at build time but must be configured before webhook deliveries can be processed.
 
 ## Getting Started
 
