@@ -1,7 +1,7 @@
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { env } from "@/env";
 import type { NextRequest } from "next/server";
-import { sendSubscriptionCreatedEmail } from "@/lib/email";
+import { sendSubscriptionCreatedEmail } from "@/emails/email";
 
 export async function POST(request: NextRequest): Promise<Response> {
   if (!env.CLERK_WEBHOOK_SIGNING_SECRET) {
