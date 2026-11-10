@@ -1,25 +1,24 @@
 import type { ComponentType } from "react";
+import { SubscriptionTerms } from "@/terms/subscription-terms";
 
 export type PlanTerms = {
   version: string;
   content: ComponentType;
 };
 
-export const planTermsById: Readonly<Record<string, PlanTerms>> = {
-  // Add each Clerk plan ID here with its approved, plan-specific terms.
-};
-
-const defaultPlanTerms: PlanTerms = {
-  version: "subscription-details-v1",
-  content: () => null,
+export const planTermsBySlug: Readonly<Record<string, PlanTerms>> = {
+  coach: {
+    version: "subscription-terms-v1",
+    content: SubscriptionTerms,
+  },
 };
 
 export const planTermsAcceptancePrefix = "clerk-next:plan-terms:";
 
 const acceptanceListeners = new Set<() => void>();
 
-export function getPlanTerms(planId: string): PlanTerms {
-  return planTermsById[planId] ?? defaultPlanTerms;
+export function getPlanTerms(planSlug: string): PlanTerms | undefined {
+  return planTermsBySlug[planSlug];
 }
 
 export function subscribeToPlanTermsAcceptance(listener: () => void) {

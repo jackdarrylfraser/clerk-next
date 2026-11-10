@@ -73,25 +73,25 @@ export type SelectedPlanState =
     };
 
 export function getPlanTermsAcceptanceKey({
-  planId,
+  planSlug,
   userId,
   period,
   plan,
   price,
   terms,
 }: {
-  planId: string | null;
+  planSlug: string | null;
   userId: string | null | undefined;
   period: Period;
   plan: Plan | undefined;
   price: Plan["fee"] | Plan["annualFee"] | undefined;
-  terms: PlanTerms | null;
+  terms: PlanTerms | null | undefined;
 }) {
-  if (!planId || !userId || !plan || !terms) return null;
+  if (!planSlug || !userId || !plan || !terms) return null;
 
   const keyParts = [
     userId,
-    planId,
+    planSlug,
     period,
     terms.version,
     price ? `${price.currencySymbol}${price.amountFormatted}` : "free",

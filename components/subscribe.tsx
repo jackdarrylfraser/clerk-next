@@ -58,10 +58,12 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
     "plan" in selectedPlanState ? selectedPlanState.plan : undefined;
   const selectedPrice =
     "price" in selectedPlanState ? selectedPlanState.price : undefined;
-  const selectedPlanTerms = selectedId ? getPlanTerms(selectedId) : null;
+  const selectedPlanTerms = selectedPlan
+    ? getPlanTerms(selectedPlan.slug)
+    : null;
   const PlanTermsContent = selectedPlanTerms?.content;
   const acceptanceKey = getPlanTermsAcceptanceKey({
-    planId: selectedId,
+    planSlug: selectedPlan?.slug ?? null,
     userId,
     period,
     plan: selectedPlan,

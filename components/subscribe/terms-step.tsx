@@ -52,12 +52,20 @@ export function TermsStep({
         {selectedPrice && (
           <p>Your subscription renews at this rate unless canceled.</p>
         )}
-        {PlanTermsContent && <PlanTermsContent />}
+        {PlanTermsContent ? (
+          <PlanTermsContent />
+        ) : (
+          <p role="alert">
+            Terms have not been configured for this plan. Please choose another
+            plan.
+          </p>
+        )}
       </div>
       <label className="terms-agreement">
         <input
           type="checkbox"
           checked={agreementChecked}
+          disabled={!PlanTermsContent}
           onChange={(event) => onAgreementChange(event.currentTarget.checked)}
         />
         <span>
@@ -68,7 +76,7 @@ export function TermsStep({
         type="button"
         className="primary-button terms-continue"
         onClick={onContinue}
-        disabled={!agreementChecked}
+        disabled={!PlanTermsContent || !agreementChecked}
       >
         Continue to payment <span>↗</span>
       </button>

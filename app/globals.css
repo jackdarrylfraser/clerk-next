@@ -161,14 +161,14 @@ button.text-button { margin: 18px 0 0 43px; }
 .auth-tabs a { padding: 0 0 12px; color: #929a8f; font-size: 12px; }
 .auth-tabs a.active { color: #405d45; border-bottom: 2px solid #688364; font-weight: 700; }
 .checkout-content { margin: 22px 0 0 43px; }
-.terms-content { margin: 22px 0 0 43px; padding: 18px; border: 1px solid #dfe8db; border-radius: 4px; background: #fafcf8; color: var(--ink); font-size: 12px; line-height: 1.6; }
+.terms-content { max-width: calc(100% - 43px); min-width: 0; margin: 22px 0 0 43px; padding: 18px; border: 1px solid #dfe8db; border-radius: 4px; background: #fafcf8; color: var(--ink); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
 .terms-content h3 { margin: 0 0 10px; font-size: 16px; font-weight: 700; }
 .terms-content p { margin: 0 0 9px; }
 .terms-content p:last-child { margin-bottom: 0; }
-.terms-agreement { display: flex; align-items: flex-start; gap: 10px; margin: 18px 0 0 43px; color: var(--ink); font-size: 12px; line-height: 1.5; }
+.terms-agreement { display: flex; align-items: flex-start; gap: 10px; max-width: calc(100% - 43px); min-width: 0; margin: 18px 0 0 43px; color: var(--ink); font-size: 12px; line-height: 1.5; }
 .terms-agreement input { flex: 0 0 auto; margin: 2px 0 0; accent-color: var(--green); }
-.terms-continue { margin: 18px 0 0 43px; }
-.terms-change-plan { display: inline-block; margin: 18px 0 0 43px; }
+.terms-continue { max-width: calc(100% - 43px); min-width: 0; margin: 18px 0 0 43px; }
+.terms-change-plan { display: inline-block; max-width: calc(100% - 43px); min-width: 0; margin: 18px 0 0 43px; }
 .checkout-content > p, .payment-note { color: #8b9488; font-size: 12px; line-height: 1.6; margin: 0 0 15px; }
 .checkout-summary { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; padding: 15px; margin-bottom: 12px; background: #f7f9f5; }
 .payment-form { display: grid; gap: 16px; }
@@ -205,7 +205,7 @@ button.text-button { margin: 18px 0 0 43px; }
   .secure-label { display: none; }
   .main-content { padding: 0 16px; }
   .flow-panel { padding: 24px 18px; }
-  .plans, .period-toggle, .auth-container, .checkout-content, .selection-row, .complete-state, .muted-indent, .terms-content, .terms-agreement, .terms-continue, .terms-change-plan { margin-left: 0; }
+  .plans, .period-toggle, .auth-container, .checkout-content, .selection-row, .complete-state, .muted-indent, .terms-content, .terms-agreement, .terms-continue, .terms-change-plan { max-width: 100%; margin-left: 0; }
   .step-message, .resume-checkout { margin-left: 0; }
   .progress ol { gap: 6px; }
   .progress li { gap: 6px; }
