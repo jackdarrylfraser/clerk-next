@@ -107,7 +107,7 @@ h1, .side-panel h2 { letter-spacing: -.055em; font-weight: 400; }
 .markdown-content blockquote.markdown-callout-caution { border-color: #bc5750; background: #fbebea; }
 .markdown-content blockquote.markdown-callout-caution > p:first-child strong { color: #913d38; }
 .progress { max-width: 760px; margin: 0 auto 34px; }
-.progress ol { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; list-style: none; padding: 0; margin: 0; }
+.progress ol { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; list-style: none; padding: 0; margin: 0; }
 .progress li { display: flex; gap: 10px; align-items: center; justify-content: center; color: #a4aca0; font-size: 11px; }
 .progress-number { display: grid; place-items: center; flex: 0 0 32px; height: 32px; border: 1px solid #dfe5dc; border-radius: 50%; font-size: 10px; font-weight: 700; }
 .progress li.current { color: #3c5740; }
@@ -161,6 +161,14 @@ button.text-button { margin: 18px 0 0 43px; }
 .auth-tabs a { padding: 0 0 12px; color: #929a8f; font-size: 12px; }
 .auth-tabs a.active { color: #405d45; border-bottom: 2px solid #688364; font-weight: 700; }
 .checkout-content { margin: 22px 0 0 43px; }
+.terms-content { margin: 22px 0 0 43px; padding: 18px; border: 1px solid #dfe8db; border-radius: 4px; background: #fafcf8; color: var(--ink); font-size: 12px; line-height: 1.6; }
+.terms-content h3 { margin: 0 0 10px; font-size: 16px; font-weight: 700; }
+.terms-content p { margin: 0 0 9px; }
+.terms-content p:last-child { margin-bottom: 0; }
+.terms-agreement { display: flex; align-items: flex-start; gap: 10px; margin: 18px 0 0 43px; color: var(--ink); font-size: 12px; line-height: 1.5; }
+.terms-agreement input { flex: 0 0 auto; margin: 2px 0 0; accent-color: var(--green); }
+.terms-continue { margin: 18px 0 0 43px; }
+.terms-change-plan { display: inline-block; margin: 18px 0 0 43px; }
 .checkout-content > p, .payment-note { color: #8b9488; font-size: 12px; line-height: 1.6; margin: 0 0 15px; }
 .checkout-summary { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; padding: 15px; margin-bottom: 12px; background: #f7f9f5; }
 .payment-form { display: grid; gap: 16px; }
@@ -197,7 +205,7 @@ button.text-button { margin: 18px 0 0 43px; }
   .secure-label { display: none; }
   .main-content { padding: 0 16px; }
   .flow-panel { padding: 24px 18px; }
-  .plans, .period-toggle, .auth-container, .checkout-content, .selection-row, .complete-state, .muted-indent { margin-left: 0; }
+  .plans, .period-toggle, .auth-container, .checkout-content, .selection-row, .complete-state, .muted-indent, .terms-content, .terms-agreement, .terms-continue, .terms-change-plan { margin-left: 0; }
   .step-message, .resume-checkout { margin-left: 0; }
   .progress ol { gap: 6px; }
   .progress li { gap: 6px; }
@@ -282,6 +290,7 @@ button.text-button { margin: 18px 0 0 43px; }
   .features { border-color: #303a31; }
   .features li { color: #c0c9bd; }
   .selection-row { border-color: #39483a; background: #1d241e; }
+  .terms-content { border-color: #39483a; background: #1d241e; }
   .auth-tabs a.active { color: #c4dabb; border-color: #8fac84; }
   .checkout-summary { background: #222923; }
   .error-message { color: #f09a91; }

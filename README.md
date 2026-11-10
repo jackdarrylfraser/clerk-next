@@ -1,6 +1,6 @@
 # Subscription checkout
 
-The subscription flow has three pages: choose a Clerk Billing user plan at `/`, create an account or sign in at `/subscribe/account`, and complete secure checkout at `/subscribe/payment`. The selected plan and billing period travel in the URL so authentication redirects and browser refreshes can resume the flow. After checkout, customers are sent to `/account`, which uses Clerk's profile and billing management UI.
+The subscription flow has four steps: choose a Clerk Billing user plan at `/subscribe`, create an account or sign in at `/subscribe/account`, review and accept plan terms at `/subscribe/terms`, and complete secure checkout at `/subscribe/payment`. The selected plan and billing period travel in the URL so authentication redirects and browser refreshes can resume the flow. After checkout, customers are sent to `/account`, which uses Clerk's profile and billing management UI.
 
 ## Clerk configuration
 
