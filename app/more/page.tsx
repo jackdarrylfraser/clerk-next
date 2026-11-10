@@ -2,7 +2,7 @@ import Link from "next/link";
 import { join } from "node:path";
 import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
-import { getMarkdownParamsWithMetadata } from "@/lib/markdown";
+import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 
 const markdownDirectory = join(process.cwd(), "content", "markdown");
 const pagesPerPage = 2;

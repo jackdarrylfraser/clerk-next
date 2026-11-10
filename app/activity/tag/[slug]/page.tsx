@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import { getMarkdownParamsWithMetadata } from "@/lib/markdown";
+import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getTagSlug } from "@/lib/tags";
 
 const activityDirectory = join(process.cwd(), "content", "activity");

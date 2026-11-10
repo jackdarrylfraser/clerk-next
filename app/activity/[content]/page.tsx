@@ -8,7 +8,7 @@ import {
   getMarkdownMetadata,
   getMarkdownParamsWithMetadata,
   renderMarkdown,
-} from "@/lib/markdown";
+} from "@/lib/markdown-content";
 
 const activityDirectory = join(process.cwd(), "content", "activity");
 

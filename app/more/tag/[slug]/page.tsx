@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
-import { getMarkdownParamsWithMetadata } from "@/lib/markdown";
+import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getTagSlug } from "@/lib/tags";
 
 const markdownDirectory = join(process.cwd(), "content", "markdown");

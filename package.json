@@ -2,28 +2,25 @@
   "name": "clerk-next",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "bun test",
     "lint": "eslint"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.25",
     "@t3-oss/env-nextjs": "^0.13.11",
+    "@clerk-next/markdown-engine": "workspace:*",
     "gray-matter": "^4.0.3",
     "katex": "^0.19.1",
     "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "rehype-katex": "^7.0.1",
-    "rehype-raw": "^7.0.0",
-    "rehype-sanitize": "^6.0.0",
-    "rehype-stringify": "^10.0.1",
-    "remark": "^15.0.1",
-    "remark-gfm": "^4.0.1",
-    "remark-math": "^6.0.0",
-    "remark-rehype": "^11.1.2",
     "resend": "^6.37.0",
     "zod": "^4.6.7"
   },

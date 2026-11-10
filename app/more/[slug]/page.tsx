@@ -5,7 +5,7 @@ import {
   getMarkdownMetadata,
   getMarkdownParams,
   renderMarkdown,
-} from "@/lib/markdown";
+} from "@/lib/markdown-content";
 
 const markdownDirectory = join(process.cwd(), "content", "markdown");
 
