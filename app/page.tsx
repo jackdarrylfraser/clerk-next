@@ -4,9 +4,7 @@ import { join } from "node:path";
 import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import {
-  getMarkdownParamsWithMetadata,
-} from "@/lib/markdown-content";
+import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 
 const activityDirectory = join(process.cwd(), "content", "activity");
 const activitiesPerPage = 5;
@@ -17,7 +15,9 @@ export default function Home({
   searchParams: Promise<{ page?: string | string[] }>;
 }) {
   return (
-    <Suspense fallback={<main className="loading-page">Loading activities...</main>}>
+    <Suspense
+      fallback={<main className="loading-page">Loading activities...</main>}
+    >
       <HomeContent searchParams={searchParams} />
     </Suspense>
   );
@@ -38,7 +38,10 @@ async function HomeContent({
       activityDirectory,
       "content",
     );
-    const pageCount = Math.max(1, Math.ceil(activities.length / activitiesPerPage));
+    const pageCount = Math.max(
+      1,
+      Math.ceil(activities.length / activitiesPerPage),
+    );
     const currentPage = Number.isSafeInteger(requestedPage)
       ? Math.min(pageCount, Math.max(1, requestedPage))
       : 1;
@@ -79,7 +82,10 @@ async function HomeContent({
                 ))}
               </ul>
               {pageCount > 1 && (
-                <nav className="activity-pagination" aria-label="Activity pages">
+                <nav
+                  className="activity-pagination"
+                  aria-label="Activity pages"
+                >
                   {currentPage > 1 ? (
                     <Link href={`/?page=${currentPage - 1}`}>Previous</Link>
                   ) : (
