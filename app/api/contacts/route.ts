@@ -7,6 +7,7 @@ import {
   getIpRateLimitIdentifier,
 } from "@clerk-next/kv";
 import { env } from "@/env";
+import { sendContactSubmittedEvent } from "@/emails/automations/events";
 
 const getRedisClient = createRedisClient({
   redisUrl: env.UPSTASH_REDIS_REST_URL,
@@ -124,14 +125,36 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const resend = new Resend(env.RESEND_API_KEY);
-  let result: Awaited<ReturnType<typeof resend.contacts.create>>;
+  const email = parsed.data.email.toLowerCase();
+  let contactCreated = true;
 
   try {
-    result = await resend.contacts.create({
-      email: parsed.data.email.toLowerCase(),
+    const result = await resend.contacts.create({
+      email,
       firstName: parsed.data.firstName,
       lastName: parsed.data.lastName,
     });
+
+    if (result.error) {
+      if (result.error.statusCode === 409) {
+        contactCreated = false;
+      } else {
+        console.error("Resend contact creation failed", {
+          name: result.error.name,
+          statusCode: result.error.statusCode,
+        });
+        return Response.json(
+          { error: "We couldn't save your contact. Please try again." },
+          { status: 502 },
+        );
+      }
+    } else if (!result.data) {
+      console.error("Resend contact creation returned no contact data");
+      return Response.json(
+        { error: "We couldn't confirm your contact was saved. Please try again." },
+        { status: 502 },
+      );
+    }
   } catch (error) {
     console.error("Resend contact creation request failed", error);
     return Response.json(
@@ -140,28 +163,26 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  if (result.error) {
-    if (result.error.statusCode === 409) {
+  try {
+    const automation = await sendContactSubmittedEvent({
+      email,
+      firstName: parsed.data.firstName,
+      lastName: parsed.data.lastName,
+    });
+
+    if (automation.status === "in-progress") {
       return Response.json(
-        { error: "This email address is already a contact." },
-        { status: 409 },
+        { error: "This contact is already being enrolled in the automation." },
+        {
+          status: 425,
+          headers: { "Retry-After": String(automation.retryAfterSeconds) },
+        },
       );
     }
-
-    console.error("Resend contact creation failed", {
-      name: result.error.name,
-      statusCode: result.error.statusCode,
-    });
+  } catch (error) {
+    console.error("Contact automation event delivery failed", error);
     return Response.json(
-      { error: "We couldn't save your contact. Please try again." },
-      { status: 502 },
-    );
-  }
-
-  if (!result.data) {
-    console.error("Resend contact creation returned no contact data");
-    return Response.json(
-      { error: "We couldn't confirm your contact was saved. Please try again." },
+      { error: "We couldn't enroll your contact. Please try again." },
       { status: 502 },
     );
   }
@@ -188,5 +209,5 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
-  return Response.json({ success: true }, { status: 201 });
+  return Response.json({ success: true }, { status: contactCreated ? 201 : 200 });
 }

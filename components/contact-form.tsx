@@ -37,14 +37,6 @@ export function ContactForm() {
         }),
       });
 
-      if (response.status === 409) {
-        setStatus({
-          kind: "error",
-          message: "This email address is already a contact.",
-        });
-        return;
-      }
-
       if (response.status === 429) {
         const retryAfter = Number(response.headers.get("Retry-After"));
         const waitMessage =
@@ -85,7 +77,7 @@ export function ContactForm() {
 
       form.reset();
       idempotencyKey.current = null;
-      setStatus({ kind: "success", message: "Thanks — your contact was added." });
+      setStatus({ kind: "success", message: "Thanks — we’ll be in touch." });
     } catch (error) {
       console.error("Contact form submission failed", error);
       setStatus({
