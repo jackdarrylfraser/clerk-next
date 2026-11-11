@@ -1,8 +1,30 @@
 import { Resend } from "resend";
 import { z } from "zod";
+import {
+  createIdempotencyStore,
+  createRateLimiter,
+  createRedisClient,
+  getIpRateLimitIdentifier,
+} from "@clerk-next/kv";
 import { env } from "@/env";
-import { getContactRateLimitIdentifier } from "@/lib/contact-rate-limit-identifier";
-import { limitContactSubmissions } from "@/lib/contact-rate-limit";
+
+const getRedisClient = createRedisClient({
+  redisUrl: env.UPSTASH_REDIS_REST_URL,
+  redisToken: env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+const limitContactSubmissions = createRateLimiter({
+  getRedisClient,
+  limit: 5,
+  window: "10 m",
+  prefix: "clerk-next:contact",
+  timeoutMs: 1_000,
+});
+
+const contactIdempotency = createIdempotencyStore({
+  getRedisClient,
+  prefix: "clerk-next:contact",
+});
 
 const contactSchema = z.object({
   firstName: z.string().trim().min(1).max(100),
@@ -11,10 +33,7 @@ const contactSchema = z.object({
 });
 
 export async function POST(request: Request): Promise<Response> {
-  const identifier = getContactRateLimitIdentifier(
-    request.headers,
-    env.NODE_ENV,
-  );
+  const identifier = getIpRateLimitIdentifier(request.headers, env.NODE_ENV);
   if (!identifier) {
     console.error("Contact rate limiting could not determine the client IP");
     return Response.json(
@@ -69,6 +88,41 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  const idempotencyKey = request.headers.get("Idempotency-Key")?.trim();
+  if (idempotencyKey && idempotencyKey.length > 255) {
+    return Response.json(
+      { error: "The idempotency key must be 255 characters or fewer." },
+      { status: 400 },
+    );
+  }
+
+  let claim: Awaited<ReturnType<typeof contactIdempotency.begin>> | undefined;
+  if (idempotencyKey) {
+    try {
+      claim = await contactIdempotency.begin(idempotencyKey);
+    } catch (error) {
+      console.error("Contact idempotency check failed", error);
+      return Response.json(
+        { error: "Contact submissions are temporarily unavailable." },
+        { status: 503 },
+      );
+    }
+
+    if (claim.status === "completed") {
+      return Response.json({ success: true }, { status: 200 });
+    }
+
+    if (claim.status === "in-progress") {
+      return Response.json(
+        { error: "This submission is already being processed." },
+        {
+          status: 425,
+          headers: { "Retry-After": String(claim.retryAfterSeconds) },
+        },
+      );
+    }
+  }
+
   const resend = new Resend(env.RESEND_API_KEY);
   let result: Awaited<ReturnType<typeof resend.contacts.create>>;
 
@@ -110,6 +164,28 @@ export async function POST(request: Request): Promise<Response> {
       { error: "We couldn't confirm your contact was saved. Please try again." },
       { status: 502 },
     );
+  }
+
+  if (idempotencyKey && claim?.status === "claimed") {
+    try {
+      const completed = await contactIdempotency.complete(
+        idempotencyKey,
+        claim.token,
+      );
+      if (!completed) {
+        console.error("Contact idempotency claim expired before completion");
+        return Response.json(
+          { error: "We couldn't confirm your contact was saved. Please try again." },
+          { status: 503 },
+        );
+      }
+    } catch (error) {
+      console.error("Contact idempotency completion failed", error);
+      return Response.json(
+        { error: "We couldn't confirm your contact was saved. Please try again." },
+        { status: 503 },
+      );
+    }
   }
 
   return Response.json({ success: true }, { status: 201 });

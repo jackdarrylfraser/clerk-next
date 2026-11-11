@@ -1,6 +1,6 @@
 import { isIP } from "node:net";
 
-export function getContactRateLimitIdentifier(
+export function getIpRateLimitIdentifier(
   headers: Headers,
   nodeEnv: string,
 ): string | null {

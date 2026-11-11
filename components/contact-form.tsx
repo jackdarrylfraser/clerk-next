@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 type FormStatus = {
   kind: "success" | "error";
@@ -10,6 +10,7 @@ type FormStatus = {
 export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<FormStatus | null>(null);
+  const idempotencyKey = useRef<string | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -20,9 +21,15 @@ export function ContactForm() {
     setStatus(null);
 
     try {
+      const requestIdempotencyKey =
+        idempotencyKey.current ?? crypto.randomUUID();
+      idempotencyKey.current = requestIdempotencyKey;
       const response = await fetch("/api/contacts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": requestIdempotencyKey,
+        },
         body: JSON.stringify({
           firstName: formData.get("firstName"),
           lastName: formData.get("lastName"),
@@ -53,6 +60,21 @@ export function ContactForm() {
         return;
       }
 
+      if (response.status === 425) {
+        const retryAfter = Number(response.headers.get("Retry-After"));
+        const waitMessage =
+          Number.isSafeInteger(retryAfter) && retryAfter > 0
+            ? `Please try again in ${retryAfter} ${
+                retryAfter === 1 ? "second" : "seconds"
+              }.`
+            : "Please try again in a moment.";
+        setStatus({
+          kind: "error",
+          message: `This submission is already being processed. ${waitMessage}`,
+        });
+        return;
+      }
+
       if (!response.ok) {
         setStatus({
           kind: "error",
@@ -62,6 +84,7 @@ export function ContactForm() {
       }
 
       form.reset();
+      idempotencyKey.current = null;
       setStatus({ kind: "success", message: "Thanks — your contact was added." });
     } catch (error) {
       console.error("Contact form submission failed", error);
