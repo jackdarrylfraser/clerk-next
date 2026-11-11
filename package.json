@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "test": "bun test",
-    "lint": "eslint"
+    "lint": "eslint",
+    "emails:sync": "bun emails/automations/sync.ts"
   },
   "dependencies": {
     "@clerk-next/markdown-engine": "workspace:*",

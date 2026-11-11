@@ -11,11 +11,10 @@ The subscription flow has four steps: choose a Clerk Billing user plan at `/subs
 
 ## Subscription automations
 
-The app sends a `subscription.created` event to Resend when Clerk emits that event for a user subscription. Every enabled Resend Automation with this trigger runs, so multiple workflows can react to the same subscription without adding app-side automation logic.
+The app sends a `subscription.created` event to Resend when Clerk emits that event for a user subscription. The event schema, automation workflow, and email template are declared in [emails/automations/definitions.ts](./emails/automations/definitions.ts) and synced to Resend with `bun run emails:sync`.
 
-- Set `RESEND_API_KEY` to a Resend API key. Configure a verified sender address in each Resend email step.
-- In Resend, create the custom event `subscription.created` with string fields `subscription_id`, `first_name`, and `last_name`.
-- Create and enable each desired Automation with the `subscription.created` trigger. For example, one can send an immediate welcome email and another can send a delayed getting-started email. Use published Resend templates for email steps.
+- Set `RESEND_API_KEY` to a Resend API key with permission to manage events, templates, and automations. Set `RESEND_FROM_EMAIL` to a verified sender address.
+- Run `bun run emails:sync` to create or update the declared events, publish their templates, and create or update the matching Resend automations. The command leaves resources that are not declared in the file untouched. Keep automation names and template aliases stable so future syncs update the same resources.
 - Add a Clerk webhook endpoint at `https://<your-app-domain>/api/webhooks/clerk`, subscribe it to `subscription.created`, and set its signing secret as `CLERK_WEBHOOK_SIGNING_SECRET`.
 - Configure these variables in `.env.local` for local development and in the deployment environment for production. Upstash Redis credentials are also required so webhook retries do not start duplicate automation runs.
 
@@ -25,7 +24,7 @@ The webhook verifies each request with Clerk before processing it. Subscription 
 
 The public contact endpoint allows up to five submissions per IP address in a rolling 10-minute window. It uses Upstash Redis so the limit is shared across Vercel function instances. Requests over the limit receive `429` with a `Retry-After` header. If Redis is unavailable, the endpoint returns `503` rather than accepting unmetered submissions.
 
-- After the contact is created (or an existing contact is found), the app sends a `contact.submitted` event to Resend. Create this custom event with string fields `first_name` and `last_name`, then create and enable each desired Automation with the `contact.submitted` trigger. The event is associated with the submitted email address, and a one-year idempotency record prevents duplicate automation runs for that contact.
+- After the contact is created (or an existing contact is found), the app sends a `contact.submitted` event to Resend. Its confirmation workflow and email are declared and synced by the same `bun run emails:sync` command. The event is associated with the submitted email address, and a one-year idempotency record prevents duplicate automation runs for that contact.
 - Connect an Upstash Redis database to the Vercel project. The integration provides `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`; configure it for each deployment environment.
 - For local development, add those variables to `.env.local`. Without a forwarded IP header, local requests share one rate-limit bucket.
 - The app can build without Upstash credentials, but contact submissions and automation enrollment return `503` until both variables are configured.
