@@ -29,7 +29,7 @@ type AutomationDefinition = {
 export const automationDefinitions: AutomationDefinition[] = [
   {
     name: "Clerk Next — Contact submission confirmation",
-    purpose: "Confirm that a submitted contact form message was received.",
+    purpose: "Confirm that an educational email signup was received.",
     status: "enabled",
     event: {
       name: "contact.submitted",
@@ -41,10 +41,10 @@ export const automationDefinitions: AutomationDefinition[] = [
     template: {
       name: "Contact submission confirmation",
       alias: "clerk-next-contact-submitted",
-      subject: "We received your message",
-      text: "Hello,\n\nThanks for reaching out. We received your message and will be in touch after we've reviewed it.",
+      subject: "Thanks for signing up for learning updates",
+      text: "Hello,\n\nThanks for signing up for educational emails. We'll share practical learning about what matters, why it matters, and how to put ideas into practice.",
       html: `<p>Hello,</p>
-<p>Thanks for reaching out. We received your message and will be in touch after we've reviewed it.</p>`,
+<p>Thanks for signing up for educational emails. We'll share practical learning about what matters, why it matters, and how to put ideas into practice.</p>`,
     },
     steps: [
       {

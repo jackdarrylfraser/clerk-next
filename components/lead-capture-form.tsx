@@ -1,16 +1,37 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 
 type FormStatus = {
   kind: "success" | "error";
   message: string;
 };
 
-export function ContactForm() {
+type LeadCaptureFormCopy = {
+  title: string;
+  description: string;
+  consentLabel: string;
+  submitLabel: string;
+};
+
+const defaultCopy: LeadCaptureFormCopy = {
+  title: "Learn the what, why, and how.",
+  description:
+    "Get practical educational emails that explain what matters, why it matters, and how to put ideas into practice.",
+  consentLabel:
+    "Yes, I agree to receive educational emails about what matters, why it matters, and how to put ideas into practice.",
+  submitLabel: "Get learning updates",
+};
+
+type LeadCaptureFormProps = {
+  copy?: Partial<LeadCaptureFormCopy>;
+};
+
+export function LeadCaptureForm({ copy: copyOverrides }: LeadCaptureFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<FormStatus | null>(null);
-  const idempotencyKey = useRef<string | null>(null);
+  const titleId = useId();
+  const copy = { ...defaultCopy, ...copyOverrides };
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -21,19 +42,14 @@ export function ContactForm() {
     setStatus(null);
 
     try {
-      const requestIdempotencyKey =
-        idempotencyKey.current ?? crypto.randomUUID();
-      idempotencyKey.current = requestIdempotencyKey;
       const response = await fetch("/api/contacts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": requestIdempotencyKey,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstName: formData.get("firstName"),
           lastName: formData.get("lastName"),
           email: formData.get("email"),
+          marketingConsent: formData.get("marketingConsent") === "on",
         }),
       });
 
@@ -70,16 +86,19 @@ export function ContactForm() {
       if (!response.ok) {
         setStatus({
           kind: "error",
-          message: "We couldn't save your contact. Please try again.",
+          message:
+            "We couldn't sign you up for learning emails. Please try again.",
         });
         return;
       }
 
       form.reset();
-      idempotencyKey.current = null;
-      setStatus({ kind: "success", message: "Thanks — we’ll be in touch." });
+      setStatus({
+        kind: "success",
+        message: "Thanks for signing up for learning updates.",
+      });
     } catch (error) {
-      console.error("Contact form submission failed", error);
+      console.error("Learning email signup failed", error);
       setStatus({
         kind: "error",
         message: "We couldn't reach the server. Please try again.",
@@ -90,11 +109,11 @@ export function ContactForm() {
   }
 
   return (
-    <section className="contact-form-section" aria-labelledby="contact-form-title">
-      <h2 id="contact-form-title">Stay in touch.</h2>
-      <p>Leave your details and we’ll be in touch.</p>
-      <form className="contact-form" onSubmit={handleSubmit}>
-        <div className="contact-form-fields">
+    <section className="lead-capture-section" aria-labelledby={titleId}>
+      <h2 id={titleId}>{copy.title}</h2>
+      <p>{copy.description}</p>
+      <form className="lead-capture-form" onSubmit={handleSubmit}>
+        <div className="lead-capture-fields">
           <label>
             First name
             <input
@@ -124,12 +143,20 @@ export function ContactForm() {
             />
           </label>
         </div>
-        <button className="primary-button contact-form-submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Get in touch"}
+        <label className="lead-capture-consent">
+          <input name="marketingConsent" required type="checkbox" />
+          <span>{copy.consentLabel}</span>
+        </label>
+        <button
+          className="primary-button lead-capture-submit"
+          disabled={isSubmitting}
+          type="submit"
+        >
+          {isSubmitting ? "Signing up..." : copy.submitLabel}
         </button>
         {status && (
           <p
-            className={`contact-form-status ${status.kind}`}
+            className={`lead-capture-status ${status.kind}`}
             role={status.kind === "error" ? "alert" : "status"}
           >
             {status.message}

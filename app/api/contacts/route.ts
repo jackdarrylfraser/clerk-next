@@ -31,6 +31,7 @@ const contactSchema = z.object({
   firstName: z.string().trim().min(1).max(100),
   lastName: z.string().trim().min(1).max(100),
   email: z.string().trim().email().max(254),
+  marketingConsent: z.literal(true),
 });
 
 export async function POST(request: Request): Promise<Response> {
@@ -84,48 +85,42 @@ export async function POST(request: Request): Promise<Response> {
   const parsed = contactSchema.safeParse(body);
   if (!parsed.success) {
     return Response.json(
-      { error: "Enter your first name, last name, and a valid email address." },
+      {
+        error:
+          "Enter your name and a valid email address, and consent to receive educational emails.",
+      },
       { status: 400 },
     );
   }
 
-  const idempotencyKey = request.headers.get("Idempotency-Key")?.trim();
-  if (idempotencyKey && idempotencyKey.length > 255) {
+  const email = parsed.data.email.toLowerCase();
+
+  let claim: Awaited<ReturnType<typeof contactIdempotency.begin>>;
+  try {
+    claim = await contactIdempotency.begin(email);
+  } catch (error) {
+    console.error("Contact idempotency check failed", error);
     return Response.json(
-      { error: "The idempotency key must be 255 characters or fewer." },
-      { status: 400 },
+      { error: "Contact submissions are temporarily unavailable." },
+      { status: 503 },
     );
   }
 
-  let claim: Awaited<ReturnType<typeof contactIdempotency.begin>> | undefined;
-  if (idempotencyKey) {
-    try {
-      claim = await contactIdempotency.begin(idempotencyKey);
-    } catch (error) {
-      console.error("Contact idempotency check failed", error);
-      return Response.json(
-        { error: "Contact submissions are temporarily unavailable." },
-        { status: 503 },
-      );
-    }
+  if (claim.status === "completed") {
+    return Response.json({ success: true }, { status: 200 });
+  }
 
-    if (claim.status === "completed") {
-      return Response.json({ success: true }, { status: 200 });
-    }
-
-    if (claim.status === "in-progress") {
-      return Response.json(
-        { error: "This submission is already being processed." },
-        {
-          status: 425,
-          headers: { "Retry-After": String(claim.retryAfterSeconds) },
-        },
-      );
-    }
+  if (claim.status === "in-progress") {
+    return Response.json(
+      { error: "This submission is already being processed." },
+      {
+        status: 425,
+        headers: { "Retry-After": String(claim.retryAfterSeconds) },
+      },
+    );
   }
 
   const resend = new Resend(env.RESEND_API_KEY);
-  const email = parsed.data.email.toLowerCase();
   let contactCreated = true;
 
   try {
@@ -187,26 +182,21 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  if (idempotencyKey && claim?.status === "claimed") {
-    try {
-      const completed = await contactIdempotency.complete(
-        idempotencyKey,
-        claim.token,
-      );
-      if (!completed) {
-        console.error("Contact idempotency claim expired before completion");
-        return Response.json(
-          { error: "We couldn't confirm your contact was saved. Please try again." },
-          { status: 503 },
-        );
-      }
-    } catch (error) {
-      console.error("Contact idempotency completion failed", error);
+  try {
+    const completed = await contactIdempotency.complete(email, claim.token);
+    if (!completed) {
+      console.error("Contact idempotency claim expired before completion");
       return Response.json(
         { error: "We couldn't confirm your contact was saved. Please try again." },
         { status: 503 },
       );
     }
+  } catch (error) {
+    console.error("Contact idempotency completion failed", error);
+    return Response.json(
+      { error: "We couldn't confirm your contact was saved. Please try again." },
+      { status: 503 },
+    );
   }
 
   return Response.json({ success: true }, { status: contactCreated ? 201 : 200 });

@@ -15,19 +15,21 @@ RESOLVED: Members need to have an active site_access plan on their account to ha
 ### 2. Add explicit marketing consent and email preferences
 
 The contact flow creates a Resend contact and sends a confirmation, but the
-application does not record explicit marketing consent, its source, or the
+public lead form now clearly describes educational emails and requires an
+unchecked-by-default affirmative consent before the server creates a Resend
+contact. The application still does not persist consent time, source, or the
 consent language/version. No double opt-in, preference center, unsubscribe
 workflow, or suppression handling is evident in the application.
 
 - Separate transactional messages from marketing subscriptions.
-- Collect clear, unchecked-by-default consent for marketing email.
+- DONE: Collect clear, unchecked-by-default consent for educational email.
 - Persist consent time, source/form, and the wording/version accepted.
 - Implement confirmation, unsubscribe, and preference management before
   sending marketing campaigns.
 - Configure sender-domain authentication and required marketing email footers
   in the email provider.
 
-Relevant implementation: [contact form](./components/contact-form.tsx),
+Relevant implementation: [lead capture form](./components/lead-capture-form.tsx),
 [contact endpoint](./app/api/contacts/route.ts), and
 [email automation definitions](./emails/automations/definitions.ts).
 
@@ -89,17 +91,12 @@ Relevant implementation: [homepage](./app/page.tsx),
 
 ### 6. Align the contact form with its purpose
 
-The form confirmation says a message was received, but the form collects only
-first name, last name, and email. The endpoint creates a contact; it does not
-capture a message or show an application workflow that routes an inquiry to a
-support inbox.
+RESOLVED: The public form is an educational email signup, not a support
+inquiry. It now explains its purpose and requires explicit marketing consent.
+No support-inquiry form or inbox workflow is provided.
 
-- If this is a support form, collect and securely route the message.
-- If it is a marketing signup, make the consent and email expectations explicit
-  and remove copy that implies a support request was submitted.
-
-Relevant implementation: [contact form](./components/contact-form.tsx) and
-[contact endpoint](./app/api/contacts/route.ts).
+Relevant implementation: [lead capture form](./components/lead-capture-form.tsx)
+and [contact endpoint](./app/api/contacts/route.ts).
 
 ### 7. Cover the full subscription lifecycle
 
