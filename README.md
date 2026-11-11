@@ -9,16 +9,17 @@ The subscription flow has four steps: choose a Clerk Billing user plan at `/subs
 - Enable the desired sign-in and sign-up methods in Clerk. Clerk's embedded authentication handles the configured verification and multi-factor requirements. Checkout must authenticate before securely collecting payment details.
 - Test payments in a development instance with [Stripe test cards](https://docs.stripe.com/testing). Clerk Billing checkout APIs are experimental; see [Clerk's version pinning guidance](https://clerk.com/docs/pinning) before deploying.
 
-## Subscription emails
+## Subscription automations
 
-The app sends a welcome email when Clerk emits a `subscription.created` event for a user subscription. The email is sent asynchronously after checkout and does not delay the checkout flow.
+The app sends a `subscription.created` event to Resend when Clerk emits that event for a user subscription. Every enabled Resend Automation with this trigger runs, so multiple workflows can react to the same subscription without adding app-side automation logic.
 
-- Set `RESEND_API_KEY` to a Resend API key and `RESEND_FROM_EMAIL` to a sender address on a domain verified with Resend.
-- Set `APP_URL` to the app's origin, such as `https://example.com`; the email links to `/account`.
-- Add a Clerk webhook endpoint at `${APP_URL}/api/webhooks/clerk`, subscribe it to `subscription.created`, and set its signing secret as `CLERK_WEBHOOK_SIGNING_SECRET`.
-- Configure these variables in `.env.local` for local development and in the deployment environment for production.
+- Set `RESEND_API_KEY` to a Resend API key. Configure a verified sender address in each Resend email step.
+- In Resend, create the custom event `subscription.created` with string fields `subscription_id`, `first_name`, and `last_name`.
+- Create and enable each desired Automation with the `subscription.created` trigger. For example, one can send an immediate welcome email and another can send a delayed getting-started email. Use published Resend templates for email steps.
+- Add a Clerk webhook endpoint at `https://<your-app-domain>/api/webhooks/clerk`, subscribe it to `subscription.created`, and set its signing secret as `CLERK_WEBHOOK_SIGNING_SECRET`.
+- Configure these variables in `.env.local` for local development and in the deployment environment for production. Upstash Redis credentials are also required so webhook retries do not start duplicate automation runs.
 
-The webhook verifies each request with Clerk before processing it. Resend idempotency keys prevent duplicate sends for the same subscription during Resend's 24-hour key-retention window.
+The webhook verifies each request with Clerk before processing it. Subscription events are associated with the payer's email, and a one-year Upstash idempotency record prevents repeated Clerk deliveries from starting duplicate runs.
 
 ## Contact form rate limiting
 
@@ -28,7 +29,7 @@ The public contact endpoint allows up to five submissions per IP address in a ro
 - For local development, add those variables to `.env.local`. Without a forwarded IP header, local requests share one rate-limit bucket.
 - The app can build without Upstash credentials, but contact submissions return `503` until both variables are configured.
 
-Environment variables are validated with Zod through T3 Env in [env.ts](./env.ts). The Clerk and Resend settings and `APP_URL` are required at build time; Upstash Redis credentials are required for contact submissions, and the Clerk webhook signing secret must be configured before webhook deliveries can be processed.
+Environment variables are validated with Zod through T3 Env in [env.ts](./env.ts). The Clerk and Resend API settings are required at build time; Upstash Redis credentials are required for contact submissions and subscription automation events, and the Clerk webhook signing secret must be configured before webhook deliveries can be processed.
 
 ## Getting Started
 
