@@ -1,4 +1,7 @@
 {
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "chat.defaultModel": "GPT-6 Luna",
+  "chat.agent.sandbox.enabled": "on",
+  "chat.newSession.defaultMode": "plan"
 }
