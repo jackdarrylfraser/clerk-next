@@ -38,6 +38,21 @@ export function ContactForm() {
         return;
       }
 
+      if (response.status === 429) {
+        const retryAfter = Number(response.headers.get("Retry-After"));
+        const waitMessage =
+          Number.isSafeInteger(retryAfter) && retryAfter > 0
+            ? `Please try again in ${Math.ceil(retryAfter / 60)} ${
+                Math.ceil(retryAfter / 60) === 1 ? "minute" : "minutes"
+              }.`
+            : "Please wait a few minutes before trying again.";
+        setStatus({
+          kind: "error",
+          message: `Too many attempts. ${waitMessage}`,
+        });
+        return;
+      }
+
       if (!response.ok) {
         setStatus({
           kind: "error",

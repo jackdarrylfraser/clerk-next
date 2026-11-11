@@ -1,6 +1,8 @@
 import { Resend } from "resend";
 import { z } from "zod";
 import { env } from "@/env";
+import { getContactRateLimitIdentifier } from "@/lib/contact-rate-limit-identifier";
+import { limitContactSubmissions } from "@/lib/contact-rate-limit";
 
 const contactSchema = z.object({
   firstName: z.string().trim().min(1).max(100),
@@ -9,6 +11,48 @@ const contactSchema = z.object({
 });
 
 export async function POST(request: Request): Promise<Response> {
+  const identifier = getContactRateLimitIdentifier(
+    request.headers,
+    env.NODE_ENV,
+  );
+  if (!identifier) {
+    console.error("Contact rate limiting could not determine the client IP");
+    return Response.json(
+      { error: "Contact submissions are temporarily unavailable." },
+      { status: 503 },
+    );
+  }
+
+  let rateLimit: Awaited<ReturnType<typeof limitContactSubmissions>>;
+  try {
+    rateLimit = await limitContactSubmissions(identifier);
+  } catch (error) {
+    console.error("Contact rate limit check failed", error);
+    return Response.json(
+      { error: "Contact submissions are temporarily unavailable." },
+      { status: 503 },
+    );
+  }
+
+  if (rateLimit.reason === "timeout") {
+    console.error("Contact rate limit check timed out");
+    return Response.json(
+      { error: "Contact submissions are temporarily unavailable." },
+      { status: 503 },
+    );
+  }
+
+  if (!rateLimit.success) {
+    const retryAfter = Math.max(
+      1,
+      Math.ceil((rateLimit.reset - Date.now()) / 1000),
+    );
+    return Response.json(
+      { error: "Too many contact submissions. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } },
+    );
+  }
+
   let body: unknown;
 
   try {

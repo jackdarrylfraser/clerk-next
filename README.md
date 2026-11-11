@@ -20,7 +20,15 @@ The app sends a welcome email when Clerk emits a `subscription.created` event fo
 
 The webhook verifies each request with Clerk before processing it. Resend idempotency keys prevent duplicate sends for the same subscription during Resend's 24-hour key-retention window.
 
-Environment variables are validated with Zod through T3 Env in [env.ts](./env.ts). The Resend settings and `APP_URL` are required at build time; the Clerk webhook signing secret is optional at build time but must be configured before webhook deliveries can be processed.
+## Contact form rate limiting
+
+The public contact endpoint allows up to five submissions per IP address in a rolling 10-minute window. It uses Upstash Redis so the limit is shared across Vercel function instances. Requests over the limit receive `429` with a `Retry-After` header. If Redis is unavailable, the endpoint returns `503` rather than accepting unmetered submissions.
+
+- Connect an Upstash Redis database to the Vercel project. The integration provides `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`; configure it for each deployment environment.
+- For local development, add those variables to `.env.local`. Without a forwarded IP header, local requests share one rate-limit bucket.
+- The app can build without Upstash credentials, but contact submissions return `503` until both variables are configured.
+
+Environment variables are validated with Zod through T3 Env in [env.ts](./env.ts). The Clerk and Resend settings and `APP_URL` are required at build time; Upstash Redis credentials are required for contact submissions, and the Clerk webhook signing secret must be configured before webhook deliveries can be processed.
 
 ## Getting Started
 
