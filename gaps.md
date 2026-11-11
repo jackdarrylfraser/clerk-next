@@ -10,22 +10,7 @@ environments have not been independently verified.
 
 ### 1. Define the paid-content access model
 
-Member activity routes currently use the Clerk feature entitlement
-`user:site_access`, which is suitable for an all-access membership when the
-appropriate Clerk plans include that feature. It does not represent individual
-content purchases or map a purchase to specific Markdown files.
-
-- Decide whether a paid plan grants access to all member content or to
-  individually purchased items.
-- Verify that the feature is configured on the intended plans in each Clerk
-  instance.
-- If selling individual items, add an explicit product-to-content entitlement
-  model and durable purchase records.
-- Test that signed-out users and users without an active entitlement are denied,
-  and that access changes correctly after cancellation, expiration, or payment
-  failure.
-
-Relevant implementation: [protected activity route](./app/activity/[content]/page.tsx).
+RESOLVED: Members need to have an active site_access plan on their account to have access. If their payment fails they will lose access after their failed payment. if they cancel they will have access throughout the end of their billing period.
 
 ### 2. Add explicit marketing consent and email preferences
 
