@@ -38,6 +38,55 @@ const contactSchema = z.object({
 });
 
 export async function POST(request: Request): Promise<Response> {
+  const rateLimitResult = await checkContactRateLimit(request);
+  const submissionResult = await parseContactSubmission(
+    request,
+    rateLimitResult,
+  );
+  const claimResult = await claimContactSubmission(submissionResult);
+  const topicResult = await getMarketingTopicId(claimResult);
+  const contactResult = await saveContact(topicResult);
+  const automationResult = await deliverMarketingOptInEvent(contactResult);
+  const completionResult = await completeContactSubmission(automationResult);
+
+  return createContactSuccessResponse(completionResult);
+}
+
+type ValidatedContactSubmission = {
+  data: z.infer<typeof contactSchema>;
+  topicName: string;
+  email: string;
+};
+
+type ClaimedContactSubmission = ValidatedContactSubmission & {
+  token: string;
+  resend: Resend;
+};
+
+type ContactWithMarketingTopic = ClaimedContactSubmission & {
+  marketingTopicId: string;
+};
+
+type SavedContactSubmission = ContactWithMarketingTopic & {
+  contactCreated: boolean;
+};
+
+function createContactSuccessResponse(
+  result: SavedContactSubmission | Response,
+): Response {
+  if (result instanceof Response) {
+    return result;
+  }
+
+  return Response.json(
+    { success: true },
+    { status: result.contactCreated ? 201 : 200 },
+  );
+}
+
+async function checkContactRateLimit(
+  request: Request,
+): Promise<Response | undefined> {
   const identifier = getIpRateLimitIdentifier(request.headers, env.NODE_ENV);
   if (!identifier) {
     console.error("Contact rate limiting could not determine the client IP");
@@ -77,8 +126,18 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  let body: unknown;
+  return undefined;
+}
 
+async function parseContactSubmission(
+  request: Request,
+  previousResponse?: Response,
+): Promise<ValidatedContactSubmission | Response> {
+  if (previousResponse) {
+    return previousResponse;
+  }
+
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
@@ -107,12 +166,23 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const topicDefinition = marketingTopics[parsed.data.topicKey];
-  const email = parsed.data.email.toLowerCase();
-  const source = "lead-capture-form";
+  return {
+    data: parsed.data,
+    topicName: topicDefinition.name,
+    email: parsed.data.email.toLowerCase(),
+  };
+}
+
+async function claimContactSubmission(
+  submission: ValidatedContactSubmission | Response,
+): Promise<ClaimedContactSubmission | Response> {
+  if (submission instanceof Response) {
+    return submission;
+  }
 
   let claim: Awaited<ReturnType<typeof contactIdempotency.begin>>;
   try {
-    claim = await contactIdempotency.begin(parsed.data.submissionId);
+    claim = await contactIdempotency.begin(submission.data.submissionId);
   } catch (error) {
     console.error("Contact idempotency check failed", error);
     return Response.json(
@@ -135,10 +205,22 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const resend = new Resend(env.RESEND_API_KEY);
-  let marketingTopicId: string;
+  return {
+    ...submission,
+    token: claim.token,
+    resend: new Resend(env.RESEND_API_KEY),
+  };
+}
+
+async function getMarketingTopicId(
+  submission: ClaimedContactSubmission | Response,
+): Promise<ContactWithMarketingTopic | Response> {
+  if (submission instanceof Response) {
+    return submission;
+  }
+
   try {
-    const topicList = await resend.topics.list();
+    const topicList = await submission.resend.topics.list();
     if (topicList.error || !topicList.data) {
       console.error("Resend marketing topic lookup failed", {
         name: topicList.error?.name,
@@ -151,11 +233,11 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const matches = topicList.data.data.filter(
-      (topic) => topic.name === topicDefinition.name,
+      (topic) => topic.name === submission.topicName,
     );
     if (matches.length !== 1) {
       console.error("Expected exactly one Resend marketing topic", {
-        topicName: topicDefinition.name,
+        topicName: submission.topicName,
         matchCount: matches.length,
       });
       return Response.json(
@@ -164,7 +246,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    marketingTopicId = matches[0].id;
+    return { ...submission, marketingTopicId: matches[0].id };
   } catch (error) {
     console.error("Resend marketing topic lookup request failed", error);
     return Response.json(
@@ -172,67 +254,52 @@ export async function POST(request: Request): Promise<Response> {
       { status: 503 },
     );
   }
+}
 
-  let contactCreated = true;
+async function saveContact(
+  submission: ContactWithMarketingTopic | Response,
+): Promise<SavedContactSubmission | Response> {
+  if (submission instanceof Response) {
+    return submission;
+  }
+
   const marketingTopic = {
-    id: marketingTopicId,
+    id: submission.marketingTopicId,
     subscription: "opt_in" as const,
   };
 
   try {
-    const result = await resend.contacts.create({
-      email,
-      firstName: parsed.data.firstName,
-      lastName: parsed.data.lastName,
+    const result = await submission.resend.contacts.create({
+      email: submission.email,
+      firstName: submission.data.firstName,
+      lastName: submission.data.lastName,
       topics: [marketingTopic],
     });
 
     if (result.error) {
       if (result.error.statusCode === 409) {
-        contactCreated = false;
-        const updateResult = await resend.contacts.update({
-          email,
-          firstName: parsed.data.firstName,
-          lastName: parsed.data.lastName,
-        });
-
-        if (updateResult.error || !updateResult.data) {
-          console.error("Resend contact update failed", {
-            name: updateResult.error?.name,
-            statusCode: updateResult.error?.statusCode,
-          });
-          return Response.json(
-            { error: "We couldn't save your contact. Please try again." },
-            { status: 502 },
-          );
-        }
-
-        const topicResult = await resend.contacts.topics.update({
-          email,
-          topics: [marketingTopic],
-        });
-
-        if (topicResult.error || !topicResult.data) {
-          console.error("Resend marketing topic enrollment failed", {
-            name: topicResult.error?.name,
-            statusCode: topicResult.error?.statusCode,
-          });
-          return Response.json(
-            { error: "We couldn't enroll your contact. Please try again." },
-            { status: 502 },
-          );
-        }
-      } else {
-        console.error("Resend contact creation failed", {
-          name: result.error.name,
-          statusCode: result.error.statusCode,
-        });
-        return Response.json(
-          { error: "We couldn't save your contact. Please try again." },
-          { status: 502 },
+        const updateResponse = await updateExistingContact(
+          submission.resend,
+          submission,
+          marketingTopic,
         );
+        if (updateResponse) {
+          return updateResponse;
+        }
+        return { ...submission, contactCreated: false };
       }
-    } else if (!result.data) {
+
+      console.error("Resend contact creation failed", {
+        name: result.error.name,
+        statusCode: result.error.statusCode,
+      });
+      return Response.json(
+        { error: "We couldn't save your contact. Please try again." },
+        { status: 502 },
+      );
+    }
+
+    if (!result.data) {
       console.error("Resend contact creation returned no contact data");
       return Response.json(
         {
@@ -242,6 +309,8 @@ export async function POST(request: Request): Promise<Response> {
         { status: 502 },
       );
     }
+
+    return { ...submission, contactCreated: true };
   } catch (error) {
     console.error("Resend contact creation request failed", error);
     return Response.json(
@@ -249,14 +318,63 @@ export async function POST(request: Request): Promise<Response> {
       { status: 502 },
     );
   }
+}
+
+async function updateExistingContact(
+  resend: Resend,
+  submission: ValidatedContactSubmission,
+  marketingTopic: { id: string; subscription: "opt_in" },
+): Promise<Response | undefined> {
+  const updateResult = await resend.contacts.update({
+    email: submission.email,
+    firstName: submission.data.firstName,
+    lastName: submission.data.lastName,
+  });
+
+  if (updateResult.error || !updateResult.data) {
+    console.error("Resend contact update failed", {
+      name: updateResult.error?.name,
+      statusCode: updateResult.error?.statusCode,
+    });
+    return Response.json(
+      { error: "We couldn't save your contact. Please try again." },
+      { status: 502 },
+    );
+  }
+
+  const topicResult = await resend.contacts.topics.update({
+    email: submission.email,
+    topics: [marketingTopic],
+  });
+
+  if (topicResult.error || !topicResult.data) {
+    console.error("Resend marketing topic enrollment failed", {
+      name: topicResult.error?.name,
+      statusCode: topicResult.error?.statusCode,
+    });
+    return Response.json(
+      { error: "We couldn't enroll your contact. Please try again." },
+      { status: 502 },
+    );
+  }
+
+  return undefined;
+}
+
+async function deliverMarketingOptInEvent(
+  submission: SavedContactSubmission | Response,
+): Promise<SavedContactSubmission | Response> {
+  if (submission instanceof Response) {
+    return submission;
+  }
 
   try {
     const automation = await sendMarketingOptInEvent({
-      submissionId: parsed.data.submissionId,
-      email,
-      firstName: parsed.data.firstName,
-      lastName: parsed.data.lastName,
-      topicKey: parsed.data.topicKey,
+      submissionId: submission.data.submissionId,
+      email: submission.email,
+      firstName: submission.data.firstName,
+      lastName: submission.data.lastName,
+      topicKey: submission.data.topicKey,
     });
 
     if (automation.status === "in-progress") {
@@ -268,6 +386,8 @@ export async function POST(request: Request): Promise<Response> {
         },
       );
     }
+
+    return submission;
   } catch (error) {
     console.error("Contact automation event delivery failed", error);
     return Response.json(
@@ -275,11 +395,19 @@ export async function POST(request: Request): Promise<Response> {
       { status: 502 },
     );
   }
+}
+
+async function completeContactSubmission(
+  submission: SavedContactSubmission | Response,
+): Promise<SavedContactSubmission | Response> {
+  if (submission instanceof Response) {
+    return submission;
+  }
 
   try {
     const completed = await contactIdempotency.complete(
-      parsed.data.submissionId,
-      claim.token,
+      submission.data.submissionId,
+      submission.token,
     );
     if (!completed) {
       console.error("Contact idempotency claim expired before completion");
@@ -291,6 +419,8 @@ export async function POST(request: Request): Promise<Response> {
         { status: 503 },
       );
     }
+
+    return submission;
   } catch (error) {
     console.error("Contact idempotency completion failed", error);
     return Response.json(
@@ -300,9 +430,4 @@ export async function POST(request: Request): Promise<Response> {
       { status: 503 },
     );
   }
-
-  return Response.json(
-    { success: true },
-    { status: contactCreated ? 201 : 200 },
-  );
 }
