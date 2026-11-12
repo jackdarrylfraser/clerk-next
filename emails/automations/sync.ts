@@ -292,7 +292,6 @@ async function syncAutomations(): Promise<void> {
   }
 
   const resend = new Resend(apiKey);
-  await syncConsentContactProperties(resend);
   await syncMarketingTopics(resend);
 
   const events = new Map<
