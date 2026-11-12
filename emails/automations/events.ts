@@ -11,9 +11,9 @@ const subscriptionCreatedIdempotency = createIdempotencyStore({
   getRedisClient,
   prefix: "clerk-next:resend-event:subscription-created",
 });
-const contactSubmittedIdempotency = createIdempotencyStore({
+const marketingOptInIdempotency = createIdempotencyStore({
   getRedisClient,
-  prefix: "clerk-next:resend-event:contact-submitted",
+  prefix: "clerk-next:resend-event:marketing-opt-in",
 });
 
 type SubscriptionCreatedEvent = {
@@ -58,7 +58,9 @@ export async function sendSubscriptionCreatedEvent({
   });
 
   if (error) {
-    throw new Error(`Resend could not trigger subscription automations: ${error.message}`);
+    throw new Error(
+      `Resend could not trigger subscription automations: ${error.message}`,
+    );
   }
 
   if (!data) {
@@ -71,26 +73,32 @@ export async function sendSubscriptionCreatedEvent({
     { ttlSeconds: 31_536_000 },
   );
   if (!completed) {
-    throw new Error("Subscription automation idempotency claim expired before completion");
+    throw new Error(
+      "Subscription automation idempotency claim expired before completion",
+    );
   }
 
   return { status: "sent" };
 }
 
-type ContactSubmittedEvent = {
+type MarketingOptInEvent = {
+  submissionId: string;
   email: string;
   firstName: string;
   lastName: string;
+  topicKey: string;
 };
 
-export async function sendContactSubmittedEvent({
+export async function sendMarketingOptInEvent({
+  submissionId,
   email,
   firstName,
   lastName,
-}: ContactSubmittedEvent): Promise<AutomationEventResult> {
+  topicKey,
+}: MarketingOptInEvent): Promise<AutomationEventResult> {
   const normalizedEmail = email.trim().toLowerCase();
-  const idempotencyKey = `contact-submitted/${normalizedEmail}`;
-  const claim = await contactSubmittedIdempotency.begin(idempotencyKey);
+  const idempotencyKey = `marketing-opt-in/${submissionId}`;
+  const claim = await marketingOptInIdempotency.begin(idempotencyKey);
 
   if (claim.status === "completed") {
     return { status: "duplicate" };
@@ -104,29 +112,35 @@ export async function sendContactSubmittedEvent({
   }
 
   const { data, error } = await resend.events.send({
-    event: "contact.submitted",
+    event: "marketing.opted_in",
     email: normalizedEmail,
     payload: {
       first_name: firstName,
       last_name: lastName,
+      form_submission_id: submissionId,
+      topic_key: topicKey,
     },
   });
 
   if (error) {
-    throw new Error(`Resend could not trigger contact automations: ${error.message}`);
+    throw new Error(
+      `Resend could not trigger the marketing automation: ${error.message}`,
+    );
   }
 
   if (!data) {
-    throw new Error("Resend did not confirm the contact automation event");
+    throw new Error("Resend did not confirm the marketing automation event");
   }
 
-  const completed = await contactSubmittedIdempotency.complete(
+  const completed = await marketingOptInIdempotency.complete(
     idempotencyKey,
     claim.token,
     { ttlSeconds: 31_536_000 },
   );
   if (!completed) {
-    throw new Error("Contact automation idempotency claim expired before completion");
+    throw new Error(
+      "Marketing automation idempotency claim expired before completion",
+    );
   }
 
   return { status: "sent" };

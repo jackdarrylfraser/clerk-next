@@ -19,9 +19,11 @@ terms, checks out, then gets access to member activities.
 - **Public content:** Markdown files in `content/markdown` are listed at
   `/more`, rendered at `/more/<slug>`, and filterable by tag. Public pages also
   include the contact form.
-- **Contact capture:** The form posts names and email to `/api/contacts`. The
-  endpoint validates input, creates or finds a Resend contact, then triggers a
-  confirmation automation.
+- **Contact capture:** The form posts names, email, and explicit marketing
+  consent to `/api/contacts`. The endpoint records consent details, adds the
+  contact to Resend's Marketing topic, and starts an educational email
+  automation. This is an information request, not an account signup; it does
+  not send a signup-confirmation email.
 - **Email automations:** A verified Clerk webhook triggers a welcome
   automation when a subscription is created. Contact and subscription events,
   templates, and automations are declared in `emails/automations/definitions.ts`
@@ -84,8 +86,9 @@ than hard-coded here.
 To enable email workflows:
 
 1. Configure `RESEND_API_KEY` and `RESEND_FROM_EMAIL`, then run
-   `bun run emails:sync`. The sync updates only the event, template, and
-   automation resources declared in the definitions file.
+   `bun run emails:sync`. The command provisions code-defined marketing topics,
+   consent properties, events, templates, and automations. The contact endpoint
+   resolves the selected topic by its code-defined name.
 2. Add a Clerk webhook at `/api/webhooks/clerk` for `subscription.created` and
    set its signing secret in `CLERK_WEBHOOK_SIGNING_SECRET`.
 3. Configure both Upstash Redis variables. Contact capture and event
@@ -112,7 +115,11 @@ development Clerk instance and payment provider's test mode.
 - **Plan-specific terms:** `terms/subscription-terms.tsx` and
   `lib/plan-terms.ts`.
 - **Email workflows:** `emails/automations/definitions.ts` describes the
-  resources; `emails/automations/events.ts` sends events; `sync.ts` syncs them.
+  resources; `emails/automations/events.ts` sends events; `sync.ts` provisions
+  and syncs them.
+- **Marketing topics:** `lib/marketing-topics.ts` defines topic names and
+  consent versions. Select a topic with the `topicKey` prop on
+  `LeadCaptureForm`.
 - **Shared Redis helpers:** `packages/kv/` owns the Redis client, rate limiter,
   idempotency store, and IP identifier. Extend this package for new shared
   server-side Redis behavior instead of wiring Redis directly into routes.

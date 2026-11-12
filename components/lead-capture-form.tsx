@@ -1,6 +1,10 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useId, useRef, useState, type FormEvent } from "react";
+import {
+  defaultMarketingTopicKey,
+  type MarketingTopicKey,
+} from "@/lib/marketing-topics";
 
 type FormStatus = {
   kind: "success" | "error";
@@ -17,19 +21,24 @@ type LeadCaptureFormCopy = {
 const defaultCopy: LeadCaptureFormCopy = {
   title: "Learn the what, why, and how.",
   description:
-    "Get practical educational emails that explain what matters, why it matters, and how to put ideas into practice.",
+    "Get occasional practical educational emails that explain what matters, why it matters, and how to put ideas into practice.",
   consentLabel:
-    "Yes, I agree to receive educational emails about what matters, why it matters, and how to put ideas into practice.",
+    "Yes, I agree to receive occasional educational emails about what matters, why it matters, and how to put ideas into practice.",
   submitLabel: "Get learning updates",
 };
 
 type LeadCaptureFormProps = {
   copy?: Partial<LeadCaptureFormCopy>;
+  topicKey?: MarketingTopicKey;
 };
 
-export function LeadCaptureForm({ copy: copyOverrides }: LeadCaptureFormProps) {
+export function LeadCaptureForm({
+  copy: copyOverrides,
+  topicKey = defaultMarketingTopicKey,
+}: LeadCaptureFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<FormStatus | null>(null);
+  const submissionId = useRef<string | null>(null);
   const titleId = useId();
   const copy = { ...defaultCopy, ...copyOverrides };
 
@@ -42,10 +51,13 @@ export function LeadCaptureForm({ copy: copyOverrides }: LeadCaptureFormProps) {
     setStatus(null);
 
     try {
+      submissionId.current ??= globalThis.crypto.randomUUID();
       const response = await fetch("/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          submissionId: submissionId.current,
+          topicKey,
           firstName: formData.get("firstName"),
           lastName: formData.get("lastName"),
           email: formData.get("email"),
@@ -87,18 +99,19 @@ export function LeadCaptureForm({ copy: copyOverrides }: LeadCaptureFormProps) {
         setStatus({
           kind: "error",
           message:
-            "We couldn't sign you up for learning emails. Please try again.",
+            "We couldn't submit your request for more information. Please try again.",
         });
         return;
       }
 
+      submissionId.current = null;
       form.reset();
       setStatus({
         kind: "success",
-        message: "Thanks for signing up for learning updates.",
+        message: "Thanks. We'll send you more information by email.",
       });
     } catch (error) {
-      console.error("Learning email signup failed", error);
+      console.error("Request for educational information failed", error);
       setStatus({
         kind: "error",
         message: "We couldn't reach the server. Please try again.",
@@ -152,7 +165,7 @@ export function LeadCaptureForm({ copy: copyOverrides }: LeadCaptureFormProps) {
           disabled={isSubmitting}
           type="submit"
         >
-          {isSubmitting ? "Signing up..." : copy.submitLabel}
+          {isSubmitting ? "Submitting..." : copy.submitLabel}
         </button>
         {status && (
           <p

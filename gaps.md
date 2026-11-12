@@ -8,31 +8,6 @@ environments have not been independently verified.
 
 ## Highest priority
 
-### 1. Define the paid-content access model
-
-RESOLVED: Members need to have an active site_access plan on their account to have access. If their payment fails they will lose access after their failed payment. if they cancel they will have access throughout the end of their billing period.
-
-### 2. Add explicit marketing consent and email preferences
-
-The contact flow creates a Resend contact and sends a confirmation, but the
-public lead form now clearly describes educational emails and requires an
-unchecked-by-default affirmative consent before the server creates a Resend
-contact. The application still does not persist consent time, source, or the
-consent language/version. No double opt-in, preference center, unsubscribe
-workflow, or suppression handling is evident in the application.
-
-- Separate transactional messages from marketing subscriptions.
-- DONE: Collect clear, unchecked-by-default consent for educational email.
-- Persist consent time, source/form, and the wording/version accepted.
-- Implement confirmation, unsubscribe, and preference management before
-  sending marketing campaigns.
-- Configure sender-domain authentication and required marketing email footers
-  in the email provider.
-
-Relevant implementation: [lead capture form](./components/lead-capture-form.tsx),
-[contact endpoint](./app/api/contacts/route.ts), and
-[email automation definitions](./emails/automations/definitions.ts).
-
 ### 3. Complete signup and customer onboarding
 
 The application defines a subscription welcome automation, but no application
@@ -113,31 +88,3 @@ are absent from the whole service.
 - Add monitoring and a documented way to inspect and replay failed events.
 
 Relevant implementation: [Clerk webhook handler](./app/api/webhooks/clerk/route.ts).
-
-### 8. Add end-to-end journey tests
-
-The application should have automated coverage of the full journey, not only
-isolated flow helpers:
-
-- Public visitor to signup and email verification.
-- Consent capture and unsubscribe.
-- Checkout success, failure, and retry.
-- Access allowed and denied for each entitlement state.
-- Webhook retries and idempotent email enrollment.
-- Cancellation, payment failure, and access revocation.
-
-## Existing strengths to preserve
-
-- Server-side feature protection for member activities.
-- Separate public and member Markdown directories, with sanitized Markdown
-  rendering.
-- Server-side contact validation, rate limiting, and idempotency.
-- Signature verification for Clerk webhook requests.
-- Clerk-managed checkout and account UI.
-
-## External launch checks
-
-This repository review cannot verify the deployed Clerk plan/feature
-assignments, Stripe payment configuration, Resend automation state, sender
-domain SPF/DKIM/DMARC, or production webhook secrets and delivery. Confirm and
-test those settings separately in each environment before launch.
