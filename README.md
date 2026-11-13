@@ -119,7 +119,10 @@ development Clerk instance and payment provider's test mode.
   and syncs them.
 - **Marketing topics:** `lib/marketing-topics.ts` defines topic names and
   consent versions. Select a topic with the `topicKey` prop on
-  `LeadCaptureForm`.
+  `LeadCaptureForm`. Email automation sync creates topics with the `opt_in`
+  default; new contacts inherit that setting, while existing contact topic
+  preferences are left unchanged. The lead form still collects explicit
+  consent before adding contacts.
 - **Shared Redis helpers:** `packages/kv/` owns the Redis client, rate limiter,
   idempotency store, and IP identifier. Extend this package for new shared
   server-side Redis behavior instead of wiring Redis directly into routes.

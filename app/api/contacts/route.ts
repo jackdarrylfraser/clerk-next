@@ -8,7 +8,7 @@ import {
 } from "@clerk-next/kv";
 import { env } from "@/env";
 import { sendMarketingOptInEvent } from "@/emails/automations/events";
-import { isMarketingTopicKey, marketingTopics } from "@/lib/marketing-topics";
+import { isMarketingTopicKey } from "@/lib/marketing-topics";
 
 const getRedisClient = createRedisClient({
   redisUrl: env.UPSTASH_REDIS_REST_URL,
@@ -44,8 +44,7 @@ export async function POST(request: Request): Promise<Response> {
     rateLimitResult,
   );
   const claimResult = await claimContactSubmission(submissionResult);
-  const topicResult = await getMarketingTopicId(claimResult);
-  const contactResult = await saveContact(topicResult);
+  const contactResult = await saveContact(claimResult);
   const automationResult = await deliverMarketingOptInEvent(contactResult);
   const completionResult = await completeContactSubmission(automationResult);
 
@@ -54,7 +53,6 @@ export async function POST(request: Request): Promise<Response> {
 
 type ValidatedContactSubmission = {
   data: z.infer<typeof contactSchema>;
-  topicName: string;
   email: string;
 };
 
@@ -63,11 +61,7 @@ type ClaimedContactSubmission = ValidatedContactSubmission & {
   resend: Resend;
 };
 
-type ContactWithMarketingTopic = ClaimedContactSubmission & {
-  marketingTopicId: string;
-};
-
-type SavedContactSubmission = ContactWithMarketingTopic & {
+type SavedContactSubmission = ClaimedContactSubmission & {
   contactCreated: boolean;
 };
 
@@ -165,10 +159,8 @@ async function parseContactSubmission(
     );
   }
 
-  const topicDefinition = marketingTopics[parsed.data.topicKey];
   return {
     data: parsed.data,
-    topicName: topicDefinition.name,
     email: parsed.data.email.toLowerCase(),
   };
 }
@@ -212,77 +204,23 @@ async function claimContactSubmission(
   };
 }
 
-async function getMarketingTopicId(
-  submission: ClaimedContactSubmission | Response,
-): Promise<ContactWithMarketingTopic | Response> {
-  if (submission instanceof Response) {
-    return submission;
-  }
-
-  try {
-    const topicList = await submission.resend.topics.list();
-    if (topicList.error || !topicList.data) {
-      console.error("Resend marketing topic lookup failed", {
-        name: topicList.error?.name,
-        statusCode: topicList.error?.statusCode,
-      });
-      return Response.json(
-        { error: "Contact submissions are temporarily unavailable." },
-        { status: 503 },
-      );
-    }
-
-    const matches = topicList.data.data.filter(
-      (topic) => topic.name === submission.topicName,
-    );
-    if (matches.length !== 1) {
-      console.error("Expected exactly one Resend marketing topic", {
-        topicName: submission.topicName,
-        matchCount: matches.length,
-      });
-      return Response.json(
-        { error: "Contact submissions are temporarily unavailable." },
-        { status: 503 },
-      );
-    }
-
-    return { ...submission, marketingTopicId: matches[0].id };
-  } catch (error) {
-    console.error("Resend marketing topic lookup request failed", error);
-    return Response.json(
-      { error: "Contact submissions are temporarily unavailable." },
-      { status: 503 },
-    );
-  }
-}
-
 async function saveContact(
-  submission: ContactWithMarketingTopic | Response,
+  submission: ClaimedContactSubmission | Response,
 ): Promise<SavedContactSubmission | Response> {
   if (submission instanceof Response) {
     return submission;
   }
-
-  const marketingTopic = {
-    id: submission.marketingTopicId,
-    subscription: "opt_in" as const,
-  };
 
   try {
     const result = await submission.resend.contacts.create({
       email: submission.email,
       firstName: submission.data.firstName,
       lastName: submission.data.lastName,
-      topics: [marketingTopic],
     });
 
     if (result.error) {
       if (result.error.statusCode === 409) {
-        const updateResponse = await updateExistingContact(
-          submission.resend,
-          submission,
-          marketingTopic,
-        );
+        const updateResponse = await updateExistingContact(submission);
         if (updateResponse) {
           return updateResponse;
         }
@@ -321,11 +259,9 @@ async function saveContact(
 }
 
 async function updateExistingContact(
-  resend: Resend,
-  submission: ValidatedContactSubmission,
-  marketingTopic: { id: string; subscription: "opt_in" },
+  submission: ClaimedContactSubmission,
 ): Promise<Response | undefined> {
-  const updateResult = await resend.contacts.update({
+  const updateResult = await submission.resend.contacts.update({
     email: submission.email,
     firstName: submission.data.firstName,
     lastName: submission.data.lastName,
@@ -338,22 +274,6 @@ async function updateExistingContact(
     });
     return Response.json(
       { error: "We couldn't save your contact. Please try again." },
-      { status: 502 },
-    );
-  }
-
-  const topicResult = await resend.contacts.topics.update({
-    email: submission.email,
-    topics: [marketingTopic],
-  });
-
-  if (topicResult.error || !topicResult.data) {
-    console.error("Resend marketing topic enrollment failed", {
-      name: topicResult.error?.name,
-      statusCode: topicResult.error?.statusCode,
-    });
-    return Response.json(
-      { error: "We couldn't enroll your contact. Please try again." },
       { status: 502 },
     );
   }
