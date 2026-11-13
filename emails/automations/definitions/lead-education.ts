@@ -29,6 +29,20 @@ export const leadEducationDefinition: AutomationDefinition = {
       config: { eventName: "marketing.opted_in" },
     },
     {
+      key: "wait_for_user_created",
+      type: "wait_for_event",
+      config: {
+        eventName: "user.created",
+        timeout: "3 days",
+        filterRule: {
+          type: "rule",
+          field: "event.email",
+          operator: "eq",
+          value: { var: "contact.email" },
+        },
+      },
+    },
+    {
       key: "send_education",
       type: "send_email",
       config: {
@@ -38,5 +52,12 @@ export const leadEducationDefinition: AutomationDefinition = {
       },
     },
   ],
-  connections: [{ from: "lead_submitted", to: "send_education" }],
+  connections: [
+    { from: "lead_submitted", to: "wait_for_user_created" },
+    {
+      from: "wait_for_user_created",
+      to: "send_education",
+      type: "timeout",
+    },
+  ],
 };

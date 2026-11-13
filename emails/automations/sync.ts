@@ -265,7 +265,8 @@ async function syncAutomation(
     const payload: CreateAutomationOptions = {
       name: definition.name,
       status: definition.status,
-      steps: definition.steps,
+      // The SDK type omits documented variable references in filter rules.
+      steps: definition.steps as CreateAutomationOptions["steps"],
       connections: definition.connections,
     };
     const existing = matches[0];
