@@ -30,7 +30,6 @@ const contactIdempotency = createIdempotencyStore({
 
 const contactSchema = z.object({
   submissionId: z.uuid(),
-  topicKey: z.string().min(1),
   firstName: z.string().trim().min(1).max(100),
   lastName: z.string().trim().min(1).max(100),
   email: z.string().trim().email().max(254),
@@ -148,13 +147,6 @@ async function parseContactSubmission(
         error:
           "Enter your name and a valid email address, and consent to receive educational emails.",
       },
-      { status: 400 },
-    );
-  }
-
-  if (!isMarketingTopicKey(parsed.data.topicKey)) {
-    return Response.json(
-      { error: "Select a valid email preference." },
       { status: 400 },
     );
   }
@@ -294,7 +286,6 @@ async function deliverMarketingOptInEvent(
       email: submission.email,
       firstName: submission.data.firstName,
       lastName: submission.data.lastName,
-      topicKey: submission.data.topicKey,
     });
 
     if (automation.status === "in-progress") {

@@ -86,7 +86,6 @@ type MarketingOptInEvent = {
   email: string;
   firstName: string;
   lastName: string;
-  topicKey: string;
 };
 
 export async function sendMarketingOptInEvent({
@@ -94,7 +93,6 @@ export async function sendMarketingOptInEvent({
   email,
   firstName,
   lastName,
-  topicKey,
 }: MarketingOptInEvent): Promise<AutomationEventResult> {
   const normalizedEmail = email.trim().toLowerCase();
   const idempotencyKey = `marketing-opt-in/${submissionId}`;
@@ -117,8 +115,6 @@ export async function sendMarketingOptInEvent({
     payload: {
       first_name: firstName,
       last_name: lastName,
-      form_submission_id: submissionId,
-      topic_key: topicKey,
     },
   });
 
