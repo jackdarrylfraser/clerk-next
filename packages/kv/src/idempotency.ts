@@ -19,7 +19,8 @@ export interface IdempotencyRunConfig
 export type IdempotencyRunResult<T> =
   | { status: "executed"; value: T }
   | { status: "duplicate" }
-  | { status: "in-progress"; retryAfterSeconds: number };
+  | { status: "in-progress"; retryAfterSeconds: number }
+  | { status: "error"; error: unknown };
 
 export interface CreateIdempotencyStoreOptions {
   getRedisClient: () => Redis;
@@ -138,15 +139,19 @@ export function createIdempotencyStore({
       return claim;
     }
 
-    const value = await operation();
-    const completed = await end(idempotencyKey, claim.token, {
-      ttlSeconds: completionTtlSeconds,
-    });
-    if (!completed) {
-      throw new Error("Idempotency claim expired before completion");
-    }
+    try {
+      const value = await operation();
+      const completed = await end(idempotencyKey, claim.token, {
+        ttlSeconds: completionTtlSeconds,
+      });
+      if (!completed) {
+        throw new Error("Idempotency claim expired before completion");
+      }
 
-    return { status: "executed", value };
+      return { status: "executed", value };
+    } catch (error) {
+      return { status: "error", error };
+    }
   }
 
   return { run };

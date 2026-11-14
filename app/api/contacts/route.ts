@@ -259,6 +259,14 @@ async function deliverMarketingOptInEvent(
       );
     }
 
+    if (automation.status === "error") {
+      console.error("Contact automation event delivery failed", automation.error);
+      return Response.json(
+        { error: "We couldn't enroll your contact. Please try again." },
+        { status: 502 },
+      );
+    }
+
     return submission;
   } catch (error) {
     console.error("Contact automation event delivery failed", error);

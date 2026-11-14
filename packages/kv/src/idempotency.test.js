@@ -136,9 +136,11 @@ describe("idempotency", () => {
       throw new Error("operation failed");
     }
 
-    await expect(
-      idempotency.run(key, failOperation),
-    ).rejects.toThrow("operation failed");
+    const result = await idempotency.run(key, failOperation);
+    expect(result).toEqual({
+      status: "error",
+      error: new Error("operation failed"),
+    });
     expect(
       records.has(`${key.scope}:completed:${keyHash}`),
     ).toBe(false);
@@ -155,9 +157,10 @@ describe("idempotency", () => {
       records.set(lockKey, "new-token");
     }
 
-    await expect(
-      idempotency.run(key, replaceLock),
-    ).rejects.toThrow("claim expired");
+    expect(await idempotency.run(key, replaceLock)).toEqual({
+      status: "error",
+      error: new Error("Idempotency claim expired before completion"),
+    });
     expect(records.has(completedKey)).toBe(false);
   });
 

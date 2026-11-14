@@ -7,7 +7,8 @@ const resend = new Resend(env.RESEND_API_KEY);
 
 export type AutomationEventResult =
   | { status: "sent" | "duplicate" }
-  | { status: "in-progress"; retryAfterSeconds: number };
+  | { status: "in-progress"; retryAfterSeconds: number }
+  | { status: "error"; error: unknown };
 
 type MarketingOptInEvent = {
   email: string;
@@ -26,7 +27,7 @@ export async function sendMarketingOptInEvent({
     key: normalizedEmail,
   };
 
-  async function sendMarketingOptInEventToResend(): Promise<void> {
+  const result = await idempotency.run(idempotencyKey, async () => {
     const { data, error } = await resend.events.send({
       event: EMAIL_EVENTS.marketingOptIn,
       email: normalizedEmail,
@@ -45,12 +46,7 @@ export async function sendMarketingOptInEvent({
     if (!data) {
       throw new Error("Resend did not confirm the marketing automation event");
     }
-  }
-
-  const result = await idempotency.run(
-    idempotencyKey,
-    sendMarketingOptInEventToResend,
-  );
+  });
 
   if (result.status === "executed") {
     return { status: "sent" };
