@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
+import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getTagSlug } from "@/lib/tags";
@@ -42,11 +43,19 @@ async function GuestTagPageContent({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   if (!isDevAuthBypassEnabled) {
-    await auth.protect({ feature: "user:site_access" });
+    const { isAuthenticated } = await auth();
+    if (!isAuthenticated) {
+      return (
+        <GuestEmailVerificationGate
+          returnTo={`/guest/tag/${encodeURIComponent(slug)}`}
+        />
+      );
+    }
+    await auth.protect({ feature: "guest" });
   }
 
-  const { slug } = await params;
   if (!tagSlugPattern.test(slug)) {
     notFound();
   }

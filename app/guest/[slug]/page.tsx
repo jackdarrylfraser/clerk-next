@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
+import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import {
   getMarkdownMetadata,
@@ -21,11 +22,19 @@ async function GuestMarkdownPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   if (!isDevAuthBypassEnabled) {
-    await auth.protect({ feature: "user:site_access" });
+    const { isAuthenticated } = await auth();
+    if (!isAuthenticated) {
+      return (
+        <GuestEmailVerificationGate
+          returnTo={`/guest/${encodeURIComponent(slug)}`}
+        />
+      );
+    }
+    await auth.protect({ feature: "guest" });
   }
 
-  const { slug } = await params;
   const content = await renderMarkdown(guestDirectory, slug);
   if (content === null) {
     notFound();

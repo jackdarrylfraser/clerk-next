@@ -3,6 +3,7 @@ import Link from "next/link";
 import { join } from "node:path";
 import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
+import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 
@@ -28,11 +29,25 @@ async function GuestPagesContent({
 }: {
   searchParams: Promise<{ page?: string | string[] }>;
 }) {
+  const { page: pageParam } = await searchParams;
+  const guestSearchParams = new URLSearchParams();
+  if (typeof pageParam === "string") {
+    guestSearchParams.set("page", pageParam);
+  } else if (Array.isArray(pageParam)) {
+    pageParam.forEach((value) => guestSearchParams.append("page", value));
+  }
+  const returnTo = guestSearchParams.size
+    ? `/guest?${guestSearchParams.toString()}`
+    : "/guest";
+
   if (!isDevAuthBypassEnabled) {
-    await auth.protect({ feature: "user:site_access" });
+    const { isAuthenticated } = await auth();
+    if (!isAuthenticated) {
+      return <GuestEmailVerificationGate returnTo={returnTo} />;
+    }
+    await auth.protect({ feature: "guest" });
   }
 
-  const { page: pageParam } = await searchParams;
   const requestedPage =
     typeof pageParam === "string" ? Number(pageParam) : Number.NaN;
   const pages = await getMarkdownParamsWithMetadata(guestDirectory, "slug");

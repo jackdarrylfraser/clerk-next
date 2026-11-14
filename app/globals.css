@@ -16,6 +16,32 @@ body {
   color: var(--ink);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: 1.2;
+}
+h1 {
+  font-size: clamp(36px, 4vw, 48px);
+}
+h2 {
+  font-size: clamp(28px, 3vw, 36px);
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 20px;
+}
+h5 {
+  font-size: 18px;
+}
+h6 {
+  font-size: 16px;
+}
 button,
 input,
 select,
@@ -147,7 +173,7 @@ h1,
   font-weight: 400;
 }
 .intro h1 {
-  font-size: clamp(48px, 5.2vw, 71px);
+  font-size: clamp(40px, 4.5vw, 56px);
   line-height: 1.04;
   margin: 20px 0;
 }
@@ -276,6 +302,61 @@ h1,
 .lead-capture-status.error {
   color: #a23d32;
 }
+.guest-access {
+  min-height: 60vh;
+}
+.guest-access-panel {
+  width: min(100%, 520px);
+}
+.guest-access-form {
+  display: grid;
+  gap: 14px;
+}
+.guest-access-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.guest-access-form input {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+}
+.guest-access-form input:focus-visible,
+.guest-access-back:focus-visible {
+  outline: 2px solid #809d70;
+  outline-offset: 2px;
+}
+.guest-access-submit {
+  width: auto;
+  justify-self: start;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.guest-access-back {
+  justify-self: start;
+  padding: 0;
+}
+.guest-access-status {
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.guest-access-status.success {
+  color: #668162;
+}
+.guest-access-status.error {
+  color: #a23d32;
+}
 .activity-home {
   align-self: center;
   display: flex;
@@ -290,7 +371,7 @@ h1,
   margin-bottom: 34px;
 }
 .activity-heading h1 {
-  font-size: clamp(40px, 5vw, 56px);
+  font-size: clamp(36px, 4vw, 48px);
   margin: 16px 0 12px;
 }
 .activity-heading > p:last-child {
@@ -1005,7 +1086,7 @@ button.text-button {
   height: 4px;
 }
 .side-panel h2 {
-  font-size: 38px;
+  font-size: 34px;
   line-height: 1.07;
   margin: 0 0 14px;
 }
@@ -1234,7 +1315,13 @@ button.text-button {
   .lead-capture-status.success {
     color: #b4cdaa;
   }
+  .guest-access-status.success {
+    color: #b4cdaa;
+  }
   .lead-capture-status.error {
+    color: #f09a91;
+  }
+  .guest-access-status.error {
     color: #f09a91;
   }
   .activity-card-tag {
