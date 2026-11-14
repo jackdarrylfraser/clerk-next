@@ -103,14 +103,7 @@ function AccountStep({
 }) {
   return (
     <>
-      <div className="section-heading">
-        <span className="step-number">02</span>
-        <div>
-          <h2>Your account</h2>
-          <p>Subscribe to create an account, or sign in to continue.</p>
-        </div>
-      </div>
-      {isSignedIn ? (
+    {isSignedIn ? (
         <div className="step-message">
           <p className="complete-state">
             <span>✓</span> You&apos;re signed in and ready to continue.

@@ -633,15 +633,11 @@ h1,
 .progress li.current {
   color: #3c5740;
 }
-.progress li.current .progress-number {
+.progress li.current .progress-number,
+.progress li.completed .progress-number {
   color: #fff;
   background: #4a624d;
   border-color: #4a624d;
-}
-.progress li.completed .progress-number {
-  color: #64815f;
-  background: #e8efe5;
-  border-color: #d7e3d2;
 }
 .progress strong,
 .progress small {
@@ -659,52 +655,20 @@ h1,
   max-width: 760px;
   margin: 0 auto;
 }
-.flow-panel,
 .side-panel {
   border: 1px solid #e6e9e1;
   border-radius: 6px;
 }
-.flow-panel {
-  background: #fff;
-  padding: 38px;
-}
-.section-heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-.step-number {
-  display: grid;
-  place-items: center;
-  flex: 0 0 29px;
-  height: 29px;
-  border: 1px solid #dfe7dc;
-  border-radius: 50%;
-  color: #788f72;
-  font-size: 10px;
-  font-weight: bold;
-}
-.section-heading h2 {
-  font-weight: 400;
-  font-size: 23px;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  margin: 0 0 6px;
-}
-.section-heading p,
 .muted-indent {
   font-size: 12px;
   color: #939a90;
-  margin: 0;
+  margin: 20px 0 0;
   line-height: 1.5;
-}
-.muted-indent {
-  margin: 20px 0 0 43px;
 }
 .period-toggle {
   display: flex;
   width: fit-content;
-  margin: 28px 0 16px 43px;
+  margin: 28px 0 16px;
   padding: 4px;
   background: #f2f4ee;
   border-radius: 5px;
@@ -726,14 +690,9 @@ h1,
 .plans {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 12px;
-  margin-left: 43px;
+  gap: 32px;
 }
 .plan-card {
-  border: 1px solid #dce5d8;
-  background: #fbfcf9;
-  border-radius: 5px;
-  padding: 20px;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -820,10 +779,10 @@ h1,
   padding: 0;
 }
 button.text-button {
-  margin: 18px 0 0 43px;
+  margin: 18px 0 0;
 }
 .step-message {
-  margin: 22px 0 0 43px;
+  margin: 22px 0 0;
 }
 .step-message > p,
 .resume-checkout {
@@ -836,7 +795,7 @@ button.text-button {
   margin: 0 0 16px;
 }
 .resume-checkout {
-  margin: 20px 0 0 43px;
+  margin: 20px 0 0;
 }
 .resume-checkout a {
   color: #49624d;
@@ -847,7 +806,7 @@ button.text-button {
   margin: 35px 0;
 }
 .selection-row {
-  margin: 23px 0 0 43px;
+  margin: 23px 0 0;
   padding: 16px;
   border: 1px solid #dfe8db;
   border-radius: 4px;
@@ -866,7 +825,7 @@ button.text-button {
   margin-top: 5px;
 }
 .complete-state {
-  margin: 20px 0 0 43px;
+  margin: 20px 0 0;
   color: #668162;
   font-size: 12px;
 }
@@ -874,7 +833,7 @@ button.text-button {
   margin-right: 7px;
 }
 .auth-container {
-  margin: 25px 0 0 43px;
+  margin: 25px 0 0;
 }
 .auth-tabs {
   display: flex;
@@ -893,7 +852,7 @@ button.text-button {
   font-weight: 700;
 }
 .checkout-content {
-  margin: 22px 0 0 43px;
+  margin: 22px 0 0;
 }
 .checkout-content > p,
 .payment-note {
@@ -986,7 +945,7 @@ button.text-button {
 .status-message {
   color: #858c81;
   font-size: 12px;
-  margin: 20px 0 20px 43px;
+  margin: 20px 0;
 }
 .side-panel {
   background: #edf2e8;
@@ -1123,9 +1082,6 @@ button.text-button {
   .main-content {
     padding: 0 16px;
   }
-  .flow-panel {
-    padding: 24px 18px;
-  }
   .plans,
   .period-toggle,
   .auth-container,
@@ -1232,7 +1188,6 @@ button.text-button {
   .activity-count,
   .activity-pagination,
   .activity-empty,
-  .section-heading p,
   .muted-indent,
   .plan-top p,
   .plan-price span,
@@ -1260,7 +1215,6 @@ button.text-button {
   .progress li.current,
   .complete-state,
   .features li span,
-  .step-number,
   .plan-sparkle,
   .art-center,
   .aside-label,
@@ -1350,24 +1304,14 @@ button.text-button {
   .progress li.current {
     color: #d8e8d1;
   }
-  .progress li.current .progress-number {
+  .progress li.current .progress-number,
+  .progress li.completed .progress-number {
+    color: #fff;
     background: #526b55;
     border-color: #526b55;
   }
-  .progress li.completed .progress-number {
-    color: #c4dabb;
-    background: #29372a;
-    border-color: #3d4b3b;
-  }
-  .flow-panel,
   .side-panel {
     border-color: #303a31;
-  }
-  .flow-panel {
-    background: #1b211c;
-  }
-  .step-number {
-    border-color: #465146;
   }
   .period-toggle {
     background: #242c25;
@@ -1378,10 +1322,6 @@ button.text-button {
   .period-toggle button.active {
     background: #354035;
     color: #edf1eb;
-  }
-  .plan-card {
-    border-color: #39483a;
-    background: #1d241e;
   }
   .features {
     border-color: #303a31;

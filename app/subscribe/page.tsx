@@ -102,13 +102,6 @@ function PlanStep({
 }) {
   return (
     <>
-      <div className="section-heading">
-        <span className="step-number">01</span>
-        <div>
-          <h2>Choose your plan</h2>
-          <p>Find the right fit for you.</p>
-        </div>
-      </div>
       <div className="period-toggle" aria-label="Billing period">
         <button
           type="button"
