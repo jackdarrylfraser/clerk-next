@@ -35,12 +35,55 @@ export async function POST(request: Request): Promise<Response> {
     request,
     rateLimitResult,
   );
-  const claimResult = await claimContactSubmission(submissionResult);
-  const contactResult = await saveContact(claimResult);
-  const automationResult = await deliverMarketingOptInEvent(contactResult);
-  const completionResult = await endContactSubmission(automationResult);
+  if (submissionResult instanceof Response) {
+    return submissionResult;
+  }
 
-  return createContactSuccessResponse(completionResult);
+  let result: Awaited<
+    ReturnType<typeof idempotency.run<SavedContactSubmission>>
+  >;
+
+  async function processContactSubmission(): Promise<SavedContactSubmission> {
+    const claimedSubmission = {
+      ...submissionResult,
+      resend: new Resend(env.RESEND_API_KEY),
+    };
+    const savedContact = await saveContact(claimedSubmission);
+    if (savedContact instanceof Response) {
+      throw new ContactSubmissionFailure(savedContact);
+    }
+
+    const deliveredEvent = await deliverMarketingOptInEvent(savedContact);
+    if (deliveredEvent instanceof Response) {
+      throw new ContactSubmissionFailure(deliveredEvent);
+    }
+
+    return deliveredEvent;
+  }
+
+  try {
+    result = await idempotency.run(
+      {
+        scope: IDEMPOTENCY_SCOPES.contactSubmission,
+        key: submissionResult.data.submissionId,
+      },
+      processContactSubmission,
+    );
+  } catch (error) {
+    if (error instanceof ContactSubmissionFailure) {
+      return error.response;
+    }
+
+    console.error("Contact idempotency processing failed", error);
+    return Response.json(
+      {
+        error: "We couldn't confirm your contact was saved. Please try again.",
+      },
+      { status: 503 },
+    );
+  }
+
+  return createContactSuccessResponse(result);
 }
 
 type ValidatedContactSubmission = {
@@ -49,7 +92,6 @@ type ValidatedContactSubmission = {
 };
 
 type ClaimedContactSubmission = ValidatedContactSubmission & {
-  token: string;
   resend: Resend;
 };
 
@@ -57,16 +99,32 @@ type SavedContactSubmission = ClaimedContactSubmission & {
   contactCreated: boolean;
 };
 
+class ContactSubmissionFailure extends Error {
+  constructor(readonly response: Response) {
+    super("Contact submission failed");
+  }
+}
+
 function createContactSuccessResponse(
-  result: SavedContactSubmission | Response,
+  result: Awaited<ReturnType<typeof idempotency.run<SavedContactSubmission>>>,
 ): Response {
-  if (result instanceof Response) {
-    return result;
+  if (result.status === "duplicate") {
+    return Response.json({ success: true }, { status: 200 });
+  }
+
+  if (result.status === "in-progress") {
+    return Response.json(
+      { error: "This submission is already being processed." },
+      {
+        status: 425,
+        headers: { "Retry-After": String(result.retryAfterSeconds) },
+      },
+    );
   }
 
   return Response.json(
     { success: true },
-    { status: result.contactCreated ? 201 : 200 },
+    { status: result.value.contactCreated ? 201 : 200 },
   );
 }
 
@@ -147,48 +205,6 @@ async function parseContactSubmission(
   return {
     data: parsed.data,
     email: parsed.data.email.toLowerCase(),
-  };
-}
-
-async function claimContactSubmission(
-  submission: ValidatedContactSubmission | Response,
-): Promise<ClaimedContactSubmission | Response> {
-  if (submission instanceof Response) {
-    return submission;
-  }
-
-  let claim: Awaited<ReturnType<typeof idempotency.begin>>;
-  try {
-    claim = await idempotency.begin({
-      scope: IDEMPOTENCY_SCOPES.contactSubmission,
-      key: submission.data.submissionId,
-    });
-  } catch (error) {
-    console.error("Contact idempotency check failed", error);
-    return Response.json(
-      { error: "Contact submissions are temporarily unavailable." },
-      { status: 503 },
-    );
-  }
-
-  if (claim.status === "completed") {
-    return Response.json({ success: true }, { status: 200 });
-  }
-
-  if (claim.status === "in-progress") {
-    return Response.json(
-      { error: "This submission is already being processed." },
-      {
-        status: 425,
-        headers: { "Retry-After": String(claim.retryAfterSeconds) },
-      },
-    );
-  }
-
-  return {
-    ...submission,
-    token: claim.token,
-    resend: new Resend(env.RESEND_API_KEY),
   };
 }
 
@@ -300,44 +316,6 @@ async function deliverMarketingOptInEvent(
     return Response.json(
       { error: "We couldn't enroll your contact. Please try again." },
       { status: 502 },
-    );
-  }
-}
-
-async function endContactSubmission(
-  submission: SavedContactSubmission | Response,
-): Promise<SavedContactSubmission | Response> {
-  if (submission instanceof Response) {
-    return submission;
-  }
-
-  try {
-    const completed = await idempotency.end(
-      {
-        scope: IDEMPOTENCY_SCOPES.contactSubmission,
-        key: submission.data.submissionId,
-      },
-      submission.token,
-    );
-    if (!completed) {
-      console.error("Contact idempotency claim expired before completion");
-      return Response.json(
-        {
-          error:
-            "We couldn't confirm your contact was saved. Please try again.",
-        },
-        { status: 503 },
-      );
-    }
-
-    return submission;
-  } catch (error) {
-    console.error("Contact idempotency completion failed", error);
-    return Response.json(
-      {
-        error: "We couldn't confirm your contact was saved. Please try again.",
-      },
-      { status: 503 },
     );
   }
 }

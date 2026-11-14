@@ -26,48 +26,36 @@ export async function sendMarketingOptInEvent({
     scope: IDEMPOTENCY_SCOPES.marketingOptInEvent,
     key: `marketing-opt-in/${submissionId}`,
   };
-  const claim = await idempotency.begin(idempotencyKey);
 
-  if (claim.status === "completed") {
-    return { status: "duplicate" };
+  async function sendMarketingOptInEventToResend(): Promise<void> {
+    const { data, error } = await resend.events.send({
+      event: "marketing.opted_in",
+      email: normalizedEmail,
+      payload: {
+        first_name: firstName,
+        last_name: lastName,
+      },
+    });
+
+    if (error) {
+      throw new Error(
+        `Resend could not trigger the marketing automation: ${error.message}`,
+      );
+    }
+
+    if (!data) {
+      throw new Error("Resend did not confirm the marketing automation event");
+    }
   }
 
-  if (claim.status === "in-progress") {
-    return {
-      status: "in-progress",
-      retryAfterSeconds: claim.retryAfterSeconds,
-    };
-  }
-
-  const { data, error } = await resend.events.send({
-    event: "marketing.opted_in",
-    email: normalizedEmail,
-    payload: {
-      first_name: firstName,
-      last_name: lastName,
-    },
-  });
-
-  if (error) {
-    throw new Error(
-      `Resend could not trigger the marketing automation: ${error.message}`,
-    );
-  }
-
-  if (!data) {
-    throw new Error("Resend did not confirm the marketing automation event");
-  }
-
-  const completed = await idempotency.end(
+  const result = await idempotency.run(
     idempotencyKey,
-    claim.token,
-    { ttlSeconds: 31_536_000 },
+    sendMarketingOptInEventToResend,
   );
-  if (!completed) {
-    throw new Error(
-      "Marketing automation idempotency claim expired before completion",
-    );
+
+  if (result.status === "executed") {
+    return { status: "sent" };
   }
 
-  return { status: "sent" };
+  return result;
 }

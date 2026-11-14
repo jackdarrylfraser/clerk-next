@@ -53,5 +53,10 @@ export function createRateLimiter({
 }
 
 export { createIdempotencyStore } from "./idempotency";
-export type { IdempotencyClaim, IdempotencyKey } from "./idempotency";
+export type {
+  IdempotencyKey,
+  IdempotencyRunConfig,
+  IdempotencyRunOptions,
+  IdempotencyRunResult,
+} from "./idempotency";
 export { getIpRateLimitIdentifier } from "./identifier";
