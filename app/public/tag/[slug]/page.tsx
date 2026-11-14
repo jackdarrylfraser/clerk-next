@@ -5,7 +5,7 @@ import ActivityCard from "@/components/activity-card";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getTagSlug } from "@/lib/tags";
 
-const markdownDirectory = join(process.cwd(), "content", "markdown");
+const markdownDirectory = join(process.cwd(), "content", "public");
 const tagSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 async function getPages() {

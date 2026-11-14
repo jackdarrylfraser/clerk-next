@@ -8,7 +8,7 @@ import {
   renderMarkdown,
 } from "@/lib/markdown-content";
 
-const markdownDirectory = join(process.cwd(), "content", "markdown");
+const markdownDirectory = join(process.cwd(), "content", "public");
 
 export const instant = false;
 

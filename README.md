@@ -17,7 +17,7 @@ can go straight to checkout.
 - **Member content:** The home page lists paginated activities from
   `content/self-guided`. Individual activity pages require the Clerk
   `user:site_access` feature entitlement. Tag links filter activities.
-- **Public content:** Markdown files in `content/markdown` are listed at
+- **Public content:** Markdown files in `content/public` are listed at
   `/public`, rendered at `/public/<slug>`, and filterable by tag. Public pages also
   include the contact form.
 - **Starter content:** Markdown files in `content/starter` are listed at
@@ -116,7 +116,7 @@ development Clerk instance and payment provider's test mode.
 - **Shared UI and checkout steps:** `components/`; checkout state and URL
   handling live in `components/subscribe/`.
 - **Member activities:** add or edit Markdown files in `content/self-guided/`.
-- **Public pages:** add or edit Markdown files in `content/markdown/`.
+- **Public pages:** add or edit Markdown files in `content/public/`.
   Each file needs YAML frontmatter with a non-empty `title`, `description`,
   and at least one valid `tags` entry. Tags become links to filtered lists.
 - **Starter pages:** add or edit Markdown files in `content/starter/`.

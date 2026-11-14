@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 
-const markdownDirectory = join(process.cwd(), "content", "markdown");
+const markdownDirectory = join(process.cwd(), "content", "public");
 const pagesPerPage = 2;
 
 export default async function PublicPagesPage({
