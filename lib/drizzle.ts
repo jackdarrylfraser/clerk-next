@@ -1,12 +1,12 @@
 import "server-only";
-import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import { env } from "@/env";
 
-type TursoClient = ReturnType<typeof createClient>;
+type TursoDatabase = ReturnType<typeof drizzle>;
 
-let client: TursoClient | undefined;
+let database: TursoDatabase | undefined;
 
-export function getTursoClient(): TursoClient {
+export function getDb(): TursoDatabase {
   const { TURSO_DATABASE_URL: url, TURSO_AUTH_TOKEN: authToken } = env;
 
   if (!url || !authToken) {
@@ -15,6 +15,6 @@ export function getTursoClient(): TursoClient {
     );
   }
 
-  client ??= createClient({ url, authToken });
-  return client;
+  database ??= drizzle({ connection: { url, authToken } });
+  return database;
 }

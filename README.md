@@ -63,6 +63,9 @@ bun run build        # production build
 bun run start        # serve a production build
 bun test             # tests
 bun run lint         # ESLint
+bun run db:generate  # generate migrations from db/schema.ts
+bun run db:migrate   # apply generated migrations to Turso
+bun run db:studio    # inspect the database
 bun run emails:sync  # create/update declared Resend email resources
 ```
 
@@ -83,9 +86,11 @@ for production. Never commit real values.
 | `RESEND_FROM_EMAIL` | Verified sender for billing emails and `bun run emails:sync` |
 | `DEV_AUTH_BYPASS` | Optional local member-content preview; set to `true` only for development |
 
-Server-side Turso access is provided by the lazy singleton in `lib/turso.ts`.
-Call `getTursoClient()` to initialize it once per server process; it throws a
-configuration error if either Turso variable is missing.
+Server-side database access uses the lazy Drizzle singleton in `lib/turso.ts`.
+Call `getDb()` to initialize it once per server process; it throws a
+configuration error if either Turso variable is missing. Define tables in
+`db/schema.ts`; Drizzle Kit uses `drizzle.config.ts` and writes migrations to
+`drizzle/`.
 
 Before expecting checkout to work, configure Clerk Billing, connect its payment
 provider, publish user plans, and enable the desired sign-in methods in the
