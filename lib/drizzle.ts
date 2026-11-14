@@ -1,8 +1,13 @@
 import "server-only";
 import { drizzle } from "drizzle-orm/libsql";
 import { env } from "@/env";
+import * as schema from "../db/schema";
 
-type TursoDatabase = ReturnType<typeof drizzle>;
+function createDatabase(url: string, authToken: string) {
+  return drizzle({ connection: { url, authToken }, schema });
+}
+
+type TursoDatabase = ReturnType<typeof createDatabase>;
 
 let database: TursoDatabase | undefined;
 
@@ -15,6 +20,6 @@ export function getDb(): TursoDatabase {
     );
   }
 
-  database ??= drizzle({ connection: { url, authToken } });
+  database ??= createDatabase(url, authToken);
   return database;
 }

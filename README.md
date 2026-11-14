@@ -79,18 +79,21 @@ for production. Never commit real values.
 | --- | --- |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk on the client; required to run/build the app |
 | `CLERK_SECRET_KEY` | Clerk server-side operations; required to run/build the app |
+| `BETTER_AUTH_SECRET` | Better Auth session signing; use a random secret of at least 32 characters |
+| `BETTER_AUTH_URL` | Better Auth application URL, such as `http://localhost:3000` |
 | `RESEND_API_KEY` | Resend contact, event, and transactional email APIs; required to run/build the app |
 | `CLERK_WEBHOOK_SIGNING_SECRET` | Verifying Clerk webhook deliveries; configure this before enabling the webhook |
-| `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` | Optional until the Turso client is used; required together for database access |
+| `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` | Turso database used by Drizzle and Better Auth |
 | `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` | Contact rate limiting and idempotency for contact/subscription events; both must be set |
 | `RESEND_FROM_EMAIL` | Verified sender for billing emails and `bun run emails:sync` |
 | `DEV_AUTH_BYPASS` | Optional local member-content preview; set to `true` only for development |
 
-Server-side database access uses the lazy Drizzle singleton in `lib/turso.ts`.
-Call `getDb()` to initialize it once per server process; it throws a
-configuration error if either Turso variable is missing. Define tables in
-`db/schema.ts`; Drizzle Kit uses `drizzle.config.ts` and writes migrations to
-`drizzle/`.
+Better Auth is configured in `lib/better-auth.ts`, mounted at
+`/api/auth/[...all]`, and uses the Drizzle singleton in `lib/drizzle.ts`.
+Email-code sign-in uses Better Auth's email OTP plugin and sends through
+Resend. Define database tables in `db/schema.ts`; Drizzle Kit uses
+`drizzle.config.ts` and writes migrations to `drizzle/`. Generate and apply the
+initial auth migration with `bun run db:generate` and `bun run db:migrate`.
 
 Before expecting checkout to work, configure Clerk Billing, connect its payment
 provider, publish user plans, and enable the desired sign-in methods in the
