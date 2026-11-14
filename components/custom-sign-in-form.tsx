@@ -13,14 +13,14 @@ function getRedirectDestination() {
   const redirectUrl = new URLSearchParams(window.location.search).get(
     "redirect_url",
   );
-  if (!redirectUrl) return "/";
+  if (!redirectUrl) return "/account";
 
   try {
     const destination = new URL(redirectUrl, window.location.origin);
-    if (destination.origin !== window.location.origin) return "/";
+    if (destination.origin !== window.location.origin) return "/account";
     return `${destination.pathname}${destination.search}${destination.hash}`;
   } catch {
-    return "/";
+    return "/account";
   }
 }
 
