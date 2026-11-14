@@ -667,32 +667,29 @@ h1,
   margin: 20px 0 0;
   line-height: 1.5;
 }
-.period-toggle {
+.plan-tabs {
   display: flex;
-  width: fit-content;
-  margin: 28px 0 16px;
-  padding: 4px;
-  background: #f2f4ee;
-  border-radius: 5px;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e7ece4;
 }
-.period-toggle button {
-  padding: 8px 17px;
+.plan-tab {
+  flex: 0 0 50%;
+  padding: 10px 14px;
   color: #8a9286;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 6px 6px 0 0;
+  margin-bottom: -1px;
   background: transparent;
-  border-radius: 3px;
 }
-.period-toggle button.active {
-  background: #fff;
-  color: #36493a;
-  box-shadow: 0 1px 5px #27332414;
-}
-.plans {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 32px;
+.plan-tab.active {
+  color: #3c5740;
+  background: #e8eee4;
+  border-bottom-color: #607c5c;
 }
 .plan-card {
   display: flex;
@@ -705,14 +702,6 @@ h1,
   align-items: flex-start;
   gap: 10px;
 }
-.plan-top .period-toggle {
-  flex-shrink: 0;
-  margin: 0;
-}
-.plan-top .period-toggle button {
-  padding-right: 10px;
-  padding-left: 10px;
-}
 .plan-top h3 {
   font-size: 21px;
   font-weight: 400;
@@ -724,19 +713,55 @@ h1,
   line-height: 1.5;
   margin: 0;
 }
-.plan-sparkle {
-  font-size: 19px;
-  color: #9bad91;
+.billing-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 }
-.plan-price {
-  font-size: 30px;
+.billing-option {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 18px;
+}
+.billing-option-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.billing-option-heading h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.discount-badge {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #e2ebdc;
+  color: #49624d;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.billing-price {
+  margin: 18px 0 6px;
+  font-size: 25px;
   letter-spacing: -0.04em;
-  margin: 24px 0 16px;
 }
-.plan-price span {
-  letter-spacing: 0;
-  font-size: 11px;
+.billing-price span {
   color: #969d92;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.billing-note {
+  margin: 0 0 14px;
+  color: #788476;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.billing-option .primary-button {
+  margin-top: auto;
 }
 .trial-note,
 .renewal-note {
@@ -1057,6 +1082,9 @@ button.text-button {
   font-size: 14px;
 }
 @media (max-width: 800px) {
+  .billing-options {
+    grid-template-columns: 1fr;
+  }
   .side-panel {
     min-height: 0;
   }
@@ -1078,8 +1106,6 @@ button.text-button {
   .main-content {
     padding: 0 16px;
   }
-  .plans,
-  .period-toggle,
   .auth-container,
   .checkout-content,
   .selection-row,
@@ -1208,6 +1234,7 @@ button.text-button {
   .side-panel h2 em,
   .activity-card-tag,
   .progress li.current,
+  .plan-tab.active,
   .complete-state,
   .features li span,
   .plan-sparkle,
@@ -1215,6 +1242,10 @@ button.text-button {
   .aside-label,
   .aside-bottom {
     color: #b4cdaa;
+  }
+  .plan-tab.active {
+    background: #263329;
+    border-bottom-color: #b4cdaa;
   }
   .activity-heading > p:last-child,
   .activity-count,

@@ -46,6 +46,8 @@ function SubscribeAccountContent({
   const devAuthBypassEnabled = useDevAuthBypass();
   const router = useRouter();
   const urls = getSubscribeUrls(query.plan, query.period);
+  const planPickerUrl = getSubscribeUrls(null, query.period).plans;
+  const flowUrls = { ...urls, plans: planPickerUrl };
   const decision = resolveSubscribeFlow({
     step: "account",
     planId: query.plan,
@@ -64,7 +66,7 @@ function SubscribeAccountContent({
     <SubscribeLayout
       step="account"
       selectedId={query.plan}
-      urls={urls}
+      urls={flowUrls}
       isLoaded={isLoaded}
       isSignedIn={!!isSignedIn}
       devAuthBypassEnabled={devAuthBypassEnabled}

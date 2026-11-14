@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect } from "react";
+import { Suspense, use, useEffect, useState } from "react";
 import { usePlans } from "@clerk/nextjs/experimental";
-import { use } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
 import { useRouter } from "next/navigation";
@@ -88,12 +87,8 @@ function SubscribePlanContent({
     if (redirectUrl) router.replace(redirectUrl);
   }, [redirectUrl, router]);
 
-  function selectPeriod(period: "month" | "annual"): void {
-    router.replace(getSubscribeUrls(query.plan, period).plans);
-  }
-
-  function selectPlan(planId: string): void {
-    const urls = getSubscribeUrls(planId, query.period);
+  function selectPlan(planId: string, period: Period): void {
+    const urls = getSubscribeUrls(planId, period);
     router.push(isSignedIn ? urls.payment : urls.account);
   }
 
@@ -125,8 +120,6 @@ function SubscribePlanContent({
           fetchNext={() => {
             void plans.fetchNext();
           }}
-          chosenPeriod={query.period}
-          onPeriodChange={selectPeriod}
           selectedId={query.plan}
           paymentUrl={urls.payment}
           canResumeCheckout={selectedPlanState.status === "ready"}
@@ -143,8 +136,6 @@ function PlanStep({
   isError,
   hasNextPage,
   fetchNext,
-  chosenPeriod,
-  onPeriodChange,
   selectedId,
   paymentUrl,
   canResumeCheckout,
@@ -155,21 +146,32 @@ function PlanStep({
   isError: boolean;
   hasNextPage: boolean;
   fetchNext: () => void;
-  chosenPeriod: Period;
-  onPeriodChange: (period: Period) => void;
   selectedId: string | null;
   paymentUrl: string;
   canResumeCheckout: boolean;
-  onChoosePlan: (planId: string) => void;
+  onChoosePlan: (planId: string, period: Period) => void;
 }) {
+  const [activePlanId, setActivePlanId] = useState<string | null>(null);
+  const availablePlans = plans ?? [];
+  const activePlanIndex = Math.max(
+    availablePlans.findIndex((plan) => plan.id === activePlanId),
+    0,
+  );
+  const activePlan = availablePlans[activePlanIndex];
+  const annualDiscount =
+    activePlan?.fee &&
+    activePlan.annualMonthlyFee &&
+    activePlan.fee.currency === activePlan.annualMonthlyFee.currency &&
+    activePlan.fee.amount > 0
+      ? Math.round(
+          (1 -
+            activePlan.annualMonthlyFee.amount / activePlan.fee.amount) *
+            100,
+        )
+        : 0;
+
   return (
     <>
-      {plans?.length ? null : (
-        <PeriodToggle
-          chosenPeriod={chosenPeriod}
-          onPeriodChange={onPeriodChange}
-        />
-      )}
       {isLoading && (
         <p className="status-message">Loading available plans...</p>
       )}
@@ -183,73 +185,112 @@ function PlanStep({
           No plans are available yet. Please check back soon.
         </p>
       )}
-      <div className="plans">
-        {plans?.map((plan, index) => {
-          const price =
-            chosenPeriod === "annual" ? plan.annualFee : plan.fee;
-          const available =
-            chosenPeriod === "month"
-              ? !!plan.fee || !plan.hasBaseFee
-              : !!plan.annualFee;
+      {activePlan && (
+        <>
+          <div className="plan-tabs" role="group" aria-label="Choose a plan">
+            {availablePlans.map((plan, index) => {
+              const isActive = index === activePlanIndex;
 
-          return (
-            <article className="plan-card" key={plan.id}>
-              <div className="plan-top">
-                <div>
-                  <h3>{plan.name}</h3>
-                  <p>{plan.description || "A membership made for you."}</p>
-                </div>
-                {index === 0 ? (
-                  <PeriodToggle
-                    chosenPeriod={chosenPeriod}
-                    onPeriodChange={onPeriodChange}
-                  />
-                ) : (
-                  <span className="plan-sparkle">✳</span>
-                )}
-              </div>
-              <div className="plan-price">
-                {price
-                  ? money(price)
-                  : available
-                    ? "Free"
-                    : "Unavailable"}
-                {price && (
-                  <span> / {chosenPeriod === "month" ? "month" : "year"}</span>
-                )}
-              </div>
-              {plan.freeTrialEnabled && plan.freeTrialDays && (
-                <p className="trial-note">
-                  {plan.freeTrialDays}-day free trial, if eligible
-                </p>
-              )}
-              {plan.features.length > 0 && (
-                <ul className="features">
-                  {plan.features.map((feature) => (
-                    <li key={feature.id}>
-                      <span>✓</span>
-                      {feature.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {available ? (
+              return (
                 <button
+                  key={plan.id}
                   type="button"
-                  className="primary-button"
-                  onClick={() => onChoosePlan(plan.id)}
+                  className={`plan-tab${isActive ? " active" : ""}`}
+                  aria-pressed={isActive}
+                  onClick={() => setActivePlanId(plan.id)}
                 >
-                  Choose this plan <span>↗</span>
+                  {plan.name}
                 </button>
-              ) : (
-                <button className="primary-button" disabled>
-                  Not available yearly <span>↗</span>
-                </button>
-              )}
-            </article>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+          <article className="plan-card">
+            <div className="plan-top">
+              <div>
+                <h3>{activePlan.name}</h3>
+                <p>
+                  {activePlan.description || "A membership made for you."}
+                </p>
+              </div>
+            </div>
+            {activePlan.freeTrialEnabled && activePlan.freeTrialDays && (
+              <p className="trial-note">
+                {activePlan.freeTrialDays}-day free trial, if eligible
+              </p>
+            )}
+            {activePlan.features.length > 0 && (
+              <ul className="features">
+                {activePlan.features.map((feature) => (
+                  <li key={feature.id}>
+                    <span>✓</span>
+                    {feature.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="billing-options">
+              {(["month", "annual"] as const).map((period) => {
+                const isAnnual = period === "annual";
+                const amount = isAnnual
+                  ? activePlan.annualMonthlyFee ?? activePlan.annualFee
+                  : activePlan.fee;
+                const isAvailable = isAnnual
+                  ? !!activePlan.annualFee
+                  : !!activePlan.fee || !activePlan.hasBaseFee;
+
+                return (
+                  <div
+                    className="billing-option"
+                    key={period}
+                  >
+                    <div className="billing-option-heading">
+                      <h4>{isAnnual ? "Annual" : "Monthly"}</h4>
+                      {isAnnual && annualDiscount > 0 && (
+                        <span className="discount-badge">
+                          Save {annualDiscount}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="billing-price">
+                      {amount
+                        ? money(amount)
+                        : !isAnnual && !activePlan.hasBaseFee
+                          ? "Free"
+                          : "Unavailable"}
+                      {amount && (
+                        <span>
+                          {" "}
+                          / {isAnnual && !activePlan.annualMonthlyFee
+                            ? "year"
+                            : "month"}
+                        </span>
+                      )}
+                    </div>
+                    {isAnnual &&
+                      activePlan.annualMonthlyFee &&
+                      activePlan.annualFee && (
+                        <p className="billing-note">
+                          Billed annually at {money(activePlan.annualFee)}
+                        </p>
+                      )}
+                    <button
+                      type="button"
+                      className="primary-button"
+                      disabled={!isAvailable}
+                      onClick={() => onChoosePlan(activePlan.id, period)}
+                    >
+                      {isAvailable
+                        ? `Choose ${isAnnual ? "annual" : "monthly"}`
+                        : `Not available ${isAnnual ? "yearly" : "monthly"}`}
+                      <span>↗</span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </article>
+        </>
+      )}
       {hasNextPage && (
         <button className="text-button" onClick={fetchNext}>
           Load more plans +
@@ -261,34 +302,5 @@ function PlanStep({
         </p>
       )}
     </>
-  );
-}
-
-function PeriodToggle({
-  chosenPeriod,
-  onPeriodChange,
-}: {
-  chosenPeriod: Period;
-  onPeriodChange: (period: Period) => void;
-}) {
-  return (
-    <div className="period-toggle" aria-label="Billing period">
-      <button
-        type="button"
-        className={chosenPeriod === "month" ? "active" : ""}
-        aria-pressed={chosenPeriod === "month"}
-        onClick={() => onPeriodChange("month")}
-      >
-        Monthly
-      </button>
-      <button
-        type="button"
-        className={chosenPeriod === "annual" ? "active" : ""}
-        aria-pressed={chosenPeriod === "annual"}
-        onClick={() => onPeriodChange("annual")}
-      >
-        Yearly
-      </button>
-    </div>
   );
 }
