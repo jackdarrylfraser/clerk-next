@@ -40,6 +40,7 @@ function SubscribePlanContent({
   const plans = usePlans({ for: "user", pageSize: 10, infinite: true });
   const { isLoaded, isSignedIn } = useAuth();
   const devAuthBypassEnabled = useDevAuthBypass();
+  const urls = getSubscribeUrls(query.plan, query.period);
 
   function selectPeriod(period: "month" | "annual"): void {
     router.replace(getSubscribeUrls(query.plan, period).plans);
@@ -53,6 +54,7 @@ function SubscribePlanContent({
     <SubscribeLayout
       step="plan"
       selectedId={query.plan}
+      urls={urls}
       isLoaded={isLoaded}
       isSignedIn={!!isSignedIn}
       devAuthBypassEnabled={devAuthBypassEnabled}
@@ -68,7 +70,7 @@ function SubscribePlanContent({
         chosenPeriod={query.period}
         onPeriodChange={selectPeriod}
         selectedId={query.plan}
-        accountUrl={getSubscribeUrls(query.plan, query.period).account}
+        accountUrl={urls.account}
         onChoosePlan={selectPlan}
       />
     </SubscribeLayout>

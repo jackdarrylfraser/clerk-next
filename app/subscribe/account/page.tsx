@@ -65,6 +65,7 @@ function SubscribeAccountContent({
     <SubscribeLayout
       step="account"
       selectedId={query.plan}
+      urls={urls}
       isLoaded={isLoaded}
       isSignedIn={!!isSignedIn}
       devAuthBypassEnabled={devAuthBypassEnabled}
@@ -81,7 +82,6 @@ function SubscribeAccountContent({
         <AccountStep
           isSignedIn={!!isSignedIn}
           authMode={query.auth}
-          plansUrl={urls.plans}
           accountUrl={urls.account}
           paymentUrl={urls.payment}
         />
@@ -93,21 +93,16 @@ function SubscribeAccountContent({
 function AccountStep({
   isSignedIn,
   authMode,
-  plansUrl,
   accountUrl,
   paymentUrl,
 }: {
   isSignedIn: boolean;
   authMode: AuthMode;
-  plansUrl: string;
   accountUrl: string;
   paymentUrl: string;
 }) {
   return (
     <>
-      <Link href={plansUrl} className="back-link">
-        ← Back to plans
-      </Link>
       <div className="section-heading">
         <span className="step-number">02</span>
         <div>

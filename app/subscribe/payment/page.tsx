@@ -99,6 +99,7 @@ function SubscribePaymentContent({
     <SubscribeLayout
       step="payment"
       selectedId={query.plan}
+      urls={urls}
       isLoaded={isLoaded}
       isSignedIn={!!isSignedIn}
       devAuthBypassEnabled={devAuthBypassEnabled}
@@ -117,7 +118,6 @@ function SubscribePaymentContent({
         <PaymentStep
           selectedPlan={selectedPlan}
           period={query.period}
-          accountUrl={urls.account}
           plansUrl={urls.plans}
         />
       ) : null}
@@ -128,19 +128,14 @@ function SubscribePaymentContent({
 function PaymentStep({
   selectedPlan,
   period,
-  accountUrl,
   plansUrl,
 }: {
   selectedPlan: Plan;
   period: Period;
-  accountUrl: string;
   plansUrl: string;
 }) {
   return (
     <>
-      <Link href={accountUrl} className="back-link">
-        ← Back to your account
-      </Link>
       <div className="selection-row">
         <div>
           <strong>{selectedPlan.name}</strong>
