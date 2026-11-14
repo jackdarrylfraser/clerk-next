@@ -8,12 +8,13 @@ tags:
 # Public Markdown Pages
 
 Write Markdown files in this directory. The app converts each `.md` file to
-HTML and serves it at `/more/<filename-without-extension>`. For example, this
-page is available at `/more/README`. Browse and paginate through all public
-pages at `/more`.
+HTML and serves it at `/public/<filename-without-extension>`. For example, this
+page is available at `/public/README`. Browse and paginate through all public
+pages at `/public`.
 
 Every page must start with frontmatter containing a `title`, `description`,
-and one or more `tags`. Tags link to filtered lists at `/more/tag/<tag-slug>`.
+and one or more `tags`. Tags link to filtered lists at
+`/public/tag/<tag-slug>`.
 
 ```md
 ---
@@ -25,8 +26,8 @@ tags:
 ---
 ```
 
-The Markdown source is not served directly from `/public`. Rendered pages are
-public, so do not include private or sensitive content.
+The Markdown source is not exposed as a raw file; only rendered article pages
+are public. Do not include private or sensitive content.
 
 Markdown supports CommonMark and GitHub Flavored Markdown, including tables,
 task lists, strikethrough, autolinks, footnotes, and LaTeX math rendered with

@@ -1,49 +1,12 @@
-import { join } from "node:path";
-import { notFound } from "next/navigation";
-import ActivityCard from "@/components/activity-card";
-import { LeadCaptureForm } from "@/components/lead-capture-form";
-import {
-  getMarkdownMetadata,
-  getMarkdownParams,
-  renderMarkdown,
-} from "@/lib/markdown-content";
-
-const markdownDirectory = join(process.cwd(), "content", "markdown");
+import { redirect } from "next/navigation";
 
 export const instant = false;
 
-export async function generateStaticParams() {
-  return getMarkdownParams(markdownDirectory, "slug");
-}
-
-export default async function PublicMarkdownPage({
+export default async function LegacyPublicArticlePage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const content = await renderMarkdown(markdownDirectory, slug);
-  if (content === null) {
-    notFound();
-  }
-  const metadata = await getMarkdownMetadata(markdownDirectory, slug);
-
-  return (
-    <main className="markdown-page">
-      <div className="activity-detail-card">
-        <ActivityCard
-          {...metadata}
-          slug={slug}
-          isCurrent
-          detailBasePath="/more"
-          tagBasePath="/more/tag"
-        />
-      </div>
-      <article
-        className="markdown-content"
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
-      <LeadCaptureForm />
-    </main>
-  );
+  redirect(`/public/${encodeURIComponent(slug)}`);
 }

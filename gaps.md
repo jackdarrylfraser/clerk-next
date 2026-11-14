@@ -61,8 +61,8 @@ measurement.
   appropriate privacy disclosures.
 
 Relevant implementation: [homepage](./app/page.tsx),
-[public pages index](./app/more/page.tsx),
-[public Markdown page](./app/more/[slug]/page.tsx), and
+[public pages index](./app/public/page.tsx),
+[public Markdown page](./app/public/[slug]/page.tsx), and
 [layout metadata](./app/layout.tsx).
 
 ### 6. Align the contact form with its purpose

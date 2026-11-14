@@ -18,7 +18,7 @@ can go straight to checkout.
   `content/activity`. Individual activity pages require the Clerk
   `user:site_access` feature entitlement. Tag links filter activities.
 - **Public content:** Markdown files in `content/markdown` are listed at
-  `/more`, rendered at `/more/<slug>`, and filterable by tag. Public pages also
+  `/public`, rendered at `/public/<slug>`, and filterable by tag. Public pages also
   include the contact form.
 - **Contact capture:** The form posts names, email, and explicit marketing
   consent to `/api/contacts`. The endpoint records consent details, adds the
