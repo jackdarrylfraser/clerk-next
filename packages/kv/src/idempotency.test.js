@@ -49,7 +49,7 @@ describe("idempotency", () => {
     ]);
     expect([...records.keys()][0]).not.toContain("42");
     const completedKey = [...records.keys()][1];
-    expect(setOptions.get(completedKey)).toEqual({ ex: 31_536_000 });
+    expect(setOptions.get(completedKey)).toEqual({ ex: 3_600 });
   });
 
   it("allows overriding the completion TTL", async () => {

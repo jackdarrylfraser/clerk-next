@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { Redis } from "@upstash/redis";
 
-const DEFAULT_COMPLETION_TTL_SECONDS = 31_536_000;
+const DEFAULT_COMPLETION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days in seconds
 
 export interface IdempotencyKey {
   scope: string;
@@ -14,8 +14,7 @@ export interface IdempotencyRunOptions {
 }
 
 export interface IdempotencyRunConfig
-  extends IdempotencyKey,
-    IdempotencyRunOptions {}
+  extends IdempotencyKey, IdempotencyRunOptions {}
 
 export type IdempotencyRunResult<T> =
   | { status: "executed"; value: T }
@@ -91,7 +90,9 @@ export function createIdempotencyStore({
   async function end(
     key: IdempotencyKey,
     token: string,
-    { ttlSeconds = DEFAULT_COMPLETION_TTL_SECONDS }: { ttlSeconds?: number } = {},
+    {
+      ttlSeconds = DEFAULT_COMPLETION_TTL_SECONDS,
+    }: { ttlSeconds?: number } = {},
   ): Promise<boolean> {
     if (!Number.isSafeInteger(ttlSeconds) || ttlSeconds < 1) {
       throw new Error("The idempotency TTL must be a positive integer");

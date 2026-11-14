@@ -5,11 +5,7 @@ import {
   getIpRateLimitIdentifier,
 } from "@clerk-next/kv";
 import { env } from "@/env";
-import {
-  getRedisClient,
-  IDEMPOTENCY_SCOPES,
-  idempotency,
-} from "@/lib/kv";
+import { getRedisClient } from "@/lib/kv";
 import { sendMarketingOptInEvent } from "@/emails/automations/events";
 import { isMarketingTopicKey } from "@/lib/marketing-topics";
 
@@ -22,10 +18,9 @@ const limitContactSubmissions = createRateLimiter({
 });
 
 const contactSchema = z.object({
-  submissionId: z.uuid(),
   firstName: z.string().trim().min(1).max(100),
   lastName: z.string().trim().min(1).max(100),
-  email: z.string().trim().email().max(254),
+  email: z.string().trim().email().max(128),
   marketingConsent: z.literal(true),
 });
 
@@ -39,42 +34,28 @@ export async function POST(request: Request): Promise<Response> {
     return submissionResult;
   }
 
-  let result: Awaited<
-    ReturnType<typeof idempotency.run<SavedContactSubmission>>
-  >;
+  const claimedSubmission = {
+    ...submissionResult,
+    resend: new Resend(env.RESEND_API_KEY),
+  };
 
-  async function processContactSubmission(): Promise<SavedContactSubmission> {
-    const claimedSubmission = {
-      ...submissionResult,
-      resend: new Resend(env.RESEND_API_KEY),
-    };
+  try {
     const savedContact = await saveContact(claimedSubmission);
     if (savedContact instanceof Response) {
-      throw new ContactSubmissionFailure(savedContact);
+      return savedContact;
     }
 
     const deliveredEvent = await deliverMarketingOptInEvent(savedContact);
     if (deliveredEvent instanceof Response) {
-      throw new ContactSubmissionFailure(deliveredEvent);
+      return deliveredEvent;
     }
 
-    return deliveredEvent;
-  }
-
-  try {
-    result = await idempotency.run(
-      {
-        scope: IDEMPOTENCY_SCOPES.contactSubmission,
-        key: submissionResult.data.submissionId,
-      },
-      processContactSubmission,
+    return Response.json(
+      { success: true },
+      { status: deliveredEvent.contactCreated ? 201 : 200 },
     );
   } catch (error) {
-    if (error instanceof ContactSubmissionFailure) {
-      return error.response;
-    }
-
-    console.error("Contact idempotency processing failed", error);
+    console.error("Contact submission processing failed", error);
     return Response.json(
       {
         error: "We couldn't confirm your contact was saved. Please try again.",
@@ -82,8 +63,6 @@ export async function POST(request: Request): Promise<Response> {
       { status: 503 },
     );
   }
-
-  return createContactSuccessResponse(result);
 }
 
 type ValidatedContactSubmission = {
@@ -98,35 +77,6 @@ type ClaimedContactSubmission = ValidatedContactSubmission & {
 type SavedContactSubmission = ClaimedContactSubmission & {
   contactCreated: boolean;
 };
-
-class ContactSubmissionFailure extends Error {
-  constructor(readonly response: Response) {
-    super("Contact submission failed");
-  }
-}
-
-function createContactSuccessResponse(
-  result: Awaited<ReturnType<typeof idempotency.run<SavedContactSubmission>>>,
-): Response {
-  if (result.status === "duplicate") {
-    return Response.json({ success: true }, { status: 200 });
-  }
-
-  if (result.status === "in-progress") {
-    return Response.json(
-      { error: "This submission is already being processed." },
-      {
-        status: 425,
-        headers: { "Retry-After": String(result.retryAfterSeconds) },
-      },
-    );
-  }
-
-  return Response.json(
-    { success: true },
-    { status: result.value.contactCreated ? 201 : 200 },
-  );
-}
 
 async function checkContactRateLimit(
   request: Request,
@@ -294,7 +244,6 @@ async function deliverMarketingOptInEvent(
 
   try {
     const automation = await sendMarketingOptInEvent({
-      submissionId: submission.data.submissionId,
       email: submission.email,
       firstName: submission.data.firstName,
       lastName: submission.data.lastName,

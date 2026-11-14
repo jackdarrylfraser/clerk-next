@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import {
   defaultMarketingTopicKey,
   type MarketingTopicKey,
@@ -38,7 +38,6 @@ export function LeadCaptureForm({
 }: LeadCaptureFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<FormStatus | null>(null);
-  const submissionId = useRef<string | null>(null);
   const titleId = useId();
   const copy = { ...defaultCopy, ...copyOverrides };
 
@@ -51,12 +50,10 @@ export function LeadCaptureForm({
     setStatus(null);
 
     try {
-      submissionId.current ??= globalThis.crypto.randomUUID();
       const response = await fetch("/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          submissionId: submissionId.current,
           topicKey,
           firstName: formData.get("firstName"),
           lastName: formData.get("lastName"),
@@ -104,7 +101,6 @@ export function LeadCaptureForm({
         return;
       }
 
-      submissionId.current = null;
       form.reset();
       setStatus({
         kind: "success",
@@ -149,7 +145,7 @@ export function LeadCaptureForm({
             Email address
             <input
               autoComplete="email"
-              maxLength={254}
+              maxLength={128}
               name="email"
               required
               type="email"

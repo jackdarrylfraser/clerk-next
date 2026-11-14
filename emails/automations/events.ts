@@ -10,14 +10,12 @@ export type AutomationEventResult =
   | { status: "in-progress"; retryAfterSeconds: number };
 
 type MarketingOptInEvent = {
-  submissionId: string;
   email: string;
   firstName: string;
   lastName: string;
 };
 
 export async function sendMarketingOptInEvent({
-  submissionId,
   email,
   firstName,
   lastName,
@@ -25,7 +23,7 @@ export async function sendMarketingOptInEvent({
   const normalizedEmail = email.trim().toLowerCase();
   const idempotencyKey = {
     scope: IDEMPOTENCY_SCOPES.marketingOptInEvent,
-    key: `marketing-opt-in/${submissionId}`,
+    key: `${AUTOMATION_EVENTS.marketingOptIn}/${normalizedEmail}`,
   };
 
   async function sendMarketingOptInEventToResend(): Promise<void> {
