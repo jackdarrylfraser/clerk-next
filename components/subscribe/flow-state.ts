@@ -32,7 +32,7 @@ export function getSubscribeUrls(planId: string | null, period: Period) {
     : `period=${period}`;
 
   return {
-    plans: `/subscribe?${planQuery}`,
+    plans: `/subscribe/plan?${planQuery}`,
     account: `/subscribe/account?${planQuery}`,
     payment: `/subscribe/payment?${planQuery}`,
   };
@@ -101,16 +101,18 @@ export function resolveSubscribeFlow({
   }
 
   if (step === "account") {
-    return isSignedIn
-      ? { kind: "redirect", href: urls.plans }
-      : { kind: "ready" };
+    if (!isSignedIn) return { kind: "ready" };
+    return {
+      kind: "redirect",
+      href: planId ? urls.payment : urls.plans,
+    };
   }
 
   if (step === "plan") {
+    if (!planId) return { kind: "ready" };
     if (!isSignedIn) {
       return { kind: "redirect", href: urls.account };
     }
-    if (!planId) return { kind: "ready" };
     if (selectedPlanStatus === "loading") {
       return { kind: "loading", reason: "plan" };
     }

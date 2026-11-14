@@ -28,8 +28,8 @@ export default function Navigation() {
           ) : (
             <>
               <Link href="/sign-in">Sign in</Link>
-              <Link href="/subscribe" className="subscribe-link">
-                Subscribe
+              <Link href="/subscribe/plan" className="subscribe-link">
+                Pricing
               </Link>
             </>
           ))}

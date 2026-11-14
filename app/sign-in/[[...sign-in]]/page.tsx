@@ -7,7 +7,7 @@ export default function SignInPage() {
     <div className="clerk-auth flex min-h-screen items-center justify-center">
       <Suspense>
         <SignIn
-          signUpUrl="/subscribe"
+          signUpUrl="/subscribe/plan"
           fallbackRedirectUrl="/"
           appearance={clerkAuthAppearance}
         />

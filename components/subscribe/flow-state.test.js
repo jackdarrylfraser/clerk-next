@@ -48,27 +48,29 @@ describe("subscription flow state", () => {
 
   it("builds URLs with the selected plan and billing period", () => {
     expect(getSubscribeUrls("plan / one", "annual")).toEqual({
-      plans: "/subscribe?plan=plan%20%2F%20one&period=annual",
+      plans: "/subscribe/plan?plan=plan%20%2F%20one&period=annual",
       account: "/subscribe/account?plan=plan%20%2F%20one&period=annual",
       payment: "/subscribe/payment?plan=plan%20%2F%20one&period=annual",
     });
-    expect(getSubscribeUrls(null, "month").plans).toBe("/subscribe?period=month");
+    expect(getSubscribeUrls(null, "month").plans).toBe(
+      "/subscribe/plan?period=month",
+    );
     expect(getSubscribeUrls(null, "month").account).toBe(
       "/subscribe/account?period=month",
     );
   });
 
-  it("allows account creation or sign-in before a plan is selected", () => {
+  it("allows plan selection before account creation or sign-in", () => {
     expect(
       resolve({
-        step: "account",
+        step: "plan",
         planId: null,
         isSignedIn: false,
       }),
     ).toEqual({ kind: "ready" });
   });
 
-  it("sends signed-in users from the account step directly to plans", () => {
+  it("sends signed-in users from the account step to the next required step", () => {
     expect(
       resolve({
         step: "account",
@@ -79,18 +81,39 @@ describe("subscription flow state", () => {
       kind: "redirect",
       href: urls.plans,
     });
+
+    expect(
+      resolve({
+        step: "account",
+        planId: "standard",
+        isSignedIn: true,
+      }),
+    ).toEqual({
+      kind: "redirect",
+      href: urls.payment,
+    });
   });
 
-  it("requires sign-in before showing the plan picker", () => {
+  it("allows signed-out users to view plans before selecting one", () => {
     expect(
       resolve({
         step: "plan",
         planId: null,
         isSignedIn: false,
       }),
+    ).toEqual({ kind: "ready" });
+  });
+
+  it("requires sign-in after a plan is selected", () => {
+    expect(
+      resolve({
+        step: "plan",
+        planId: "standard",
+        isSignedIn: false,
+      }),
     ).toEqual({
       kind: "redirect",
-      href: getSubscribeUrls(null, "annual").account,
+      href: urls.account,
     });
   });
 

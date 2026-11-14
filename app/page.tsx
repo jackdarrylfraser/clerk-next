@@ -117,7 +117,7 @@ async function HomeContent({
         Membership, <em>made simple.</em>
       </h1>
       <p>Find the membership that works for you.</p>
-      <Link href="/subscribe" className="home-cta">
+      <Link href="/subscribe/plan" className="home-cta">
         Explore membership options <span aria-hidden="true">→</span>
       </Link>
     </main>

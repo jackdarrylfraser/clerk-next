@@ -4,8 +4,8 @@ import { getSubscribeUrls } from "./flow-state";
 import type { Step } from "./types";
 
 const steps: { key: Step; title: string; description: string }[] = [
-  { key: "account", title: "Your account", description: "Sign up or sign in" },
   { key: "plan", title: "Choose a plan", description: "Find the right fit" },
+  { key: "account", title: "Your account", description: "Sign up or sign in" },
   { key: "payment", title: "Payment", description: "Complete checkout" },
 ];
 
