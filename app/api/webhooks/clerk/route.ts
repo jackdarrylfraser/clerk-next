@@ -5,6 +5,7 @@ import {
   createSubscriptionCanceledEmail,
   createSubscriptionCreatedEmail,
 } from "@/emails/billing-notification-content";
+import type { BillingNotificationContent } from "@/emails/billing-notification-content";
 import { EMAIL_EVENTS, IDEMPOTENCY_PREFIXES } from "@/emails/constants";
 import { sendEmail } from "@/emails/send-email";
 import { env } from "@/env";
@@ -16,6 +17,16 @@ type BillingNotificationResult = Exclude<
   IdempotencyRunResult<void>,
   { status: "error" }
 >;
+type BillingNotification = {
+  eventId: string;
+  scope:
+    | typeof IDEMPOTENCY_PREFIXES.subscriptionCreated
+    | typeof IDEMPOTENCY_PREFIXES.paymentFailed
+    | typeof IDEMPOTENCY_PREFIXES.subscriptionCanceled;
+  recipientEmail: string;
+  content: BillingNotificationContent;
+  failureMessage: string;
+};
 
 export async function POST(request: NextRequest): Promise<Response> {
   const secretResponse = checkWebhookSigningSecret();
@@ -58,137 +69,161 @@ async function verifyClerkWebhook(
 async function deliverBillingNotification(
   event: ClerkWebhookEvent,
 ): Promise<BillingNotificationResult | Response> {
+  const notification = getBillingNotification(event);
+  if (notification instanceof Response) {
+    return notification;
+  }
+
+  return sendBillingNotification(notification);
+}
+
+function getBillingNotification(
+  event: ClerkWebhookEvent,
+): BillingNotification | Response {
   if (event.type === EMAIL_EVENTS.subscriptionCreated) {
-    if (!event.data.payer.user_id) {
-      return ignoredEventResponse();
-    }
-
-    const email = getPayerEmail(
-      event.data.payer.email,
-      event.data.id,
-      "subscription-created",
-    );
-    if (email instanceof Response) {
-      return email;
-    }
-
-    const subscriptionId = event.data.id;
-    const recipientEmail: string = email;
-    const firstName = event.data.payer.first_name;
-    const planName = event.data.items[0]?.plan?.name;
-
-    const result = await idempotency.run(
-      {
-        scope: IDEMPOTENCY_PREFIXES.subscriptionCreated,
-        key: subscriptionId,
-      },
-      () =>
-        sendEmail({
-          idempotencyKey: `${IDEMPOTENCY_PREFIXES.subscriptionCreated}/${subscriptionId}`,
-          to: recipientEmail,
-          content: createSubscriptionCreatedEmail({ firstName, planName }),
-        }),
-    );
-    if (result.status === "error") {
-      console.error(
-        "Unable to send subscription-created billing notification",
-        result.error,
-      );
-      return new Response("Billing notification delivery failed", {
-        status: 500,
-      });
-    }
-    return result;
+    return getSubscriptionCreatedNotification(event);
   }
 
   if (
     event.type === "paymentAttempt.created" ||
     event.type === "paymentAttempt.updated"
   ) {
-    const payer = event.data.payer;
-    if (event.data.status !== "failed" || !payer?.user_id) {
-      return ignoredEventResponse();
-    }
-
-    const email = getPayerEmail(payer.email, event.data.id, "payment-failed");
-    if (email instanceof Response) {
-      return email;
-    }
-
-    const paymentAttemptId = event.data.id;
-    const recipientEmail: string = email;
-    const firstName = payer.first_name;
-    const planName = event.data.subscription_items[0]?.plan?.name;
-
-    const result = await idempotency.run(
-      {
-        scope: IDEMPOTENCY_PREFIXES.paymentFailed,
-        key: paymentAttemptId,
-      },
-      () =>
-        sendEmail({
-          idempotencyKey: `${IDEMPOTENCY_PREFIXES.paymentFailed}/${paymentAttemptId}`,
-          to: recipientEmail,
-          content: createPaymentFailedEmail({ firstName, planName }),
-        }),
-    );
-    if (result.status === "error") {
-      console.error(
-        "Unable to send payment-failed billing notification",
-        result.error,
-      );
-      return new Response("Billing notification delivery failed", {
-        status: 500,
-      });
-    }
-    return result;
+    return getPaymentFailedNotification(event);
   }
 
   if (event.type === "subscriptionItem.canceled") {
-    const payer = event.data.payer;
-    if (!payer?.user_id) {
-      return ignoredEventResponse();
-    }
-
-    const email = getPayerEmail(
-      payer.email,
-      event.data.id,
-      "subscription-canceled",
-    );
-    if (email instanceof Response) {
-      return email;
-    }
-
-    const subscriptionItemId = event.data.id;
-    const recipientEmail: string = email;
-    const firstName = payer.first_name;
-    const planName = event.data.plan?.name;
-
-    const result = await idempotency.run(
-      {
-        scope: IDEMPOTENCY_PREFIXES.subscriptionCanceled,
-        key: subscriptionItemId,
-      },
-      () =>
-        sendEmail({
-          idempotencyKey: `${IDEMPOTENCY_PREFIXES.subscriptionCanceled}/${subscriptionItemId}`,
-          to: recipientEmail,
-          content: createSubscriptionCanceledEmail({ firstName, planName }),
-        }),
-    );
-    if (result.status === "error") {
-      console.error(
-        "Unable to send subscription-canceled billing notification",
-        result.error,
-      );
-      return new Response("Billing notification delivery failed", {
-        status: 500,
-      });
-    }
-    return result;
+    return getSubscriptionCanceledNotification(event);
   }
 
   return ignoredEventResponse();
+}
+
+function getSubscriptionCreatedNotification(
+  event: ClerkWebhookEvent,
+): BillingNotification | Response {
+  if (event.type !== EMAIL_EVENTS.subscriptionCreated) {
+    return ignoredEventResponse();
+  }
+
+  const payer = event.data.payer;
+  if (!payer.user_id) {
+    return ignoredEventResponse();
+  }
+
+  const recipientEmail = getPayerEmail(
+    payer.email,
+    event.data.id,
+    "subscription-created",
+  );
+  if (recipientEmail instanceof Response) {
+    return recipientEmail;
+  }
+
+  return {
+    eventId: event.data.id,
+    scope: IDEMPOTENCY_PREFIXES.subscriptionCreated,
+    recipientEmail,
+    content: createSubscriptionCreatedEmail({
+      firstName: payer.first_name,
+      planName: event.data.items[0]?.plan?.name,
+    }),
+    failureMessage: "Unable to send subscription-created billing notification",
+  };
+}
+
+function getPaymentFailedNotification(
+  event: ClerkWebhookEvent,
+): BillingNotification | Response {
+  if (
+    event.type !== "paymentAttempt.created" &&
+    event.type !== "paymentAttempt.updated"
+  ) {
+    return ignoredEventResponse();
+  }
+
+  const payer = event.data.payer;
+  if (event.data.status !== "failed" || !payer?.user_id) {
+    return ignoredEventResponse();
+  }
+
+  const recipientEmail = getPayerEmail(
+    payer.email,
+    event.data.id,
+    "payment-failed",
+  );
+  if (recipientEmail instanceof Response) {
+    return recipientEmail;
+  }
+
+  return {
+    eventId: event.data.id,
+    scope: IDEMPOTENCY_PREFIXES.paymentFailed,
+    recipientEmail,
+    content: createPaymentFailedEmail({
+      firstName: payer.first_name,
+      planName: event.data.subscription_items[0]?.plan?.name,
+    }),
+    failureMessage: "Unable to send payment-failed billing notification",
+  };
+}
+
+function getSubscriptionCanceledNotification(
+  event: ClerkWebhookEvent,
+): BillingNotification | Response {
+  if (event.type !== "subscriptionItem.canceled") {
+    return ignoredEventResponse();
+  }
+
+  const payer = event.data.payer;
+  if (!payer?.user_id) {
+    return ignoredEventResponse();
+  }
+
+  const recipientEmail = getPayerEmail(
+    payer.email,
+    event.data.id,
+    "subscription-canceled",
+  );
+  if (recipientEmail instanceof Response) {
+    return recipientEmail;
+  }
+
+  return {
+    eventId: event.data.id,
+    scope: IDEMPOTENCY_PREFIXES.subscriptionCanceled,
+    recipientEmail,
+    content: createSubscriptionCanceledEmail({
+      firstName: payer.first_name,
+      planName: event.data.plan?.name,
+    }),
+    failureMessage: "Unable to send subscription-canceled billing notification",
+  };
+}
+
+async function sendBillingNotification(
+  notification: BillingNotification,
+): Promise<BillingNotificationResult | Response> {
+  const result = await idempotency.run(
+    {
+      scope: notification.scope,
+      key: notification.eventId,
+    },
+    () =>
+      sendEmail({
+        idempotencyKey: `${notification.scope}/${notification.eventId}`,
+        to: notification.recipientEmail,
+        content: notification.content,
+      }),
+  );
+
+  if (result.status === "error") {
+    console.error(notification.failureMessage, result.error);
+    return new Response("Billing notification delivery failed", {
+      status: 500,
+    });
+  }
+
+  return result;
 }
 
 function getPayerEmail(
