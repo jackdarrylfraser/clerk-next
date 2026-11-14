@@ -1,17 +1,15 @@
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
-import type {
-  IdempotencyKey,
-  IdempotencyRunResult,
-} from "@clerk-next/kv";
+import type { IdempotencyKey, IdempotencyRunResult } from "@clerk-next/kv";
+import {
+  createPaymentFailedEmail,
+  createSubscriptionCanceledEmail,
+  createSubscriptionCreatedEmail,
+} from "@/emails/billing-notification-content";
 import { EMAIL_EVENTS, IDEMPOTENCY_PREFIXES } from "@/emails/constants";
+import { sendEmail } from "@/emails/send-email";
 import { env } from "@/env";
 import type { NextRequest } from "next/server";
 import { idempotency } from "@/lib/kv";
-import {
-  sendPaymentFailedEmail,
-  sendSubscriptionCanceledEmail,
-  sendSubscriptionCreatedEmail,
-} from "@/emails/billing-notifications";
 
 type ClerkWebhookEvent = Awaited<ReturnType<typeof verifyWebhook>>;
 type BillingNotificationResult = IdempotencyRunResult<void>;
@@ -76,22 +74,18 @@ async function deliverBillingNotification(
     const firstName = event.data.payer.first_name;
     const planName = event.data.items[0]?.plan?.name;
 
-    async function sendSubscriptionCreatedNotification(): Promise<void> {
-      await sendSubscriptionCreatedEmail({
-        subscriptionId,
-        email: recipientEmail,
-        firstName,
-        planName,
-      });
-    }
-
     return sendNotification(
       "subscription-created",
       {
         scope: IDEMPOTENCY_PREFIXES.subscriptionCreated,
         key: subscriptionId,
       },
-      sendSubscriptionCreatedNotification,
+      () =>
+        sendEmail({
+          idempotencyKey: `${IDEMPOTENCY_PREFIXES.subscriptionCreated}/${subscriptionId}`,
+          to: recipientEmail,
+          content: createSubscriptionCreatedEmail({ firstName, planName }),
+        }),
     );
   }
 
@@ -104,11 +98,7 @@ async function deliverBillingNotification(
       return ignoredEventResponse();
     }
 
-    const email = getPayerEmail(
-      payer.email,
-      event.data.id,
-      "payment-failed",
-    );
+    const email = getPayerEmail(payer.email, event.data.id, "payment-failed");
     if (email instanceof Response) {
       return email;
     }
@@ -118,22 +108,18 @@ async function deliverBillingNotification(
     const firstName = payer.first_name;
     const planName = event.data.subscription_items[0]?.plan?.name;
 
-    async function sendPaymentFailedNotification(): Promise<void> {
-      await sendPaymentFailedEmail({
-        paymentAttemptId,
-        email: recipientEmail,
-        firstName,
-        planName,
-      });
-    }
-
     return sendNotification(
       "payment-failed",
       {
         scope: IDEMPOTENCY_PREFIXES.paymentFailed,
         key: paymentAttemptId,
       },
-      sendPaymentFailedNotification,
+      () =>
+        sendEmail({
+          idempotencyKey: `${IDEMPOTENCY_PREFIXES.paymentFailed}/${paymentAttemptId}`,
+          to: recipientEmail,
+          content: createPaymentFailedEmail({ firstName, planName }),
+        }),
     );
   }
 
@@ -157,22 +143,18 @@ async function deliverBillingNotification(
     const firstName = payer.first_name;
     const planName = event.data.plan?.name;
 
-    async function sendSubscriptionCanceledNotification(): Promise<void> {
-      await sendSubscriptionCanceledEmail({
-        subscriptionItemId,
-        email: recipientEmail,
-        firstName,
-        planName,
-      });
-    }
-
     return sendNotification(
       "subscription-canceled",
       {
         scope: IDEMPOTENCY_PREFIXES.subscriptionCanceled,
         key: subscriptionItemId,
       },
-      sendSubscriptionCanceledNotification,
+      () =>
+        sendEmail({
+          idempotencyKey: `${IDEMPOTENCY_PREFIXES.subscriptionCanceled}/${subscriptionItemId}`,
+          to: recipientEmail,
+          content: createSubscriptionCanceledEmail({ firstName, planName }),
+        }),
     );
   }
 
@@ -180,7 +162,7 @@ async function deliverBillingNotification(
 }
 
 function getPayerEmail(
- payerEmail: string | undefined,
+  payerEmail: string | undefined,
   eventId: string,
   eventName: string,
 ): string | Response {
