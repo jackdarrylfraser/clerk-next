@@ -1,5 +1,6 @@
-import { createIdempotencyStore, createRedisClient } from "@clerk-next/kv";
+import type { IdempotencyKey } from "@clerk-next/kv";
 import { env } from "@/env";
+import { IDEMPOTENCY_SCOPES, idempotency } from "@/lib/kv";
 import { Resend } from "resend";
 import {
   createPaymentFailedEmail,
@@ -8,31 +9,13 @@ import {
 } from "./billing-notification-content";
 
 const resend = new Resend(env.RESEND_API_KEY);
-const getRedisClient = createRedisClient({
-  redisUrl: env.UPSTASH_REDIS_REST_URL,
-  redisToken: env.UPSTASH_REDIS_REST_TOKEN,
-});
-const subscriptionCreatedIdempotency = createIdempotencyStore({
-  getRedisClient,
-  prefix: "clerk-next:resend-email:subscription-created",
-});
-const paymentFailedIdempotency = createIdempotencyStore({
-  getRedisClient,
-  prefix: "clerk-next:resend-email:payment-failed",
-});
-const subscriptionCanceledIdempotency = createIdempotencyStore({
-  getRedisClient,
-  prefix: "clerk-next:resend-email:subscription-canceled",
-});
 
 export type BillingNotificationResult =
   | { status: "sent" | "duplicate" }
   | { status: "in-progress"; retryAfterSeconds: number };
 
-type IdempotencyStore = ReturnType<typeof createIdempotencyStore>;
-
 type BillingEmail = {
-  idempotencyKey: string;
+  idempotencyKey: IdempotencyKey;
   email: string;
   content: {
     subject: string;
@@ -68,8 +51,11 @@ export async function sendSubscriptionCreatedEmail({
   firstName,
   planName,
 }: SubscriptionCreatedEmail): Promise<BillingNotificationResult> {
-  return sendBillingEmail(subscriptionCreatedIdempotency, {
-    idempotencyKey: `subscription-created/${subscriptionId}`,
+  return sendBillingEmail({
+    idempotencyKey: {
+      scope: IDEMPOTENCY_SCOPES.billingSubscriptionCreated,
+      key: `subscription-created/${subscriptionId}`,
+    },
     email,
     content: createSubscriptionCreatedEmail({ firstName, planName }),
   });
@@ -81,8 +67,11 @@ export async function sendPaymentFailedEmail({
   firstName,
   planName,
 }: PaymentFailedEmail): Promise<BillingNotificationResult> {
-  return sendBillingEmail(paymentFailedIdempotency, {
-    idempotencyKey: `payment-failed/${paymentAttemptId}`,
+  return sendBillingEmail({
+    idempotencyKey: {
+      scope: IDEMPOTENCY_SCOPES.billingPaymentFailed,
+      key: `payment-failed/${paymentAttemptId}`,
+    },
     email,
     content: createPaymentFailedEmail({ firstName, planName }),
   });
@@ -94,15 +83,17 @@ export async function sendSubscriptionCanceledEmail({
   firstName,
   planName,
 }: SubscriptionCanceledEmail): Promise<BillingNotificationResult> {
-  return sendBillingEmail(subscriptionCanceledIdempotency, {
-    idempotencyKey: `subscription-canceled/${subscriptionItemId}`,
+  return sendBillingEmail({
+    idempotencyKey: {
+      scope: IDEMPOTENCY_SCOPES.billingSubscriptionCanceled,
+      key: `subscription-canceled/${subscriptionItemId}`,
+    },
     email,
     content: createSubscriptionCanceledEmail({ firstName, planName }),
   });
 }
 
 async function sendBillingEmail(
-  idempotency: IdempotencyStore,
   { idempotencyKey, email, content }: BillingEmail,
 ): Promise<BillingNotificationResult> {
   const from = env.RESEND_FROM_EMAIL?.trim();
@@ -128,7 +119,9 @@ async function sendBillingEmail(
       to: email.trim(),
       ...content,
     },
-    { idempotencyKey: `clerk-next/${idempotencyKey}` },
+    {
+      idempotencyKey: `clerk-next/${idempotencyKey.key}`,
+    },
   );
 
   if (error) {
@@ -139,7 +132,7 @@ async function sendBillingEmail(
     throw new Error("Resend did not confirm the billing email");
   }
 
-  const completed = await idempotency.complete(idempotencyKey, claim.token, {
+  const completed = await idempotency.end(idempotencyKey, claim.token, {
     ttlSeconds: 31_536_000,
   });
   if (!completed) {

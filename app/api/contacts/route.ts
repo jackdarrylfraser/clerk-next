@@ -1,19 +1,17 @@
 import { Resend } from "resend";
 import { z } from "zod";
 import {
-  createIdempotencyStore,
   createRateLimiter,
-  createRedisClient,
   getIpRateLimitIdentifier,
 } from "@clerk-next/kv";
 import { env } from "@/env";
+import {
+  getRedisClient,
+  IDEMPOTENCY_SCOPES,
+  idempotency,
+} from "@/lib/kv";
 import { sendMarketingOptInEvent } from "@/emails/automations/events";
 import { isMarketingTopicKey } from "@/lib/marketing-topics";
-
-const getRedisClient = createRedisClient({
-  redisUrl: env.UPSTASH_REDIS_REST_URL,
-  redisToken: env.UPSTASH_REDIS_REST_TOKEN,
-});
 
 const limitContactSubmissions = createRateLimiter({
   getRedisClient,
@@ -21,11 +19,6 @@ const limitContactSubmissions = createRateLimiter({
   window: "10 m",
   prefix: "clerk-next:contact",
   timeoutMs: 1_000,
-});
-
-const contactIdempotency = createIdempotencyStore({
-  getRedisClient,
-  prefix: "clerk-next:contact",
 });
 
 const contactSchema = z.object({
@@ -45,7 +38,7 @@ export async function POST(request: Request): Promise<Response> {
   const claimResult = await claimContactSubmission(submissionResult);
   const contactResult = await saveContact(claimResult);
   const automationResult = await deliverMarketingOptInEvent(contactResult);
-  const completionResult = await completeContactSubmission(automationResult);
+  const completionResult = await endContactSubmission(automationResult);
 
   return createContactSuccessResponse(completionResult);
 }
@@ -164,9 +157,12 @@ async function claimContactSubmission(
     return submission;
   }
 
-  let claim: Awaited<ReturnType<typeof contactIdempotency.begin>>;
+  let claim: Awaited<ReturnType<typeof idempotency.begin>>;
   try {
-    claim = await contactIdempotency.begin(submission.data.submissionId);
+    claim = await idempotency.begin({
+      scope: IDEMPOTENCY_SCOPES.contactSubmission,
+      key: submission.data.submissionId,
+    });
   } catch (error) {
     console.error("Contact idempotency check failed", error);
     return Response.json(
@@ -308,7 +304,7 @@ async function deliverMarketingOptInEvent(
   }
 }
 
-async function completeContactSubmission(
+async function endContactSubmission(
   submission: SavedContactSubmission | Response,
 ): Promise<SavedContactSubmission | Response> {
   if (submission instanceof Response) {
@@ -316,8 +312,11 @@ async function completeContactSubmission(
   }
 
   try {
-    const completed = await contactIdempotency.complete(
-      submission.data.submissionId,
+    const completed = await idempotency.end(
+      {
+        scope: IDEMPOTENCY_SCOPES.contactSubmission,
+        key: submission.data.submissionId,
+      },
       submission.token,
     );
     if (!completed) {

@@ -6,34 +6,36 @@ export type IdempotencyClaim =
   | { status: "in-progress"; retryAfterSeconds: number }
   | { status: "completed" };
 
-export type CreateIdempotencyStoreOptions = {
+export interface IdempotencyKey {
+  scope: string;
+  key: string;
+}
+
+export interface CreateIdempotencyStoreOptions {
   getRedisClient: () => Redis;
-  prefix: string;
-};
+}
 
 export function createIdempotencyStore({
   getRedisClient,
-  prefix,
 }: CreateIdempotencyStoreOptions) {
-  if (!prefix.trim()) {
-    throw new Error("An idempotency key prefix is required");
-  }
-
-  function getKeys(key: string) {
+  function getKeys({ scope, key }: IdempotencyKey) {
+    if (!scope.trim() || scope.length > 255) {
+      throw new Error("Idempotency scopes must contain 1 to 255 characters");
+    }
     if (!key.trim() || key.length > 255) {
       throw new Error("Idempotency keys must contain 1 to 255 characters");
     }
 
     const hash = createHash("sha256").update(key).digest("hex");
     return {
-      lockKey: `${prefix}:lock:${hash}`,
-      completedKey: `${prefix}:completed:${hash}`,
+      lockKey: `${scope}:lock:${hash}`,
+      completedKey: `${scope}:completed:${hash}`,
     };
   }
 
   return {
     async begin(
-      key: string,
+      key: IdempotencyKey,
       { lockTtlSeconds = 60 }: { lockTtlSeconds?: number } = {},
     ): Promise<IdempotencyClaim> {
       if (!Number.isSafeInteger(lockTtlSeconds) || lockTtlSeconds < 1) {
@@ -71,8 +73,8 @@ export function createIdempotencyStore({
       };
     },
 
-    async complete(
-      key: string,
+    async end(
+      key: IdempotencyKey,
       token: string,
       { ttlSeconds = 86_400 }: { ttlSeconds?: number } = {},
     ): Promise<boolean> {

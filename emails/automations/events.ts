@@ -1,16 +1,8 @@
-import { createIdempotencyStore, createRedisClient } from "@clerk-next/kv";
 import { env } from "@/env";
+import { IDEMPOTENCY_SCOPES, idempotency } from "@/lib/kv";
 import { Resend } from "resend";
 
 const resend = new Resend(env.RESEND_API_KEY);
-const getRedisClient = createRedisClient({
-  redisUrl: env.UPSTASH_REDIS_REST_URL,
-  redisToken: env.UPSTASH_REDIS_REST_TOKEN,
-});
-const marketingOptInIdempotency = createIdempotencyStore({
-  getRedisClient,
-  prefix: "clerk-next:resend-event:marketing-opt-in",
-});
 
 export type AutomationEventResult =
   | { status: "sent" | "duplicate" }
@@ -30,8 +22,11 @@ export async function sendMarketingOptInEvent({
   lastName,
 }: MarketingOptInEvent): Promise<AutomationEventResult> {
   const normalizedEmail = email.trim().toLowerCase();
-  const idempotencyKey = `marketing-opt-in/${submissionId}`;
-  const claim = await marketingOptInIdempotency.begin(idempotencyKey);
+  const idempotencyKey = {
+    scope: IDEMPOTENCY_SCOPES.marketingOptInEvent,
+    key: `marketing-opt-in/${submissionId}`,
+  };
+  const claim = await idempotency.begin(idempotencyKey);
 
   if (claim.status === "completed") {
     return { status: "duplicate" };
@@ -63,7 +58,7 @@ export async function sendMarketingOptInEvent({
     throw new Error("Resend did not confirm the marketing automation event");
   }
 
-  const completed = await marketingOptInIdempotency.complete(
+  const completed = await idempotency.end(
     idempotencyKey,
     claim.token,
     { ttlSeconds: 31_536_000 },
