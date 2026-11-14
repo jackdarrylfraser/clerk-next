@@ -302,9 +302,6 @@ h1,
 .lead-capture-status.error {
   color: #a23d32;
 }
-.guest-access {
-  min-height: 60vh;
-}
 .guest-access-panel {
   width: min(100%, 520px);
 }
@@ -927,6 +924,17 @@ button.text-button {
 }
 .auth-container {
   margin: 25px 0 0;
+}
+.auth-container.email-code-auth {
+  width: min(calc(100% - 32px), 520px);
+  margin: clamp(32px, 8vh, 72px) auto;
+}
+.email-code-auth .activity-heading {
+  margin-bottom: 20px;
+}
+.email-code-auth .activity-heading h1 {
+  margin: 0 0 12px;
+  font-size: 24px;
 }
 .checkout-content {
   margin: 22px 0 0;

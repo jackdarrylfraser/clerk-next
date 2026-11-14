@@ -1,8 +1,9 @@
 "use client";
 
-import { SignIn, useAuth } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { Suspense } from "react";
+import { CustomSignInForm } from "@/components/custom-sign-in-form";
 import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
 import { use, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -12,17 +13,7 @@ import {
   resolveSubscribeFlow,
 } from "@/components/subscribe/flow-state";
 import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
-import { clerkAuthAppearance } from "@/lib/clerk-appearance";
 import type { SubscribeSearchParams } from "@/components/subscribe/types";
-
-const authAppearance = {
-  ...clerkAuthAppearance,
-  elements: {
-    ...clerkAuthAppearance.elements,
-    rootBox: { width: "100%" },
-    cardBox: { width: "100%", boxShadow: "none" },
-  },
-};
 
 export default function SubscribeAccountPage({
   searchParams,
@@ -108,13 +99,7 @@ function AccountStep({
           </Link>
         </div>
       ) : (
-        <div className="auth-container clerk-auth">
-          <SignIn
-            routing="hash"
-            forceRedirectUrl={continueUrl}
-            appearance={authAppearance}
-          />
-        </div>
+        <CustomSignInForm returnTo={continueUrl} />
       )}
     </>
   );

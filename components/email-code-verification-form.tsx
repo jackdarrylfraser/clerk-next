@@ -107,7 +107,7 @@ export function EmailCodeVerificationForm({
   }
 
   return (
-    <main className="activity-home guest-access">
+    <div className="auth-container email-code-auth">
       <div className="activity-heading">
         <h1>
           {hasSentCode ? copy.codeHeading(emailAddress) : copy.emailHeading}
@@ -184,6 +184,6 @@ export function EmailCodeVerificationForm({
           </p>
         )}
       </div>
-    </main>
+    </div>
   );
 }

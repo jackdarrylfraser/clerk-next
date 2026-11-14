@@ -5,6 +5,10 @@ import {
   type EmailCodeVerificationCopy,
 } from "@/components/email-code-verification-form";
 
+type CustomSignInFormProps = {
+  returnTo?: string;
+};
+
 function getRedirectDestination() {
   const redirectUrl = new URLSearchParams(window.location.search).get(
     "redirect_url",
@@ -39,11 +43,13 @@ const signInCopy: EmailCodeVerificationCopy = {
     "We couldn't verify that code. Please try again or request a new one.",
 };
 
-export function CustomSignInForm() {
+export function CustomSignInForm({
+  returnTo,
+}: CustomSignInFormProps = {}) {
   return (
     <EmailCodeVerificationForm
       copy={signInCopy}
-      getReturnTo={getRedirectDestination}
+      getReturnTo={() => returnTo ?? getRedirectDestination()}
     />
   );
 }
