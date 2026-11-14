@@ -22,6 +22,21 @@ export const user = sqliteTable(
   (table) => [uniqueIndex("user_email_unique").on(table.email)],
 );
 
+export const userAccess = sqliteTable(
+  "user_access",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+    accessLevel: text("access_level", {
+      enum: ["guest", "self_guided", "admin"],
+    })
+      .notNull()
+      .default("guest"),
+  },
+  (table) => [index("user_access_level_index").on(table.accessLevel)],
+);
+
 export const session = sqliteTable(
   "session",
   {
