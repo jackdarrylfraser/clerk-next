@@ -5,6 +5,7 @@ import { useSignIn } from "@clerk/nextjs";
 
 type GuestEmailVerificationGateProps = {
   returnTo: string;
+  title?: string;
 };
 
 type GateStatus = {
@@ -14,6 +15,7 @@ type GateStatus = {
 
 export function GuestEmailVerificationGate({
   returnTo,
+  title,
 }: GuestEmailVerificationGateProps) {
   const { signIn, fetchStatus } = useSignIn();
   const [emailAddress, setEmailAddress] = useState("");
@@ -116,7 +118,9 @@ export function GuestEmailVerificationGate({
         <h1>
           {hasSentCode
             ? `Enter the verification code sent to ${emailAddress}`
-            : "Enter your email to receive your content."}
+            : title
+              ? `Enter your email to receive access to '${title}'.`
+              : "Enter your email to receive access to your content."}
         </h1>
       </div>
       <div className="guest-access-panel">

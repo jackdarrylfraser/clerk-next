@@ -26,9 +26,17 @@ async function GuestMarkdownPage({
   if (!isDevAuthBypassEnabled) {
     const { isAuthenticated } = await auth();
     if (!isAuthenticated) {
+      const pageExists = (await getMarkdownParams(guestDirectory, "slug")).some(
+        (page) => page.slug === slug,
+      );
+      const title = pageExists
+        ? (await getMarkdownMetadata(guestDirectory, slug)).title
+        : undefined;
+
       return (
         <GuestEmailVerificationGate
           returnTo={`/guest/${encodeURIComponent(slug)}`}
+          title={title}
         />
       );
     }
