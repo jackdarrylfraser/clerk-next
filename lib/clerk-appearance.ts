@@ -1,4 +1,7 @@
 export const clerkAuthAppearance = {
+  elements: {
+    footerAction: { display: "none" },
+  },
   variables: {
     borderRadius: "4px",
     colorBackground: "var(--sign-in-surface)",
@@ -11,5 +14,8 @@ export const clerkAuthAppearance = {
     colorPrimary: "var(--green)",
     colorRing: "var(--sign-in-ring)",
     fontFamily: "var(--font-geist-sans), Arial, Helvetica, sans-serif",
+  },
+  options: {
+    showOptionalFields: false,
   },
 };

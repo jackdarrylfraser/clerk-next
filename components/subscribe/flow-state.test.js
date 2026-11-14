@@ -25,12 +25,11 @@ describe("subscription flow state", () => {
       parseSubscribeQuery({
         plan: null,
         period: null,
-        auth: null,
+        auth: "sign-up",
       }),
     ).toEqual({
       plan: null,
       period: "month",
-      auth: "sign-up",
     });
 
     expect(
@@ -42,7 +41,6 @@ describe("subscription flow state", () => {
     ).toEqual({
       plan: "standard",
       period: "month",
-      auth: "sign-up",
     });
   });
 

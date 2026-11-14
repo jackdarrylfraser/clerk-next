@@ -10,7 +10,6 @@ import type {
 const subscribeQuerySchema = z.object({
   plan: z.string().min(1).nullable().catch(null),
   period: z.enum(["month", "annual"]).catch("month"),
-  auth: z.enum(["sign-in", "sign-up"]).catch("sign-up"),
 });
 
 export function parseSubscribeQuery(
@@ -22,7 +21,6 @@ export function parseSubscribeQuery(
   return subscribeQuerySchema.parse({
     plan: singleValue(query.plan),
     period: singleValue(query.period) ?? undefined,
-    auth: singleValue(query.auth) ?? undefined,
   });
 }
 

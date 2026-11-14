@@ -1,9 +1,10 @@
 # Clerk Next
 
 If you're reading this six months from now, this is a small membership site
-built with Next.js, Clerk, Resend, and Upstash Redis. Visitors create an
-account or sign in before choosing a membership plan. The selected plan stays
-in the URL so signed-in users can go straight to checkout.
+built with Next.js, Clerk, Resend, and Upstash Redis. Visitors choose a
+membership plan, then sign in or create an account through the same account
+flow before checkout. The selected plan stays in the URL so signed-in users
+can go straight to checkout.
 
 ## What the app does
 
@@ -79,9 +80,11 @@ for production. Never commit real values.
 
 Before expecting checkout to work, configure Clerk Billing, connect its payment
 provider, publish user plans, and enable the desired sign-in methods in the
-Clerk Dashboard. Member plans must have the `site_access` feature entitlement.
-Plan names, prices, trial settings, and features are read from Clerk rather
-than hard-coded here.
+Clerk Dashboard. In the Dashboard's User model settings, turn off **Allow users
+to set their first and last name** if accounts should not collect names.
+Optional fields are hidden in the app's Clerk components. Member plans must
+have the `site_access` feature entitlement. Plan names, prices, trial settings,
+and features are read from Clerk rather than hard-coded here.
 
 To enable email workflows:
 

@@ -5,7 +5,7 @@ import type { Step } from "./types";
 
 const steps: { key: Step; title: string; description: string }[] = [
   { key: "plan", title: "Choose a plan", description: "Find the right fit" },
-  { key: "account", title: "Your account", description: "Sign up or sign in" },
+  { key: "account", title: "Sign in / Sign up", description: "One flow for both" },
   { key: "payment", title: "Payment", description: "Complete checkout" },
 ];
 

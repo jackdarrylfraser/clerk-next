@@ -26,12 +26,9 @@ export default function Navigation() {
               <span className="dev-access-label">Dev access</span>
             </>
           ) : (
-            <>
-              <Link href="/sign-in">Sign in</Link>
-              <Link href="/subscribe/plan" className="subscribe-link">
-                Pricing
-              </Link>
-            </>
+            <Link href="/sign-in" className="subscribe-link">
+              Sign in / Sign up
+            </Link>
           ))}
       </nav>
     </header>

@@ -1,9 +1,8 @@
 "use client";
 
-import { SignIn, SignUp } from "@clerk/nextjs";
+import { SignIn, useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { Suspense } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
 import { use, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -14,14 +13,12 @@ import {
 } from "@/components/subscribe/flow-state";
 import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
 import { clerkAuthAppearance } from "@/lib/clerk-appearance";
-import type {
-  AuthMode,
-  SubscribeSearchParams,
-} from "@/components/subscribe/types";
+import type { SubscribeSearchParams } from "@/components/subscribe/types";
 
 const authAppearance = {
   ...clerkAuthAppearance,
   elements: {
+    ...clerkAuthAppearance.elements,
     rootBox: { width: "100%" },
     cardBox: { width: "100%", boxShadow: "none" },
   },
@@ -31,7 +28,9 @@ export default function SubscribeAccountPage({
   searchParams,
 }: PageProps<"/subscribe/account">) {
   return (
-    <Suspense fallback={<main className="loading-page">Loading account step...</main>}>
+    <Suspense
+      fallback={<main className="loading-page">Loading account step...</main>}
+    >
       <SubscribeAccountContent searchParams={searchParams} />
     </Suspense>
   );
@@ -81,8 +80,6 @@ function SubscribeAccountContent({
       ) : (
         <AccountStep
           isSignedIn={!!isSignedIn}
-          authMode={query.auth}
-          accountUrl={urls.account}
           continueUrl={query.plan ? urls.payment : urls.plans}
         />
       )}
@@ -92,43 +89,29 @@ function SubscribeAccountContent({
 
 function AccountStep({
   isSignedIn,
-  authMode,
-  accountUrl,
   continueUrl,
 }: {
   isSignedIn: boolean;
-  authMode: AuthMode;
-  accountUrl: string;
   continueUrl: string;
 }) {
   return (
     <>
-    {isSignedIn ? (
+      {isSignedIn ? (
         <div className="step-message">
           <p className="complete-state">
             <span>✓</span> You&apos;re signed in and ready to continue.
           </p>
-        <Link className="primary-button" href={continueUrl}>
-          Continue <span>↗</span>
+          <Link className="primary-button" href={continueUrl}>
+            Continue <span>↗</span>
           </Link>
         </div>
       ) : (
         <div className="auth-container clerk-auth">
-          {authMode === "sign-in" ? (
-            <SignIn
-              routing="hash"
-              forceRedirectUrl={continueUrl}
-              signUpUrl={`${accountUrl}&auth=sign-up`}
-              appearance={authAppearance}
-            />
-          ) : (
-            <SignUp
-              routing="hash"
-              forceRedirectUrl={continueUrl}
-              signInUrl={`${accountUrl}&auth=sign-in`}
-              appearance={authAppearance}
-            />
-          )}
+          <SignIn
+            routing="hash"
+            forceRedirectUrl={continueUrl}
+            appearance={authAppearance}
+          />
         </div>
       )}
     </>
