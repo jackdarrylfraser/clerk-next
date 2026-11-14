@@ -13,15 +13,17 @@ import {
   resolveSubscribeFlow,
 } from "@/components/subscribe/flow-state";
 import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
+import { clerkAuthAppearance } from "@/lib/clerk-appearance";
 import type {
   AuthMode,
   SubscribeSearchParams,
 } from "@/components/subscribe/types";
 
 const authAppearance = {
+  ...clerkAuthAppearance,
   elements: {
     rootBox: { width: "100%" },
-    cardBox: { width: "100%", boxShadow: "none", border: "1px solid #edf0ea" },
+    cardBox: { width: "100%", boxShadow: "none" },
   },
 };
 
@@ -123,7 +125,7 @@ function AccountStep({
           </Link>
         </div>
       ) : (
-        <div className="auth-container">
+        <div className="auth-container clerk-auth">
           <div className="auth-tabs">
             <Link
               scroll={false}

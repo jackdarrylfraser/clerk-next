@@ -1,11 +1,16 @@
 import { SignIn } from "@clerk/nextjs";
 import { Suspense } from "react";
+import { clerkAuthAppearance } from "@/lib/clerk-appearance";
 
 export default function SignInPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="clerk-auth flex min-h-screen items-center justify-center">
       <Suspense>
-        <SignIn signUpUrl="/subscribe" fallbackRedirectUrl="/" />
+        <SignIn
+          signUpUrl="/subscribe"
+          fallbackRedirectUrl="/"
+          appearance={clerkAuthAppearance}
+        />
       </Suspense>
     </div>
   );
