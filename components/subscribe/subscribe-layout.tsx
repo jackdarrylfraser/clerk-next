@@ -66,7 +66,8 @@ export function SubscribeLayout({
                   }
                   aria-current={index === stepIndex ? "step" : undefined}
                 >
-                  {index < stepIndex ? (
+                  {index < stepIndex &&
+                  !(item.key === "account" && isSignedIn) ? (
                     <Link
                       className="progress-step progress-link"
                       href={stepUrls[item.key]}

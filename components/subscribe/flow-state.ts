@@ -106,11 +106,22 @@ export function resolveSubscribeFlow({
       : { kind: "ready" };
   }
 
+  if (step === "plan") {
+    if (!isSignedIn) {
+      return { kind: "redirect", href: urls.account };
+    }
+    if (!planId) return { kind: "ready" };
+    if (selectedPlanStatus === "loading") {
+      return { kind: "loading", reason: "plan" };
+    }
+    return selectedPlanStatus === "ready"
+      ? { kind: "redirect", href: urls.payment }
+      : { kind: "ready" };
+  }
+
   if (!isSignedIn) {
     return { kind: "redirect", href: urls.account };
   }
-
-  if (step === "plan") return { kind: "ready" };
 
   if (!planId) {
     return { kind: "redirect", href: urls.plans };

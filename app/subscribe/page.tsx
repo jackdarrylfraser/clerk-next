@@ -8,6 +8,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
 import { useRouter } from "next/navigation";
 import {
+  getSelectedPlanState,
   getSubscribeUrls,
   parseSubscribeQuery,
   resolveSubscribeFlow,
@@ -44,16 +45,44 @@ function SubscribePlanContent({
   const plans = usePlans({ for: "user", pageSize: 10, infinite: true });
   const { isLoaded, isSignedIn } = useAuth();
   const devAuthBypassEnabled = useDevAuthBypass();
+  const matchingPlan = plans.data?.find((plan) => plan.id === query.plan);
+  const selectedPlanState = getSelectedPlanState({
+    plan: matchingPlan,
+    period: query.period,
+    isLoading: plans.isLoading,
+    hasMore: plans.hasNextPage,
+    hasError: plans.isError,
+  });
   const urls = getSubscribeUrls(query.plan, query.period);
   const decision = resolveSubscribeFlow({
     step: "plan",
     planId: query.plan,
     urls,
-    selectedPlanStatus: "ready",
+    selectedPlanStatus: selectedPlanState.status,
     isAuthLoaded: isLoaded,
     isSignedIn: !!isSignedIn,
   });
   const redirectUrl = decision.kind === "redirect" ? decision.href : null;
+  const fetchNextPlans = plans.fetchNext;
+
+  useEffect(() => {
+    if (
+      !query.plan ||
+      matchingPlan ||
+      plans.isError ||
+      !plans.hasNextPage
+    ) {
+      return;
+    }
+
+    void fetchNextPlans();
+  }, [
+    fetchNextPlans,
+    matchingPlan,
+    plans.hasNextPage,
+    plans.isError,
+    query.plan,
+  ]);
 
   useEffect(() => {
     if (redirectUrl) router.replace(redirectUrl);
@@ -78,11 +107,13 @@ function SubscribePlanContent({
     >
       {decision.kind === "redirect" ? (
         <p className="muted-indent" role="status">
-          Taking you to the sign-in step...
+          Taking you to the next step...
         </p>
       ) : decision.kind === "loading" ? (
         <p className="muted-indent" role="status">
-          Loading your account...
+          {decision.reason === "account"
+            ? "Loading your account..."
+            : "Loading your selected plan..."}
         </p>
       ) : (
         <PlanStep
@@ -97,6 +128,7 @@ function SubscribePlanContent({
           onPeriodChange={selectPeriod}
           selectedId={query.plan}
           paymentUrl={urls.payment}
+          canResumeCheckout={selectedPlanState.status === "ready"}
           onChoosePlan={selectPlan}
         />
       )}
@@ -114,6 +146,7 @@ function PlanStep({
   onPeriodChange,
   selectedId,
   paymentUrl,
+  canResumeCheckout,
   onChoosePlan,
 }: {
   plans: Plan[] | undefined;
@@ -125,6 +158,7 @@ function PlanStep({
   onPeriodChange: (period: Period) => void;
   selectedId: string | null;
   paymentUrl: string;
+  canResumeCheckout: boolean;
   onChoosePlan: (planId: string) => void;
 }) {
   return (
@@ -220,7 +254,7 @@ function PlanStep({
           Load more plans +
         </button>
       )}
-      {selectedId && (
+      {selectedId && canResumeCheckout && (
         <p className="resume-checkout">
           Already chose a plan? <Link href={paymentUrl}>Continue checkout →</Link>
         </p>

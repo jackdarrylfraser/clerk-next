@@ -90,8 +90,57 @@ describe("subscription flow state", () => {
       }),
     ).toEqual({
       kind: "redirect",
+      href: getSubscribeUrls(null, "annual").account,
+    });
+  });
+
+  it("sends a signed-in user with a valid selected plan to payment", () => {
+    expect(
+      resolve({
+        step: "plan",
+        selectedPlanStatus: "ready",
+        isSignedIn: true,
+      }),
+    ).toEqual({
+      kind: "redirect",
+      href: urls.payment,
+    });
+  });
+
+  it("preserves a selected plan when requiring sign-in", () => {
+    expect(
+      resolve({
+        step: "plan",
+        planId: "standard",
+        isSignedIn: false,
+      }),
+    ).toEqual({
+      kind: "redirect",
       href: urls.account,
     });
+  });
+
+  it("waits for the selected plan before resuming checkout", () => {
+    expect(
+      resolve({
+        step: "plan",
+        selectedPlanStatus: "loading",
+        isSignedIn: true,
+      }),
+    ).toEqual({
+      kind: "loading",
+      reason: "plan",
+    });
+  });
+
+  it("leaves unavailable selected plans on the picker", () => {
+    expect(
+      resolve({
+        step: "plan",
+        selectedPlanStatus: "unavailable",
+        isSignedIn: true,
+      }),
+    ).toEqual({ kind: "ready" });
   });
 
   it("sends an invalid selected plan back to the picker", () => {

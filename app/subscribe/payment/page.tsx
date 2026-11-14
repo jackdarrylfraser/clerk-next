@@ -61,10 +61,12 @@ function SubscribePaymentContent({
   const selectedPlan =
     "plan" in selectedPlanState ? selectedPlanState.plan : undefined;
   const urls = getSubscribeUrls(query.plan, query.period);
+  const planPickerUrl = getSubscribeUrls(null, query.period).plans;
+  const flowUrls = { ...urls, plans: planPickerUrl };
   const decision = resolveSubscribeFlow({
     step: "payment",
     planId: query.plan,
-    urls,
+    urls: flowUrls,
     selectedPlanStatus: selectedPlanState.status,
     isAuthLoaded: isLoaded,
     isSignedIn: !!isSignedIn,
@@ -99,7 +101,7 @@ function SubscribePaymentContent({
     <SubscribeLayout
       step="payment"
       selectedId={query.plan}
-      urls={urls}
+      urls={flowUrls}
       isLoaded={isLoaded}
       isSignedIn={!!isSignedIn}
       devAuthBypassEnabled={devAuthBypassEnabled}
@@ -118,7 +120,7 @@ function SubscribePaymentContent({
         <PaymentStep
           selectedPlan={selectedPlan}
           period={query.period}
-          plansUrl={urls.plans}
+          plansUrl={planPickerUrl}
         />
       ) : null}
     </SubscribeLayout>

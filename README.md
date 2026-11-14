@@ -1,15 +1,15 @@
 # Clerk Next
 
 If you're reading this six months from now, this is a small membership site
-built with Next.js, Clerk, Resend, and Upstash Redis. The main path through it
-is: a visitor picks a membership plan, creates an account, accepts the plan
-terms, checks out, then gets access to member activities.
+built with Next.js, Clerk, Resend, and Upstash Redis. Visitors create an
+account or sign in before choosing a membership plan. The selected plan stays
+in the URL so signed-in users can go straight to checkout.
 
 ## What the app does
 
 - **Membership and account management:** Clerk provides sign-in/sign-up,
   user-facing billing plans, checkout, and the profile and subscription
-  management UI. The `/subscribe` flow is split into plan, account, terms, and
+  management UI. The `/subscribe` flow is split into account, plan, and
   payment steps. The selected plan and billing period stay in the URL so the
   flow can resume after sign-in or a refresh. Terms acceptance is held in
   browser session storage; it is not a durable audit record.
