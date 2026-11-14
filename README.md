@@ -71,10 +71,10 @@ for production. Never commit real values.
 | --- | --- |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk on the client; required to run/build the app |
 | `CLERK_SECRET_KEY` | Clerk server-side operations; required to run/build the app |
-| `RESEND_API_KEY` | Resend contact and event APIs; required to run/build the app |
+| `RESEND_API_KEY` | Resend contact, event, and transactional email APIs; required to run/build the app |
 | `CLERK_WEBHOOK_SIGNING_SECRET` | Verifying Clerk webhook deliveries; configure this before enabling the webhook |
 | `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` | Contact rate limiting and idempotency for contact/subscription events; both must be set |
-| `RESEND_FROM_EMAIL` | Sender address used by `bun run emails:sync`; use a verified Resend sender |
+| `RESEND_FROM_EMAIL` | Verified sender for billing emails and `bun run emails:sync` |
 | `DEV_AUTH_BYPASS` | Optional local activity preview; set to `true` only for development |
 
 Before expecting checkout to work, configure Clerk Billing, connect its payment
@@ -89,8 +89,12 @@ To enable email workflows:
    `bun run emails:sync`. The command provisions code-defined marketing topics,
    consent properties, events, templates, and automations. The contact endpoint
    resolves the selected topic by its code-defined name.
-2. Add a Clerk webhook at `/api/webhooks/clerk` for `subscription.created` and
-   set its signing secret in `CLERK_WEBHOOK_SIGNING_SECRET`.
+2. Add a Clerk webhook at `/api/webhooks/clerk` for `subscription.created`,
+   `paymentAttempt.created`, `paymentAttempt.updated`, and
+   `subscriptionItem.canceled`; set its signing secret in
+   `CLERK_WEBHOOK_SIGNING_SECRET`. Billing notifications are sent directly
+   through Resend and do not use Resend automations. Cancellation notifications
+   correspond to the canceled subscription item.
 3. Configure both Upstash Redis variables. Contact capture and event
    idempotency return an error when Redis is not configured.
 

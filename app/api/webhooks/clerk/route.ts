@@ -1,25 +1,29 @@
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { env } from "@/env";
 import type { NextRequest } from "next/server";
-import { sendSubscriptionCreatedEvent } from "@/emails/automations/events";
+import {
+  sendPaymentFailedEmail,
+  sendSubscriptionCanceledEmail,
+  sendSubscriptionCreatedEmail,
+} from "@/emails/billing-notifications";
 
 type ClerkWebhookEvent = Awaited<ReturnType<typeof verifyWebhook>>;
-type SubscriptionAutomationResult = Awaited<
-  ReturnType<typeof sendSubscriptionCreatedEvent>
+type BillingNotificationResult = Awaited<
+  ReturnType<typeof sendSubscriptionCreatedEmail>
 >;
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const secretResponse = await checkWebhookSigningSecret();
+  const secretResponse = checkWebhookSigningSecret();
   const verifiedEvent = await verifyClerkWebhook(request, secretResponse);
-  const subscriptionEvent = getSubscriptionCreatedEvent(verifiedEvent);
-  const validatedEvent = validateSubscriptionPayer(subscriptionEvent);
-  const automationResult =
-    await deliverSubscriptionCreatedEvent(validatedEvent);
+  if (verifiedEvent instanceof Response) {
+    return verifiedEvent;
+  }
 
-  return createWebhookResponse(automationResult);
+  const notificationResult = await deliverBillingNotification(verifiedEvent);
+  return createWebhookResponse(notificationResult);
 }
 
-async function checkWebhookSigningSecret(): Promise<Response | undefined> {
+function checkWebhookSigningSecret(): Response | undefined {
   if (!env.CLERK_WEBHOOK_SIGNING_SECRET) {
     console.error("Clerk webhook signing secret is not configured");
     return new Response("Webhook signing secret is not configured", {
@@ -46,78 +50,136 @@ async function verifyClerkWebhook(
   }
 }
 
-function getSubscriptionCreatedEvent(
-  event: ClerkWebhookEvent | Response,
-) {
-  if (event instanceof Response) {
-    return event;
-  }
+async function deliverBillingNotification(
+ event: ClerkWebhookEvent,
+): Promise<BillingNotificationResult | Response> {
+ if (event.type === "subscription.created") {
+   if (!event.data.payer.user_id) {
+     return ignoredEventResponse();
+   }
 
-  if (event.type !== "subscription.created") {
-    return Response.json({ received: true, ignored: true });
-  }
+   const email = getPayerEmail(
+     event.data.payer.email,
+     event.data.id,
+     "subscription-created",
+   );
+   if (email instanceof Response) {
+     return email;
+   }
 
-  if (!event.data.payer.user_id) {
-    return Response.json({ received: true, ignored: true });
-  }
+   return sendNotification("subscription-created", () =>
+     sendSubscriptionCreatedEmail({
+       subscriptionId: event.data.id,
+       email,
+       firstName: event.data.payer.first_name,
+       planName: event.data.items[0]?.plan?.name,
+     }),
+   );
+ }
 
-  return event;
+ if (
+   event.type === "paymentAttempt.created" ||
+   event.type === "paymentAttempt.updated"
+ ) {
+   const payer = event.data.payer;
+   if (event.data.status !== "failed" || !payer?.user_id) {
+     return ignoredEventResponse();
+   }
+
+   const email = getPayerEmail(
+     payer.email,
+     event.data.id,
+     "payment-failed",
+   );
+   if (email instanceof Response) {
+     return email;
+   }
+
+   return sendNotification("payment-failed", () =>
+     sendPaymentFailedEmail({
+       paymentAttemptId: event.data.id,
+       email,
+       firstName: payer.first_name,
+       planName: event.data.subscription_items[0]?.plan?.name,
+     }),
+   );
+ }
+
+ if (event.type === "subscriptionItem.canceled") {
+   const payer = event.data.payer;
+   if (!payer?.user_id) {
+     return ignoredEventResponse();
+   }
+
+   const email = getPayerEmail(
+     payer.email,
+     event.data.id,
+     "subscription-canceled",
+   );
+   if (email instanceof Response) {
+     return email;
+   }
+
+   return sendNotification("subscription-canceled", () =>
+     sendSubscriptionCanceledEmail({
+       subscriptionItemId: event.data.id,
+       email,
+       firstName: payer.first_name,
+       planName: event.data.plan?.name,
+     }),
+   );
+ }
+
+ return ignoredEventResponse();
 }
 
-type SubscriptionCreatedEvent = Exclude<
-  ReturnType<typeof getSubscriptionCreatedEvent>,
-  Response
->;
+function getPayerEmail(
+ payerEmail: string | undefined,
+ eventId: string,
+ eventName: string,
+): string | Response {
+ const email = payerEmail?.trim();
+ if (!email) {
+   console.error("Billing webhook payer email is missing", {
+     eventId,
+     eventName,
+   });
+   return new Response("Billing notification recipient email is missing", {
+     status: 500,
+   });
+ }
 
-function validateSubscriptionPayer(
-  event: SubscriptionCreatedEvent | Response,
-): SubscriptionCreatedEvent | Response {
-  if (event instanceof Response) {
-    return event;
-  }
-
-  const { id, payer } = event.data;
-  if (!payer.email.trim()) {
-    console.error("Subscription-created webhook has no payer email", {
-      subscriptionId: id,
-    });
-    return new Response("Subscription payer email is missing", { status: 500 });
-  }
-
-  return event;
+ return email;
 }
 
-async function deliverSubscriptionCreatedEvent(
-  event: SubscriptionCreatedEvent | Response,
-): Promise<SubscriptionAutomationResult | Response> {
-  if (event instanceof Response) {
-    return event;
-  }
+async function sendNotification(
+ eventName: string,
+ send: () => Promise<BillingNotificationResult>,
+): Promise<BillingNotificationResult | Response> {
+ try {
+   return await send();
+ } catch (error) {
+   console.error(`Unable to send ${eventName} billing notification`, error);
+   return new Response("Billing notification delivery failed", {
+     status: 500,
+   });
+ }
+}
 
-  const { id, payer } = event.data;
-  try {
-    return await sendSubscriptionCreatedEvent({
-      subscriptionId: id,
-      email: payer.email,
-      firstName: payer.first_name,
-      lastName: payer.last_name,
-    });
-  } catch (error) {
-    console.error("Unable to trigger subscription automations", error);
-    return new Response("Automation event delivery failed", { status: 500 });
-  }
+function ignoredEventResponse(): Response {
+ return Response.json({ received: true, ignored: true });
 }
 
 function createWebhookResponse(
-  result: SubscriptionAutomationResult | Response,
+ result: BillingNotificationResult | Response,
 ): Response {
-  if (result instanceof Response) {
-    return result;
+ if (result instanceof Response) {
+   return result;
   }
 
   if (result.status === "in-progress") {
     return Response.json(
-      { error: "The subscription automation event is already being processed." },
+      { error: "The billing notification is already being processed." },
       {
         status: 503,
         headers: { "Retry-After": String(result.retryAfterSeconds) },
