@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import type { Step } from "./types";
 
 const steps: { key: Step; title: string; description: string }[] = [
@@ -74,14 +73,6 @@ export function SubscribeLayout({
         <div className="checkout-layout">
           <section className="flow-panel">{children}</section>
         </div>
-        <footer className="site-footer">
-          <span>© {new Date().getFullYear()} MEMBERSHIP</span>
-          <nav className="legal-footer-links" aria-label="Legal information">
-            <Link href="/terms-of-service">Terms of Service</Link>
-            <Link href="/privacy-policy">Privacy Policy</Link>
-          </nav>
-          <span>YOUR NEXT CHAPTER STARTS HERE ↗</span>
-        </footer>
       </main>
     </div>
   );
