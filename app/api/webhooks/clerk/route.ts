@@ -3,9 +3,10 @@ import type {
   IdempotencyKey,
   IdempotencyRunResult,
 } from "@clerk-next/kv";
+import { EMAIL_EVENTS, IDEMPOTENCY_PREFIXES } from "@/emails/constants";
 import { env } from "@/env";
 import type { NextRequest } from "next/server";
-import { IDEMPOTENCY_SCOPES, idempotency } from "@/lib/kv";
+import { idempotency } from "@/lib/kv";
 import {
   sendPaymentFailedEmail,
   sendSubscriptionCanceledEmail,
@@ -56,7 +57,7 @@ async function verifyClerkWebhook(
 async function deliverBillingNotification(
   event: ClerkWebhookEvent,
 ): Promise<BillingNotificationResult | Response> {
-  if (event.type === "subscription.created") {
+  if (event.type === EMAIL_EVENTS.subscriptionCreated) {
     if (!event.data.payer.user_id) {
       return ignoredEventResponse();
     }
@@ -87,8 +88,8 @@ async function deliverBillingNotification(
     return sendNotification(
       "subscription-created",
       {
-        scope: IDEMPOTENCY_SCOPES.billingSubscriptionCreated,
-        key: `subscription-created/${subscriptionId}`,
+        scope: IDEMPOTENCY_PREFIXES.subscriptionCreated,
+        key: subscriptionId,
       },
       sendSubscriptionCreatedNotification,
     );
@@ -129,8 +130,8 @@ async function deliverBillingNotification(
     return sendNotification(
       "payment-failed",
       {
-        scope: IDEMPOTENCY_SCOPES.billingPaymentFailed,
-        key: `payment-failed/${paymentAttemptId}`,
+        scope: IDEMPOTENCY_PREFIXES.paymentFailed,
+        key: paymentAttemptId,
       },
       sendPaymentFailedNotification,
     );
@@ -168,8 +169,8 @@ async function deliverBillingNotification(
     return sendNotification(
       "subscription-canceled",
       {
-        scope: IDEMPOTENCY_SCOPES.billingSubscriptionCanceled,
-        key: `subscription-canceled/${subscriptionItemId}`,
+        scope: IDEMPOTENCY_PREFIXES.subscriptionCanceled,
+        key: subscriptionItemId,
       },
       sendSubscriptionCanceledNotification,
     );

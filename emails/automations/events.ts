@@ -1,7 +1,7 @@
 import { env } from "@/env";
-import { IDEMPOTENCY_SCOPES, idempotency } from "@/lib/kv";
+import { idempotency } from "@/lib/kv";
 import { Resend } from "resend";
-import { AUTOMATION_EVENTS } from "./constants";
+import { EMAIL_EVENTS, IDEMPOTENCY_PREFIXES } from "../constants";
 
 const resend = new Resend(env.RESEND_API_KEY);
 
@@ -22,13 +22,13 @@ export async function sendMarketingOptInEvent({
 }: MarketingOptInEvent): Promise<AutomationEventResult> {
   const normalizedEmail = email.trim().toLowerCase();
   const idempotencyKey = {
-    scope: IDEMPOTENCY_SCOPES.marketingOptInEvent,
-    key: `${AUTOMATION_EVENTS.marketingOptIn}/${normalizedEmail}`,
+    scope: IDEMPOTENCY_PREFIXES.marketingOptIn,
+    key: normalizedEmail,
   };
 
   async function sendMarketingOptInEventToResend(): Promise<void> {
     const { data, error } = await resend.events.send({
-      event: AUTOMATION_EVENTS.marketingOptIn,
+      event: EMAIL_EVENTS.marketingOptIn,
       email: normalizedEmail,
       payload: {
         first_name: firstName,

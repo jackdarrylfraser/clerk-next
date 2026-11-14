@@ -1,4 +1,4 @@
-import { AUTOMATION_EVENTS } from "../constants";
+import { EMAIL_EVENTS } from "../../constants";
 import type { AutomationDefinition } from "./types";
 
 export const leadEducationDefinition: AutomationDefinition = {
@@ -6,7 +6,7 @@ export const leadEducationDefinition: AutomationDefinition = {
   purpose: "Send educational information requested through the lead form.",
   status: "enabled",
   event: {
-    name: AUTOMATION_EVENTS.marketingOptIn,
+    name: EMAIL_EVENTS.marketingOptIn,
     schema: {
       first_name: "string",
       last_name: "string",
@@ -27,13 +27,13 @@ export const leadEducationDefinition: AutomationDefinition = {
     {
       key: "lead_submitted",
       type: "trigger",
-      config: { eventName: AUTOMATION_EVENTS.marketingOptIn },
+      config: { eventName: EMAIL_EVENTS.marketingOptIn },
     },
     {
       key: "wait_for_user_created",
       type: "wait_for_event",
       config: {
-        eventName: AUTOMATION_EVENTS.clerkUserCreated,
+        eventName: EMAIL_EVENTS.clerkUserCreated,
         timeout: "3 days",
         filterRule: {
           type: "rule",
