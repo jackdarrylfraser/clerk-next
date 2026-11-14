@@ -114,22 +114,6 @@ function AccountStep({
         </div>
       ) : (
         <div className="auth-container clerk-auth">
-          <div className="auth-tabs">
-            <Link
-              scroll={false}
-              className={authMode === "sign-up" ? "active" : ""}
-              href={`${accountUrl}&auth=sign-up`}
-            >
-              Subscribe to create account
-            </Link>
-            <Link
-              scroll={false}
-              className={authMode === "sign-in" ? "active" : ""}
-              href={`${accountUrl}&auth=sign-in`}
-            >
-              Sign in
-            </Link>
-          </div>
           {authMode === "sign-in" ? (
             <SignIn
               routing="hash"

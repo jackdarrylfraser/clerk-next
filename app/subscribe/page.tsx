@@ -102,24 +102,12 @@ function PlanStep({
 }) {
   return (
     <>
-      <div className="period-toggle" aria-label="Billing period">
-        <button
-          type="button"
-          className={chosenPeriod === "month" ? "active" : ""}
-          aria-pressed={chosenPeriod === "month"}
-          onClick={() => onPeriodChange("month")}
-        >
-          Monthly
-        </button>
-        <button
-          type="button"
-          className={chosenPeriod === "annual" ? "active" : ""}
-          aria-pressed={chosenPeriod === "annual"}
-          onClick={() => onPeriodChange("annual")}
-        >
-          Yearly
-        </button>
-      </div>
+      {plans?.length ? null : (
+        <PeriodToggle
+          chosenPeriod={chosenPeriod}
+          onPeriodChange={onPeriodChange}
+        />
+      )}
       {isLoading && (
         <p className="status-message">Loading available plans...</p>
       )}
@@ -134,7 +122,7 @@ function PlanStep({
         </p>
       )}
       <div className="plans">
-        {plans?.map((plan) => {
+        {plans?.map((plan, index) => {
           const price =
             chosenPeriod === "annual" ? plan.annualFee : plan.fee;
           const available =
@@ -149,7 +137,14 @@ function PlanStep({
                   <h3>{plan.name}</h3>
                   <p>{plan.description || "A membership made for you."}</p>
                 </div>
-                <span className="plan-sparkle">✳</span>
+                {index === 0 ? (
+                  <PeriodToggle
+                    chosenPeriod={chosenPeriod}
+                    onPeriodChange={onPeriodChange}
+                  />
+                ) : (
+                  <span className="plan-sparkle">✳</span>
+                )}
               </div>
               <div className="plan-price">
                 {price
@@ -204,5 +199,34 @@ function PlanStep({
         </p>
       )}
     </>
+  );
+}
+
+function PeriodToggle({
+  chosenPeriod,
+  onPeriodChange,
+}: {
+  chosenPeriod: Period;
+  onPeriodChange: (period: Period) => void;
+}) {
+  return (
+    <div className="period-toggle" aria-label="Billing period">
+      <button
+        type="button"
+        className={chosenPeriod === "month" ? "active" : ""}
+        aria-pressed={chosenPeriod === "month"}
+        onClick={() => onPeriodChange("month")}
+      >
+        Monthly
+      </button>
+      <button
+        type="button"
+        className={chosenPeriod === "annual" ? "active" : ""}
+        aria-pressed={chosenPeriod === "annual"}
+        onClick={() => onPeriodChange("annual")}
+      >
+        Yearly
+      </button>
+    </div>
   );
 }
