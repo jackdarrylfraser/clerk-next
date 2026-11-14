@@ -10,13 +10,13 @@ import {
   renderMarkdown,
 } from "@/lib/markdown-content";
 
-const starterDirectory = join(process.cwd(), "content", "starter");
+const guestDirectory = join(process.cwd(), "content", "guest");
 
 export async function generateStaticParams() {
-  return getMarkdownParams(starterDirectory, "slug");
+  return getMarkdownParams(guestDirectory, "slug");
 }
 
-async function StarterMarkdownPage({
+async function GuestMarkdownPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -26,11 +26,11 @@ async function StarterMarkdownPage({
   }
 
   const { slug } = await params;
-  const content = await renderMarkdown(starterDirectory, slug);
+  const content = await renderMarkdown(guestDirectory, slug);
   if (content === null) {
     notFound();
   }
-  const metadata = await getMarkdownMetadata(starterDirectory, slug);
+  const metadata = await getMarkdownMetadata(guestDirectory, slug);
 
   return (
     <main className="markdown-page">
@@ -39,8 +39,8 @@ async function StarterMarkdownPage({
           {...metadata}
           slug={slug}
           isCurrent
-          detailBasePath="/starter"
-          tagBasePath="/starter/tag"
+          detailBasePath="/guest"
+          tagBasePath="/guest/tag"
         />
       </div>
       <article
@@ -51,16 +51,16 @@ async function StarterMarkdownPage({
   );
 }
 
-export default function StarterPage({
+export default function GuestPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   return (
     <Suspense
-      fallback={<main className="loading-page">Loading starter page...</main>}
+      fallback={      <main className="loading-page">Loading guest page...</main>}
     >
-      <StarterMarkdownPage params={params} />
+      <GuestMarkdownPage params={params} />
     </Suspense>
   );
 }

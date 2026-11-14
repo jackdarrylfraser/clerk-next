@@ -20,8 +20,8 @@ can go straight to checkout.
 - **Public content:** Markdown files in `content/public` are listed at
   `/public`, rendered at `/public/<slug>`, and filterable by tag. Public pages also
   include the contact form.
-- **Starter content:** Markdown files in `content/starter` are listed at
-  `/starter`, rendered at `/starter/<slug>`, and filterable by starter tags.
+- **Guest content:** Markdown files in `content/guest` are listed at
+  `/guest`, rendered at `/guest/<slug>`, and filterable by starter tags.
   Access requires the Clerk `user:site_access` feature entitlement.
 - **Contact capture:** The form posts names, email, and explicit marketing
   consent to `/api/contacts`. The endpoint records consent details, adds the
@@ -112,14 +112,14 @@ development Clerk instance and payment provider's test mode.
 ## Where to make changes
 
 - **Pages and routes:** `app/` (home, sign-in, account, subscribe, activities,
-  starter and public Markdown, contact API, and Clerk webhook).
+  guest and public Markdown, contact API, and Clerk webhook).
 - **Shared UI and checkout steps:** `components/`; checkout state and URL
   handling live in `components/subscribe/`.
 - **Member activities:** add or edit Markdown files in `content/self-guided/`.
 - **Public pages:** add or edit Markdown files in `content/public/`.
   Each file needs YAML frontmatter with a non-empty `title`, `description`,
   and at least one valid `tags` entry. Tags become links to filtered lists.
-- **Starter pages:** add or edit Markdown files in `content/starter/`.
+- **Guest pages:** add or edit Markdown files in `content/guest/`.
   Each file needs the same YAML frontmatter; tags link to filtered starter pages.
 - **Markdown behavior:** `packages/markdown-engine/` handles GitHub-flavored
   Markdown, math, callouts, and sanitization; `lib/markdown-content.ts` loads

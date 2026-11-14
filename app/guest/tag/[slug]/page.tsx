@@ -7,15 +7,15 @@ import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getTagSlug } from "@/lib/tags";
 
-const starterDirectory = join(process.cwd(), "content", "starter");
+const guestDirectory = join(process.cwd(), "content", "guest");
 const tagSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-async function getStarterPages() {
-  return getMarkdownParamsWithMetadata(starterDirectory, "slug");
+async function getGuestPages() {
+  return getMarkdownParamsWithMetadata(guestDirectory, "slug");
 }
 
 export async function generateStaticParams() {
-  const pages = await getStarterPages();
+  const pages = await getGuestPages();
   const tagSlugs = new Set(
     pages.flatMap((page) => page.tags.map((tag) => getTagSlug(tag))),
   );
@@ -23,21 +23,21 @@ export async function generateStaticParams() {
   return [...tagSlugs].sort().map((slug) => ({ slug }));
 }
 
-export default function StarterTagPage({
+export default function GuestTagPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   return (
     <Suspense
-      fallback={<main className="loading-page">Loading starter pages...</main>}
+      fallback={      <main className="loading-page">Loading guest pages...</main>}
     >
-      <StarterTagPageContent params={params} />
+      <GuestTagPageContent params={params} />
     </Suspense>
   );
 }
 
-async function StarterTagPageContent({
+async function GuestTagPageContent({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -51,7 +51,7 @@ async function StarterTagPageContent({
     notFound();
   }
 
-  const pages = await getStarterPages();
+  const pages = await getGuestPages();
   const taggedPages = pages.filter((page) =>
     page.tags.some((tag) => getTagSlug(tag) === slug),
   );
@@ -66,9 +66,9 @@ async function StarterTagPageContent({
   return (
     <main className="activity-home">
       <div className="activity-heading">
-        <p className="eyebrow">STARTER TAG</p>
+        <p className="eyebrow">GUEST TAG</p>
         <h1>{tag}</h1>
-        <p>Starter pages with this tag.</p>
+        <p>Guest pages with this tag.</p>
       </div>
       <div className="activity-list-container">
         <p className="activity-count">
@@ -83,8 +83,8 @@ async function StarterTagPageContent({
                 title={page.title}
                 description={page.description}
                 tags={page.tags}
-                detailBasePath="/starter"
-                tagBasePath="/starter/tag"
+                detailBasePath="/guest"
+                tagBasePath="/guest/tag"
               />
             </li>
           ))}
