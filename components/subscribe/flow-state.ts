@@ -1,18 +1,41 @@
 import { z } from "zod";
-import type { Plan, Period, Step } from "./types";
+import type {
+  Plan,
+  Period,
+  Step,
+  SubscribeQuery,
+  SubscribeSearchParams,
+  SubscribeSessionState,
+} from "./types";
 
 const subscribeQuerySchema = z.object({
-  plan: z.string().nullable(),
-  period: z.enum(["month", "annual"]).catch("month"),
-  auth: z.enum(["sign-in", "sign-up"]).catch("sign-up"),
+  plan: z.string().min(1).nullable().catch(null),
+  period: z.enum(["month", "annual"]).nullable().catch(null),
+  auth: z.enum(["sign-in", "sign-up"]).nullable().catch(null),
 });
 
-export function parseSubscribeQuery(query: {
-  plan: string | null;
-  period: string | null;
-  auth: string | null;
-}) {
-  return subscribeQuerySchema.parse(query);
+export function parseSubscribeQuery(
+  query: SubscribeSearchParams,
+): SubscribeQuery {
+  const singleValue = (value: string | string[] | undefined) =>
+    typeof value === "string" ? value : null;
+
+  return subscribeQuerySchema.parse({
+    plan: singleValue(query.plan),
+    period: singleValue(query.period),
+    auth: singleValue(query.auth),
+  });
+}
+
+export function resolveSubscribeState(
+  query: SubscribeQuery,
+  savedState: SubscribeSessionState | null,
+): SubscribeSessionState {
+  return {
+    planId: query.plan ?? savedState?.planId ?? null,
+    period: query.period ?? savedState?.period ?? "month",
+    authMode: query.auth ?? savedState?.authMode ?? "sign-up",
+  };
 }
 
 export function getSubscribeUrls(planId: string | null, period: Period) {

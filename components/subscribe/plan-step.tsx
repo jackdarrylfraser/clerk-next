@@ -12,6 +12,7 @@ export function PlanStep({
   onPeriodChange,
   selectedId,
   accountUrl,
+  onChoosePlan,
 }: {
   plans: Plan[] | undefined;
   isLoading: boolean;
@@ -22,6 +23,7 @@ export function PlanStep({
   onPeriodChange: (period: Period) => void;
   selectedId: string | null;
   accountUrl: string;
+  onChoosePlan: (planId: string) => void;
 }) {
   return (
     <>
@@ -107,12 +109,13 @@ export function PlanStep({
                 </ul>
               )}
               {available ? (
-                <Link
+                <button
+                  type="button"
                   className="primary-button"
-                  href={`/subscribe/account?plan=${encodeURIComponent(plan.id)}&period=${chosenPeriod}`}
+                  onClick={() => onChoosePlan(plan.id)}
                 >
                   Choose this plan <span>↗</span>
-                </Link>
+                </button>
               ) : (
                 <button className="primary-button" disabled>
                   Not available yearly <span>↗</span>

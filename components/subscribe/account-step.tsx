@@ -1,5 +1,6 @@
 import { SignIn, SignUp } from "@clerk/nextjs";
 import Link from "next/link";
+import type { AuthMode } from "./types";
 
 const authAppearance = {
   elements: {
@@ -14,12 +15,14 @@ export function AccountStep({
   plansUrl,
   accountUrl,
   paymentUrl,
+  onAuthModeChange,
 }: {
   isSignedIn: boolean;
-  authMode: "sign-in" | "sign-up";
+  authMode: AuthMode;
   plansUrl: string;
   accountUrl: string;
   paymentUrl: string;
+  onAuthModeChange: (authMode: AuthMode) => void;
 }) {
   return (
     <>
@@ -51,6 +54,7 @@ export function AccountStep({
             <Link
               scroll={false}
               className={authMode === "sign-up" ? "active" : ""}
+              onClick={() => onAuthModeChange("sign-up")}
               href={`${accountUrl}&auth=sign-up`}
             >
               Subscribe to create account
@@ -58,6 +62,7 @@ export function AccountStep({
             <Link
               scroll={false}
               className={authMode === "sign-in" ? "active" : ""}
+              onClick={() => onAuthModeChange("sign-in")}
               href={`${accountUrl}&auth=sign-in`}
             >
               Sign in

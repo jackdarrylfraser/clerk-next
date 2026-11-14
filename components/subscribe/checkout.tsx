@@ -16,9 +16,11 @@ import { money } from "./types";
 export function Checkout({
   selectedId,
   period,
+  onCheckoutComplete,
 }: {
   selectedId: string;
   period: Period;
+  onCheckoutComplete: () => void;
 }) {
   return (
     <CheckoutProvider
@@ -27,12 +29,16 @@ export function Checkout({
       planId={selectedId}
       planPeriod={period}
     >
-      <CheckoutContent />
+      <CheckoutContent onCheckoutComplete={onCheckoutComplete} />
     </CheckoutProvider>
   );
 }
 
-function CheckoutContent() {
+function CheckoutContent({
+  onCheckoutComplete,
+}: {
+  onCheckoutComplete: () => void;
+}) {
   const { checkout, fetchStatus } = useCheckout();
   const [error, setError] = useState("");
 
@@ -98,21 +104,29 @@ function CheckoutContent() {
         </p>
       )}
       {!checkout.needsPaymentMethod ? (
-        <ConfirmPayment />
+        <ConfirmPayment onCheckoutComplete={onCheckoutComplete} />
       ) : (
         <PaymentElementProvider checkout={checkout}>
-          <NewPaymentForm />
+          <NewPaymentForm onCheckoutComplete={onCheckoutComplete} />
         </PaymentElementProvider>
       )}
     </div>
   );
 }
 
-function NewPaymentForm() {
+function NewPaymentForm({
+  onCheckoutComplete,
+}: {
+  onCheckoutComplete: () => void;
+}) {
   const { submit, isFormReady } = usePaymentElement();
 
   return (
-    <ConfirmPayment submitPayment={submit} ready={isFormReady}>
+    <ConfirmPayment
+      submitPayment={submit}
+      ready={isFormReady}
+      onCheckoutComplete={onCheckoutComplete}
+    >
       <PaymentElement fallback={<p>Loading secure payment form...</p>} />
     </ConfirmPayment>
   );
@@ -122,10 +136,12 @@ function ConfirmPayment({
   submitPayment,
   ready = true,
   children,
+  onCheckoutComplete,
 }: {
   submitPayment?: ReturnType<typeof usePaymentElement>["submit"];
   ready?: boolean;
   children?: React.ReactNode;
+  onCheckoutComplete: () => void;
 }) {
   const { checkout, fetchStatus } = useCheckout();
   const router = useRouter();
@@ -169,6 +185,7 @@ function ConfirmPayment({
 
       const result = await checkout.finalize({
         navigate: ({ decorateUrl }) => {
+          onCheckoutComplete();
           const url = decorateUrl("/account");
           if (url.startsWith("http")) window.location.href = url;
           else router.push(url);

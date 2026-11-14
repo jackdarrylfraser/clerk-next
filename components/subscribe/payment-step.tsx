@@ -7,11 +7,13 @@ export function PaymentStep({
   period,
   accountUrl,
   plansUrl,
+  onCheckoutComplete,
 }: {
   selectedPlan: Plan;
   period: Period;
   accountUrl: string;
   plansUrl: string;
+  onCheckoutComplete: () => void;
 }) {
   return (
     <>
@@ -30,7 +32,11 @@ export function PaymentStep({
           Change
         </Link>
       </div>
-      <Checkout selectedId={selectedPlan.id} period={period} />
+      <Checkout
+        selectedId={selectedPlan.id}
+        period={period}
+        onCheckoutComplete={onCheckoutComplete}
+      />
     </>
   );
 }

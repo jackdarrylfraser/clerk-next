@@ -14,6 +14,7 @@ export function SubscribeLayout({
   isLoaded,
   isSignedIn,
   devAuthBypassEnabled,
+  storageError,
   children,
 }: {
   step: Step;
@@ -21,6 +22,7 @@ export function SubscribeLayout({
   isLoaded: boolean;
   isSignedIn: boolean;
   devAuthBypassEnabled: boolean;
+  storageError: boolean;
   children: ReactNode;
 }) {
   const stepIndex = steps.findIndex((item) => item.key === step);
@@ -37,6 +39,12 @@ export function SubscribeLayout({
           <p className="dev-auth-notice" role="status">
             Development access is enabled for member content. Account
             management and checkout still require a Clerk sign-in.
+          </p>
+        )}
+        {storageError && (
+          <p className="dev-auth-notice" role="status">
+            Your choices could not be saved for this tab. You can continue, but
+            refreshing may restart the subscription flow.
           </p>
         )}
         <nav className="progress" aria-label="Subscription progress">
