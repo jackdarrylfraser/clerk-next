@@ -78,9 +78,14 @@ for production. Never commit real values.
 | `CLERK_SECRET_KEY` | Clerk server-side operations; required to run/build the app |
 | `RESEND_API_KEY` | Resend contact, event, and transactional email APIs; required to run/build the app |
 | `CLERK_WEBHOOK_SIGNING_SECRET` | Verifying Clerk webhook deliveries; configure this before enabling the webhook |
+| `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` | Optional until the Turso client is used; required together for database access |
 | `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` | Contact rate limiting and idempotency for contact/subscription events; both must be set |
 | `RESEND_FROM_EMAIL` | Verified sender for billing emails and `bun run emails:sync` |
 | `DEV_AUTH_BYPASS` | Optional local member-content preview; set to `true` only for development |
+
+Server-side Turso access is provided by the lazy singleton in `lib/turso.ts`.
+Call `getTursoClient()` to initialize it once per server process; it throws a
+configuration error if either Turso variable is missing.
 
 Before expecting checkout to work, configure Clerk Billing, connect its payment
 provider, publish user plans, and enable the desired sign-in methods in the
