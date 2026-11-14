@@ -112,9 +112,10 @@ async function HomeContent({
 
   return (
     <main className="intro home-intro">
-      <p className="eyebrow">WELCOME</p>
       <h1>
-        Membership, <em>made simple.</em>
+        Nutrition & Recovery
+        <br />
+        <em>made simple</em>
       </h1>
       <p>Find the membership that works for you.</p>
       <Link href="/subscribe/plan" className="home-cta">

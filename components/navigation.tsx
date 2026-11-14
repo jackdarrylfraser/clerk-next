@@ -11,7 +11,7 @@ export default function Navigation() {
   return (
     <header className="site-header">
       <Link href="/" className="brand" aria-label="Membership home">
-        <span className="brand-mark">✳</span> MEMBERSHIP
+        Outbound Endurance
       </Link>
       <nav className="header-right" aria-label="Main navigation">
         {isLoaded &&
