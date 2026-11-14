@@ -6,7 +6,7 @@ import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 
-const activityDirectory = join(process.cwd(), "content", "activity");
+const activityDirectory = join(process.cwd(), "content", "self-guided");
 const activitiesPerPage = 5;
 
 export default function Home({

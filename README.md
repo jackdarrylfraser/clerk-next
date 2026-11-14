@@ -15,7 +15,7 @@ can go straight to checkout.
   flow can resume after sign-in or a refresh. Terms acceptance is held in
   browser session storage; it is not a durable audit record.
 - **Member content:** The home page lists paginated activities from
-  `content/activity`. Individual activity pages require the Clerk
+  `content/self-guided`. Individual activity pages require the Clerk
   `user:site_access` feature entitlement. Tag links filter activities.
 - **Public content:** Markdown files in `content/markdown` are listed at
   `/public`, rendered at `/public/<slug>`, and filterable by tag. Public pages also
@@ -111,7 +111,7 @@ development Clerk instance and payment provider's test mode.
   public Markdown, contact API, and Clerk webhook).
 - **Shared UI and checkout steps:** `components/`; checkout state and URL
   handling live in `components/subscribe/`.
-- **Member activities:** add or edit Markdown files in `content/activity/`.
+- **Member activities:** add or edit Markdown files in `content/self-guided/`.
 - **Public pages:** add or edit Markdown files in `content/markdown/`.
   Each file needs YAML frontmatter with a non-empty `title`, `description`,
   and at least one valid `tags` entry. Tags become links to filtered lists.

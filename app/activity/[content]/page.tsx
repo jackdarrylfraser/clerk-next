@@ -10,7 +10,7 @@ import {
   renderMarkdown,
 } from "@/lib/markdown-content";
 
-const activityDirectory = join(process.cwd(), "content", "activity");
+const activityDirectory = join(process.cwd(), "content", "self-guided");
 
 export async function generateStaticParams() {
   const pages = await getMarkdownParamsWithMetadata(

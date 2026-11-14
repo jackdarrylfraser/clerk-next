@@ -7,7 +7,7 @@ import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getTagSlug } from "@/lib/tags";
 
-const activityDirectory = join(process.cwd(), "content", "activity");
+const activityDirectory = join(process.cwd(), "content", "self-guided");
 const tagSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 async function getActivities() {
