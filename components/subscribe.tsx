@@ -3,23 +3,13 @@
 import { useAuth } from "@clerk/nextjs";
 import { usePlans } from "@clerk/nextjs/experimental";
 import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
-import {
-  acceptPlanTerms,
-  clearPlanTermsAcceptances,
-  getPlanTerms,
-  hasAcceptedPlanTerms,
-  revokePlanTermsAcceptance,
-  subscribeToPlanTermsAcceptance,
-} from "@/lib/plan-terms";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { AccountStep } from "./subscribe/account-step";
 import { PaymentStep } from "./subscribe/payment-step";
 import { PlanStep } from "./subscribe/plan-step";
 import { SubscribeLayout } from "./subscribe/subscribe-layout";
-import { TermsStep } from "./subscribe/terms-step";
 import {
-  getPlanTermsAcceptanceKey,
   getSelectedPlanState,
   getSubscribeUrls,
   parseSubscribeQuery,
@@ -28,7 +18,7 @@ import {
 import type { Period, Step } from "./subscribe/types";
 
 export function Subscribe({ step = "plan" }: { step?: Step }) {
-  const { isLoaded, isSignedIn, userId } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const devAuthBypassEnabled = useDevAuthBypass();
   const params = useSearchParams();
   const router = useRouter();
@@ -39,10 +29,6 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
   });
   const { plan: selectedId, period, auth: authMode } = query;
   const [chosenPeriod, setChosenPeriod] = useState<Period>(period);
-  const [agreement, setAgreement] = useState<{
-    key: string;
-    checked: boolean;
-  } | null>(null);
   const plans = usePlans({ for: "user", pageSize: 10, infinite: true });
 
   const urls = getSubscribeUrls(selectedId, period);
@@ -56,28 +42,6 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
   });
   const selectedPlan =
     "plan" in selectedPlanState ? selectedPlanState.plan : undefined;
-  const selectedPrice =
-    "price" in selectedPlanState ? selectedPlanState.price : undefined;
-  const selectedPlanTerms = selectedPlan
-    ? getPlanTerms(selectedPlan.slug)
-    : null;
-  const PlanTermsContent = selectedPlanTerms?.content;
-  const acceptanceKey = getPlanTermsAcceptanceKey({
-    planSlug: selectedPlan?.slug ?? null,
-    userId,
-    period,
-    plan: selectedPlan,
-    price: selectedPrice,
-    terms: selectedPlanTerms,
-  });
-  const termsAccepted = useSyncExternalStore(
-    subscribeToPlanTermsAcceptance,
-    () => hasAcceptedPlanTerms(acceptanceKey),
-    () => false,
-  );
-  const agreementChecked =
-    termsAccepted ||
-    (!!acceptanceKey && agreement?.key === acceptanceKey && agreement.checked);
   const fetchNextPlans = plans.fetchNext;
   const decision = resolveSubscribeFlow({
     step,
@@ -86,16 +50,13 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
     selectedPlanStatus: selectedPlanState.status,
     isAuthLoaded: isLoaded,
     isSignedIn: !!isSignedIn,
-    termsAccepted,
   });
   const redirectUrl = decision.kind === "redirect" ? decision.href : null;
-  const clearAcceptanceBeforeRedirect =
-    decision.kind === "redirect" && decision.clearTermsAcceptance;
 
   useEffect(() => {
     if (
       !selectedId ||
-      (step !== "terms" && step !== "payment") ||
+      step !== "payment" ||
       selectedPlan ||
       plans.isError ||
       !plans.hasNextPage
@@ -116,34 +77,8 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
 
   useEffect(() => {
     if (!redirectUrl) return;
-
-    if (clearAcceptanceBeforeRedirect) {
-      clearPlanTermsAcceptances();
-    }
     router.replace(redirectUrl);
-  }, [clearAcceptanceBeforeRedirect, redirectUrl, router]);
-
-  function clearTermsAcceptance() {
-    clearPlanTermsAcceptances();
-  }
-
-  function changeAgreement(checked: boolean) {
-    if (!acceptanceKey) return;
-
-    setAgreement({ key: acceptanceKey, checked });
-    if (!checked) {
-      revokePlanTermsAcceptance(acceptanceKey);
-    }
-  }
-
-  const paymentUrl = urls.payment;
-
-  function continueToPayment() {
-    if (!acceptanceKey || !agreementChecked || !isSignedIn) return;
-
-    acceptPlanTerms(acceptanceKey);
-    router.push(paymentUrl);
-  }
+  }, [redirectUrl, router]);
 
   return (
     <SubscribeLayout
@@ -151,7 +86,6 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
       selectedId={selectedId}
       isLoaded={isLoaded}
       isSignedIn={!!isSignedIn}
-      termsAccepted={termsAccepted}
       devAuthBypassEnabled={devAuthBypassEnabled}
     >
       {decision.kind === "redirect" ? (
@@ -177,7 +111,6 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
           onPeriodChange={setChosenPeriod}
           selectedId={selectedId}
           accountUrl={urls.account}
-          onClearTermsAcceptance={clearTermsAcceptance}
         />
       ) : step === "account" ? (
         <AccountStep
@@ -185,28 +118,14 @@ export function Subscribe({ step = "plan" }: { step?: Step }) {
           authMode={authMode}
           plansUrl={urls.plans}
           accountUrl={urls.account}
-          termsUrl={urls.terms}
-          onClearTermsAcceptance={clearTermsAcceptance}
-        />
-      ) : step === "terms" && selectedPlan ? (
-        <TermsStep
-          selectedPlan={selectedPlan}
-          selectedPrice={selectedPrice}
-          period={period}
-          plansUrl={urls.plans}
-          agreementChecked={agreementChecked}
-          PlanTermsContent={PlanTermsContent}
-          onAgreementChange={changeAgreement}
-          onContinue={continueToPayment}
-          onClearTermsAcceptance={clearTermsAcceptance}
+          paymentUrl={urls.payment}
         />
       ) : step === "payment" && selectedPlan ? (
         <PaymentStep
           selectedPlan={selectedPlan}
           period={period}
-          termsUrl={urls.terms}
+          accountUrl={urls.account}
           plansUrl={urls.plans}
-          onClearTermsAcceptance={clearTermsAcceptance}
         />
       ) : null}
     </SubscribeLayout>

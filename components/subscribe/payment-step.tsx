@@ -5,20 +5,18 @@ import type { Plan, Period } from "./types";
 export function PaymentStep({
   selectedPlan,
   period,
-  termsUrl,
+  accountUrl,
   plansUrl,
-  onClearTermsAcceptance,
 }: {
   selectedPlan: Plan;
   period: Period;
-  termsUrl: string;
+  accountUrl: string;
   plansUrl: string;
-  onClearTermsAcceptance: () => void;
 }) {
   return (
     <>
-      <Link href={termsUrl} className="back-link">
-        ← Back to plan terms
+      <Link href={accountUrl} className="back-link">
+        ← Back to your account
       </Link>
       <div className="selection-row">
         <div>
@@ -28,7 +26,6 @@ export function PaymentStep({
         <Link
           href={plansUrl}
           className="text-button"
-          onClick={onClearTermsAcceptance}
         >
           Change
         </Link>

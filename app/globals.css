@@ -177,18 +177,16 @@ button.text-button { margin: 18px 0 0 43px; }
 .auth-tabs a { padding: 0 0 12px; color: #929a8f; font-size: 12px; }
 .auth-tabs a.active { color: #405d45; border-bottom: 2px solid #688364; font-weight: 700; }
 .checkout-content { margin: 22px 0 0 43px; }
-.terms-content { max-width: calc(100% - 43px); min-width: 0; margin: 22px 0 0 43px; padding: 18px; border: 1px solid #dfe8db; border-radius: 4px; background: #fafcf8; color: var(--ink); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
-.terms-content h3 { margin: 0 0 10px; font-size: 16px; font-weight: 700; }
-.terms-content p { margin: 0 0 9px; }
-.terms-content p:last-child { margin-bottom: 0; }
-.terms-agreement { display: flex; align-items: flex-start; gap: 10px; max-width: calc(100% - 43px); min-width: 0; margin: 18px 0 0 43px; color: var(--ink); font-size: 12px; line-height: 1.5; }
-.terms-agreement input { flex: 0 0 auto; margin: 2px 0 0; accent-color: var(--green); }
-.terms-continue { max-width: calc(100% - 43px); min-width: 0; margin: 18px 0 0 43px; }
-.terms-change-plan { display: inline-block; max-width: calc(100% - 43px); min-width: 0; margin: 18px 0 0 43px; }
 .checkout-content > p, .payment-note { color: #8b9488; font-size: 12px; line-height: 1.6; margin: 0 0 15px; }
 .checkout-summary { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; padding: 15px; margin-bottom: 12px; background: #f7f9f5; }
 .payment-form { display: grid; gap: 16px; }
+.checkout-legal { display: flex; align-items: flex-start; gap: 10px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.checkout-legal input { flex: 0 0 auto; margin: 3px 0 0; accent-color: var(--green); }
+.checkout-legal input:focus-visible { outline: 2px solid #809d70; outline-offset: 2px; }
+.checkout-legal a, .legal-footer-links a { color: var(--green); text-decoration: underline; text-underline-offset: 2px; }
 .payment-note { text-align: center; margin: 0; font-size: 10px; }
+.legal-footer-links { display: flex; flex-wrap: wrap; gap: 12px; letter-spacing: 0; }
+.legal-draft-notice { padding: 12px 14px; border: 1px solid #dfe7d8; background: #f3f6ef; color: #60725a; font-size: 12px; line-height: 1.6; }
 .error-message { color: #a23d32; font-size: 12px; line-height: 1.5; margin: 12px 0; }
 .status-message { color: #858c81; font-size: 12px; margin: 20px 0 20px 43px; }
 .side-panel { background: #edf2e8; padding: 26px; min-height: 530px; overflow: hidden; }
@@ -221,7 +219,7 @@ button.text-button { margin: 18px 0 0 43px; }
   .secure-label { display: none; }
   .main-content { padding: 0 16px; }
   .flow-panel { padding: 24px 18px; }
-  .plans, .period-toggle, .auth-container, .checkout-content, .selection-row, .complete-state, .muted-indent, .terms-content, .terms-agreement, .terms-continue, .terms-change-plan { max-width: 100%; margin-left: 0; }
+  .plans, .period-toggle, .auth-container, .checkout-content, .selection-row, .complete-state, .muted-indent { max-width: 100%; margin-left: 0; }
   .step-message, .resume-checkout { margin-left: 0; }
   .progress ol { gap: 6px; }
   .progress li { gap: 6px; }
@@ -266,7 +264,7 @@ button.text-button { margin: 18px 0 0 43px; }
   .trial-note, .renewal-note, .step-message > p, .resume-checkout,
   .selection-row span, .auth-tabs a, .checkout-content > p, .payment-note,
   .status-message, .side-panel > p, .site-footer, .loading-page,
-  .account-heading p { color: #aab5a8; }
+  .account-heading p, .checkout-legal { color: #aab5a8; }
   .secure-label span, .eyebrow span, .intro h1 em, .side-panel h2 em,
   .activity-card-tag, .progress li.current, .complete-state,
   .features li span, .step-number, .plan-sparkle, .art-center,
@@ -311,7 +309,7 @@ button.text-button { margin: 18px 0 0 43px; }
   .features { border-color: #303a31; }
   .features li { color: #c0c9bd; }
   .selection-row { border-color: #39483a; background: #1d241e; }
-  .terms-content { border-color: #39483a; background: #1d241e; }
+  .legal-draft-notice { border-color: #3d4b3b; background: #202a21; color: #c4d2be; }
   .auth-tabs a.active { color: #c4dabb; border-color: #8fac84; }
   .checkout-summary { background: #222923; }
   .error-message { color: #f09a91; }

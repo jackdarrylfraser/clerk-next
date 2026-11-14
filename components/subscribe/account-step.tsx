@@ -13,22 +13,19 @@ export function AccountStep({
   authMode,
   plansUrl,
   accountUrl,
-  termsUrl,
-  onClearTermsAcceptance,
+  paymentUrl,
 }: {
   isSignedIn: boolean;
   authMode: "sign-in" | "sign-up";
   plansUrl: string;
   accountUrl: string;
-  termsUrl: string;
-  onClearTermsAcceptance: () => void;
+  paymentUrl: string;
 }) {
   return (
     <>
       <Link
         href={plansUrl}
         className="back-link"
-        onClick={onClearTermsAcceptance}
       >
         ← Back to plans
       </Link>
@@ -44,8 +41,8 @@ export function AccountStep({
           <p className="complete-state">
             <span>✓</span> You&apos;re signed in and ready to continue.
           </p>
-          <Link className="primary-button" href={termsUrl}>
-            Continue to plan terms <span>↗</span>
+          <Link className="primary-button" href={paymentUrl}>
+            Continue to payment <span>↗</span>
           </Link>
         </div>
       ) : (
@@ -69,14 +66,14 @@ export function AccountStep({
           {authMode === "sign-in" ? (
             <SignIn
               routing="hash"
-              forceRedirectUrl={termsUrl}
+              forceRedirectUrl={paymentUrl}
               signUpUrl={`${accountUrl}&auth=sign-up`}
               appearance={authAppearance}
             />
           ) : (
             <SignUp
               routing="hash"
-              forceRedirectUrl={termsUrl}
+              forceRedirectUrl={paymentUrl}
               signInUrl={`${accountUrl}&auth=sign-in`}
               appearance={authAppearance}
             />

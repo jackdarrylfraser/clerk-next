@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import type { Step } from "./types";
 
 const steps: { key: Step; title: string; description: string }[] = [
   { key: "plan", title: "Choose a plan", description: "Find the right fit" },
   { key: "account", title: "Your account", description: "Subscribe or sign in" },
-  { key: "terms", title: "Plan terms", description: "Review and agree" },
   { key: "payment", title: "Payment", description: "Complete checkout" },
 ];
 
@@ -13,7 +13,6 @@ export function SubscribeLayout({
   selectedId,
   isLoaded,
   isSignedIn,
-  termsAccepted,
   devAuthBypassEnabled,
   children,
 }: {
@@ -21,7 +20,6 @@ export function SubscribeLayout({
   selectedId: string | null;
   isLoaded: boolean;
   isSignedIn: boolean;
-  termsAccepted: boolean;
   devAuthBypassEnabled: boolean;
   children: ReactNode;
 }) {
@@ -46,11 +44,7 @@ export function SubscribeLayout({
             {steps.map((item, index) => {
               const completed =
                 index < stepIndex &&
-                (item.key === "plan"
-                  ? !!selectedId
-                  : item.key === "account"
-                    ? isSignedIn
-                    : item.key === "terms" && termsAccepted);
+                (item.key === "plan" ? !!selectedId : isSignedIn);
 
               return (
                 <li
@@ -82,6 +76,10 @@ export function SubscribeLayout({
         </div>
         <footer className="site-footer">
           <span>© {new Date().getFullYear()} MEMBERSHIP</span>
+          <nav className="legal-footer-links" aria-label="Legal information">
+            <Link href="/terms-of-service">Terms of Service</Link>
+            <Link href="/privacy-policy">Privacy Policy</Link>
+          </nav>
           <span>YOUR NEXT CHAPTER STARTS HERE ↗</span>
         </footer>
       </main>

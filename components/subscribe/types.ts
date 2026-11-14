@@ -1,7 +1,7 @@
 import type { usePlans } from "@clerk/nextjs/experimental";
 
 export type Period = "month" | "annual";
-export type Step = "plan" | "account" | "terms" | "payment";
+export type Step = "plan" | "account" | "payment";
 export type Plan = NonNullable<ReturnType<typeof usePlans>["data"]>[number];
 
 export function money(amount: {

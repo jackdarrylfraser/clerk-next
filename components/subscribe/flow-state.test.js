@@ -15,7 +15,6 @@ function resolve(overrides = {}) {
     selectedPlanStatus: "ready",
     isAuthLoaded: true,
     isSignedIn: true,
-    termsAccepted: true,
     ...overrides,
   });
 }
@@ -51,7 +50,6 @@ describe("subscription flow state", () => {
     expect(getSubscribeUrls("plan / one", "annual")).toEqual({
       plans: "/subscribe?period=annual",
       account: "/subscribe/account?plan=plan%20%2F%20one&period=annual",
-      terms: "/subscribe/terms?plan=plan%20%2F%20one&period=annual",
       payment: "/subscribe/payment?plan=plan%20%2F%20one&period=annual",
     });
   });
@@ -60,34 +58,27 @@ describe("subscription flow state", () => {
     expect(resolve({ step: "account", planId: null })).toEqual({
       kind: "redirect",
       href: urls.plans,
-      clearTermsAcceptance: false,
     });
   });
 
-  it("sends an invalid selected plan back to the picker and clears acceptance", () => {
+  it("sends an invalid selected plan back to the picker", () => {
     expect(
-      resolve({ step: "terms", selectedPlanStatus: "unavailable" }),
+      resolve({ step: "payment", selectedPlanStatus: "unavailable" }),
     ).toEqual({
       kind: "redirect",
       href: urls.plans,
-      clearTermsAcceptance: true,
     });
   });
 
-  it("sends signed-out users to account before terms or payment", () => {
-    expect(resolve({ step: "terms", isSignedIn: false })).toEqual({
+  it("sends signed-out users to account before payment", () => {
+    expect(resolve({ step: "payment", isSignedIn: false })).toEqual({
       kind: "redirect",
       href: urls.account,
-      clearTermsAcceptance: false,
     });
   });
 
-  it("sends users without accepted terms to the terms step", () => {
-    expect(resolve({ termsAccepted: false })).toEqual({
-      kind: "redirect",
-      href: urls.terms,
-      clearTermsAcceptance: false,
-    });
+  it("does not require persisted agreement state to reach payment", () => {
+    expect(resolve()).toEqual({ kind: "ready" });
   });
 
   it("waits for account or plan state before deciding where to go", () => {

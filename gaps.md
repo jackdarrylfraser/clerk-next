@@ -29,18 +29,19 @@ and [automation definitions](./emails/automations/definitions.ts).
 
 ### 4. Make terms acceptance durable and complete
 
-Plan-terms acceptance is stored in browser `sessionStorage`; it is not a
-server-side audit record. The current subscription terms are brief template
-copy rather than a complete set of customer-facing policies.
+Checkout now requires users to agree to the Terms of Service and acknowledge
+the Privacy Policy. This checkbox is not a durable server-side acceptance
+record. Both policy pages are drafts and need review before launch.
 
 - Persist the accepting user, timestamp, terms version, plan, billing period,
   and displayed price in a durable record.
 - Make accepted terms retrievable for support and compliance.
-- Provide complete, reviewed terms and privacy information, including relevant
-  renewal, cancellation, refund, and contact details.
+- Complete the policy pages' governing-state, effective-date, privacy
+  retention, and analytics/cookie disclosures, then review the policies.
 
-Relevant implementation: [terms acceptance](./lib/plan-terms.ts) and
-[subscription terms](./terms/subscription-terms.tsx).
+Relevant implementation: [checkout agreement](./components/subscribe/checkout.tsx),
+[Terms of Service](./app/terms-of-service/page.tsx), and
+[Privacy Policy](./app/privacy-policy/page.tsx).
 
 ## Important growth and reliability gaps
 

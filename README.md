@@ -112,8 +112,9 @@ development Clerk instance and payment provider's test mode.
   Markdown, math, callouts, and sanitization; `lib/markdown-content.ts` loads
   content and checks metadata. Keep public and member content in their
   separate directories.
-- **Plan-specific terms:** `terms/subscription-terms.tsx` and
-  `lib/plan-terms.ts`.
+- **Checkout agreement and legal pages:** `components/subscribe/checkout.tsx`
+  contains the required agreement checkbox; the draft policy pages live in
+  `app/terms-of-service/` and `app/privacy-policy/`.
 - **Email workflows:** `emails/automations/definitions.ts` describes the
   resources; `emails/automations/events.ts` sends events; `sync.ts` provisions
   and syncs them.

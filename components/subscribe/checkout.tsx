@@ -7,6 +7,7 @@ import {
   useCheckout,
   usePaymentElement,
 } from "@clerk/nextjs/experimental";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Period } from "./types";
@@ -130,13 +131,15 @@ function ConfirmPayment({
   const router = useRouter();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (
       (!ready && checkout.status !== "completed") ||
       processing ||
-      fetchStatus === "fetching"
+      fetchStatus === "fetching" ||
+      !termsAccepted
     ) {
       return;
     }
@@ -185,6 +188,19 @@ function ConfirmPayment({
   return (
     <form onSubmit={submit} className="payment-form">
       {checkout.status !== "completed" && children}
+      <div className="checkout-legal">
+        <input
+          id="checkout-legal-agreement"
+          type="checkbox"
+          checked={termsAccepted}
+          onChange={(event) => setTermsAccepted(event.currentTarget.checked)}
+        />
+        <span>
+          <label htmlFor="checkout-legal-agreement">I agree to the</label>{" "}
+          <Link href="/terms-of-service">Terms of Service</Link> and{" "}
+          <Link href="/privacy-policy">Privacy Policy</Link>.
+        </span>
+      </div>
       {error && (
         <p className="error-message" role="alert">
           {error}
@@ -196,7 +212,8 @@ function ConfirmPayment({
         disabled={
           (!ready && checkout.status !== "completed") ||
           processing ||
-          fetchStatus === "fetching"
+          fetchStatus === "fetching" ||
+          !termsAccepted
         }
       >
         {processing || fetchStatus === "fetching"

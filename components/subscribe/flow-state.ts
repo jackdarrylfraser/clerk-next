@@ -1,6 +1,4 @@
 import { z } from "zod";
-import { planTermsAcceptancePrefix } from "@/lib/plan-terms";
-import type { PlanTerms } from "@/lib/plan-terms";
 import type { Plan, Period, Step } from "./types";
 
 const subscribeQuerySchema = z.object({
@@ -27,7 +25,6 @@ export function getSubscribeUrls(planId: string | null, period: Period) {
     account: planQuery
       ? `/subscribe/account?${planQuery}`
       : "/subscribe/account",
-    terms: planQuery ? `/subscribe/terms?${planQuery}` : "/subscribe/terms",
     payment: planQuery
       ? `/subscribe/payment?${planQuery}`
       : "/subscribe/payment",
@@ -72,43 +69,10 @@ export type SelectedPlanState =
       price: Plan["fee"] | Plan["annualFee"] | undefined;
     };
 
-export function getPlanTermsAcceptanceKey({
-  planSlug,
-  userId,
-  period,
-  plan,
-  price,
-  terms,
-}: {
-  planSlug: string | null;
-  userId: string | null | undefined;
-  period: Period;
-  plan: Plan | undefined;
-  price: Plan["fee"] | Plan["annualFee"] | undefined;
-  terms: PlanTerms | null | undefined;
-}) {
-  if (!planSlug || !userId || !plan || !terms) return null;
-
-  const keyParts = [
-    userId,
-    planSlug,
-    period,
-    terms.version,
-    price ? `${price.currencySymbol}${price.amountFormatted}` : "free",
-    plan.freeTrialEnabled ? (plan.freeTrialDays ?? 0) : 0,
-  ];
-
-  return `${planTermsAcceptancePrefix}${encodeURIComponent(keyParts.join("|"))}`;
-}
-
 export type SubscribeFlowDecision =
   | { kind: "ready" }
   | { kind: "loading"; reason: "account" | "plan" }
-  | {
-      kind: "redirect";
-      href: string;
-      clearTermsAcceptance: boolean;
-    };
+  | { kind: "redirect"; href: string };
 
 export function resolveSubscribeFlow({
   step,
@@ -117,7 +81,6 @@ export function resolveSubscribeFlow({
   selectedPlanStatus,
   isAuthLoaded,
   isSignedIn,
-  termsAccepted,
 }: {
   step: Step;
   planId: string | null;
@@ -125,30 +88,21 @@ export function resolveSubscribeFlow({
   selectedPlanStatus: SelectedPlanState["status"];
   isAuthLoaded: boolean;
   isSignedIn: boolean;
-  termsAccepted: boolean;
 }): SubscribeFlowDecision {
   if (step === "plan") return { kind: "ready" };
 
   if (!planId) {
-    return {
-      kind: "redirect",
-      href: urls.plans,
-      clearTermsAcceptance: false,
-    };
+    return { kind: "redirect", href: urls.plans };
   }
 
-  const requiresPlan = step === "terms" || step === "payment";
+  const requiresPlan = step === "payment";
   const invalidPlan =
     selectedPlanStatus === "error" ||
     selectedPlanStatus === "missing" ||
     selectedPlanStatus === "unavailable";
 
   if (requiresPlan && invalidPlan) {
-    return {
-      kind: "redirect",
-      href: urls.plans,
-      clearTermsAcceptance: true,
-    };
+    return { kind: "redirect", href: urls.plans };
   }
 
   if (!isAuthLoaded) {
@@ -162,19 +116,7 @@ export function resolveSubscribeFlow({
   }
 
   if (!isSignedIn) {
-    return {
-      kind: "redirect",
-      href: urls.account,
-      clearTermsAcceptance: false,
-    };
-  }
-
-  if (step === "payment" && !termsAccepted) {
-    return {
-      kind: "redirect",
-      href: urls.terms,
-      clearTermsAcceptance: false,
-    };
+    return { kind: "redirect", href: urls.account };
   }
 
   return { kind: "ready" };

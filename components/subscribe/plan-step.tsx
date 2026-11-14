@@ -12,7 +12,6 @@ export function PlanStep({
   onPeriodChange,
   selectedId,
   accountUrl,
-  onClearTermsAcceptance,
 }: {
   plans: Plan[] | undefined;
   isLoading: boolean;
@@ -23,7 +22,6 @@ export function PlanStep({
   onPeriodChange: (period: Period) => void;
   selectedId: string | null;
   accountUrl: string;
-  onClearTermsAcceptance: () => void;
 }) {
   return (
     <>
@@ -112,7 +110,6 @@ export function PlanStep({
                 <Link
                   className="primary-button"
                   href={`/subscribe/account?plan=${encodeURIComponent(plan.id)}&period=${chosenPeriod}`}
-                  onClick={onClearTermsAcceptance}
                 >
                   Choose this plan <span>↗</span>
                 </Link>
