@@ -667,30 +667,6 @@ h1,
   margin: 20px 0 0;
   line-height: 1.5;
 }
-.plan-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #e7ece4;
-}
-.plan-tab {
-  flex: 0 0 50%;
-  padding: 10px 14px;
-  color: #8a9286;
-  font-size: 12px;
-  font-weight: 700;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 6px 6px 0 0;
-  margin-bottom: -1px;
-  background: transparent;
-}
-.plan-tab.active {
-  color: #3c5740;
-  background: #e8eee4;
-  border-bottom-color: #607c5c;
-}
 .plan-card {
   display: flex;
   flex-direction: column;
@@ -1234,7 +1210,6 @@ button.text-button {
   .side-panel h2 em,
   .activity-card-tag,
   .progress li.current,
-  .plan-tab.active,
   .complete-state,
   .features li span,
   .plan-sparkle,
@@ -1242,10 +1217,6 @@ button.text-button {
   .aside-label,
   .aside-bottom {
     color: #b4cdaa;
-  }
-  .plan-tab.active {
-    background: #263329;
-    border-bottom-color: #b4cdaa;
   }
   .activity-heading > p:last-child,
   .activity-count,

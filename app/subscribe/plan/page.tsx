@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, use, useEffect, useState } from "react";
+import { Suspense, use, useEffect } from "react";
 import { usePlans } from "@clerk/nextjs/experimental";
 import { useAuth } from "@clerk/nextjs";
 import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
@@ -116,10 +116,6 @@ function SubscribePlanContent({
           plans={plans.data}
           isLoading={plans.isLoading}
           isError={plans.isError}
-          hasNextPage={plans.hasNextPage}
-          fetchNext={() => {
-            void plans.fetchNext();
-          }}
           selectedId={query.plan}
           paymentUrl={urls.payment}
           canResumeCheckout={selectedPlanState.status === "ready"}
@@ -134,8 +130,6 @@ function PlanStep({
   plans,
   isLoading,
   isError,
-  hasNextPage,
-  fetchNext,
   selectedId,
   paymentUrl,
   canResumeCheckout,
@@ -144,20 +138,12 @@ function PlanStep({
   plans: Plan[] | undefined;
   isLoading: boolean;
   isError: boolean;
-  hasNextPage: boolean;
-  fetchNext: () => void;
   selectedId: string | null;
   paymentUrl: string;
   canResumeCheckout: boolean;
   onChoosePlan: (planId: string, period: Period) => void;
 }) {
-  const [activePlanId, setActivePlanId] = useState<string | null>(null);
-  const availablePlans = plans ?? [];
-  const activePlanIndex = Math.max(
-    availablePlans.findIndex((plan) => plan.id === activePlanId),
-    0,
-  );
-  const activePlan = availablePlans[activePlanIndex];
+  const activePlan = plans?.[0];
   const annualDiscount =
     activePlan?.fee &&
     activePlan.annualMonthlyFee &&
@@ -186,25 +172,7 @@ function PlanStep({
         </p>
       )}
       {activePlan && (
-        <>
-          <div className="plan-tabs" role="group" aria-label="Choose a plan">
-            {availablePlans.map((plan, index) => {
-              const isActive = index === activePlanIndex;
-
-              return (
-                <button
-                  key={plan.id}
-                  type="button"
-                  className={`plan-tab${isActive ? " active" : ""}`}
-                  aria-pressed={isActive}
-                  onClick={() => setActivePlanId(plan.id)}
-                >
-                  {plan.name}
-                </button>
-              );
-            })}
-          </div>
-          <article className="plan-card">
+        <article className="plan-card">
             <div className="plan-top">
               <div>
                 <h3>{activePlan.name}</h3>
@@ -289,12 +257,6 @@ function PlanStep({
               })}
             </div>
           </article>
-        </>
-      )}
-      {hasNextPage && (
-        <button className="text-button" onClick={fetchNext}>
-          Load more plans +
-        </button>
       )}
       {selectedId && canResumeCheckout && (
         <p className="resume-checkout">
