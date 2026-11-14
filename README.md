@@ -20,6 +20,9 @@ can go straight to checkout.
 - **Public content:** Markdown files in `content/markdown` are listed at
   `/public`, rendered at `/public/<slug>`, and filterable by tag. Public pages also
   include the contact form.
+- **Starter content:** Markdown files in `content/starter` are listed at
+  `/starter`, rendered at `/starter/<slug>`, and filterable by starter tags.
+  Access requires the Clerk `user:site_access` feature entitlement.
 - **Contact capture:** The form posts names, email, and explicit marketing
   consent to `/api/contacts`. The endpoint records consent details, adds the
   contact to Resend's Marketing topic, and starts an educational email
@@ -34,8 +37,9 @@ can go straight to checkout.
   subscription event delivery. If Redis is missing or unavailable, these
   operations fail rather than running without protection.
 - **Local member-content preview:** `DEV_AUTH_BYPASS=true` in development lets
-  you browse member activities without signing in. It does not create a Clerk
-  session, so checkout and account management still need real authentication.
+  you browse self-guided and starter content without signing in. It does not
+  create a Clerk session, so checkout and account management still need real
+  authentication.
 
 ## Start here
 
@@ -47,7 +51,7 @@ bun run dev
 ```
 
 Create `.env.local` with the Clerk keys and Resend API key below, then open
-<http://localhost:3000>. To preview member activities without a Clerk session,
+<http://localhost:3000>. To preview member content without a Clerk session,
 also set `DEV_AUTH_BYPASS=true` and restart the dev server. The bypass is
 disabled outside development.
 
@@ -76,7 +80,7 @@ for production. Never commit real values.
 | `CLERK_WEBHOOK_SIGNING_SECRET` | Verifying Clerk webhook deliveries; configure this before enabling the webhook |
 | `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` | Contact rate limiting and idempotency for contact/subscription events; both must be set |
 | `RESEND_FROM_EMAIL` | Verified sender for billing emails and `bun run emails:sync` |
-| `DEV_AUTH_BYPASS` | Optional local activity preview; set to `true` only for development |
+| `DEV_AUTH_BYPASS` | Optional local member-content preview; set to `true` only for development |
 
 Before expecting checkout to work, configure Clerk Billing, connect its payment
 provider, publish user plans, and enable the desired sign-in methods in the
@@ -108,17 +112,19 @@ development Clerk instance and payment provider's test mode.
 ## Where to make changes
 
 - **Pages and routes:** `app/` (home, sign-in, account, subscribe, activities,
-  public Markdown, contact API, and Clerk webhook).
+  starter and public Markdown, contact API, and Clerk webhook).
 - **Shared UI and checkout steps:** `components/`; checkout state and URL
   handling live in `components/subscribe/`.
 - **Member activities:** add or edit Markdown files in `content/self-guided/`.
 - **Public pages:** add or edit Markdown files in `content/markdown/`.
   Each file needs YAML frontmatter with a non-empty `title`, `description`,
   and at least one valid `tags` entry. Tags become links to filtered lists.
+- **Starter pages:** add or edit Markdown files in `content/starter/`.
+  Each file needs the same YAML frontmatter; tags link to filtered starter pages.
 - **Markdown behavior:** `packages/markdown-engine/` handles GitHub-flavored
   Markdown, math, callouts, and sanitization; `lib/markdown-content.ts` loads
-  content and checks metadata. Keep public and member content in their
-  separate directories.
+  content and checks metadata. Keep each feed's content in its separate
+  directory.
 - **Checkout agreement and legal pages:** `components/subscribe/checkout.tsx`
   contains the required agreement checkbox; the draft policy pages live in
   `app/terms-of-service/` and `app/privacy-policy/`.
@@ -139,13 +145,13 @@ development Clerk instance and payment provider's test mode.
 Markdown supports CommonMark/GitHub Flavored Markdown, tables, task lists,
 footnotes, KaTeX math, collapsible `<details>` sections, and `[!NOTE]`,
 `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, and `[!CAUTION]` callouts. Rendered
-content is sanitized. Do not put private information in either content
-directory: both types of rendered pages are web pages, and route protection
-must not be treated as a place to store secrets.
+content is sanitized. Do not put private information in any content directory:
+rendered pages are web pages, and route protection must not be treated as a
+place to store secrets.
 
 ## A few things to remember
 
-- Local auth bypass is only for browsing activities. It does not test Clerk
+- Local auth bypass is only for browsing member content. It does not test Clerk
   sign-in, billing, entitlements, or account management.
 - Redis credentials are optional for building, but contact submissions and
   email event idempotency will not work without both credentials.
