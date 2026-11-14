@@ -29,16 +29,12 @@ export function parseSubscribeQuery(
 export function getSubscribeUrls(planId: string | null, period: Period) {
   const planQuery = planId
     ? `plan=${encodeURIComponent(planId)}&period=${period}`
-    : null;
+    : `period=${period}`;
 
   return {
-    plans: `/subscribe?${planQuery ?? `period=${period}`}`,
-    account: planQuery
-      ? `/subscribe/account?${planQuery}`
-      : "/subscribe/account",
-    payment: planQuery
-      ? `/subscribe/payment?${planQuery}`
-      : "/subscribe/payment",
+    plans: `/subscribe?${planQuery}`,
+    account: `/subscribe/account?${planQuery}`,
+    payment: `/subscribe/payment?${planQuery}`,
   };
 }
 
@@ -100,34 +96,37 @@ export function resolveSubscribeFlow({
   isAuthLoaded: boolean;
   isSignedIn: boolean;
 }): SubscribeFlowDecision {
+  if (!isAuthLoaded) {
+    return { kind: "loading", reason: "account" };
+  }
+
+  if (step === "account") {
+    return isSignedIn
+      ? { kind: "redirect", href: urls.plans }
+      : { kind: "ready" };
+  }
+
+  if (!isSignedIn) {
+    return { kind: "redirect", href: urls.account };
+  }
+
   if (step === "plan") return { kind: "ready" };
 
   if (!planId) {
     return { kind: "redirect", href: urls.plans };
   }
 
-  const requiresPlan = step === "payment";
+  if (selectedPlanStatus === "loading") {
+    return { kind: "loading", reason: "plan" };
+  }
+
   const invalidPlan =
     selectedPlanStatus === "error" ||
     selectedPlanStatus === "missing" ||
     selectedPlanStatus === "unavailable";
 
-  if (requiresPlan && invalidPlan) {
+  if (invalidPlan) {
     return { kind: "redirect", href: urls.plans };
-  }
-
-  if (!isAuthLoaded) {
-    return { kind: "loading", reason: "account" };
-  }
-
-  if (step === "account") return { kind: "ready" };
-
-  if (selectedPlanStatus === "loading") {
-    return { kind: "loading", reason: "plan" };
-  }
-
-  if (!isSignedIn) {
-    return { kind: "redirect", href: urls.account };
   }
 
   return { kind: "ready" };

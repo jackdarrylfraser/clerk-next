@@ -4,8 +4,8 @@ import { getSubscribeUrls } from "./flow-state";
 import type { Step } from "./types";
 
 const steps: { key: Step; title: string; description: string }[] = [
+  { key: "account", title: "Your account", description: "Sign up or sign in" },
   { key: "plan", title: "Choose a plan", description: "Find the right fit" },
-  { key: "account", title: "Your account", description: "Subscribe or sign in" },
   { key: "payment", title: "Payment", description: "Complete checkout" },
 ];
 
@@ -52,7 +52,7 @@ export function SubscribeLayout({
             {steps.map((item, index) => {
               const completed =
                 index < stepIndex &&
-                (item.key === "plan" ? !!selectedId : isSignedIn);
+                (item.key === "account" ? isSignedIn : !!selectedId);
 
               return (
                 <li

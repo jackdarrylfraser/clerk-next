@@ -83,7 +83,7 @@ function SubscribeAccountContent({
           isSignedIn={!!isSignedIn}
           authMode={query.auth}
           accountUrl={urls.account}
-          paymentUrl={urls.payment}
+          plansUrl={urls.plans}
         />
       )}
     </SubscribeLayout>
@@ -94,12 +94,12 @@ function AccountStep({
   isSignedIn,
   authMode,
   accountUrl,
-  paymentUrl,
+  plansUrl,
 }: {
   isSignedIn: boolean;
   authMode: AuthMode;
   accountUrl: string;
-  paymentUrl: string;
+  plansUrl: string;
 }) {
   return (
     <>
@@ -108,8 +108,8 @@ function AccountStep({
           <p className="complete-state">
             <span>✓</span> You&apos;re signed in and ready to continue.
           </p>
-          <Link className="primary-button" href={paymentUrl}>
-            Continue to payment <span>↗</span>
+        <Link className="primary-button" href={plansUrl}>
+          Continue to plans <span>↗</span>
           </Link>
         </div>
       ) : (
@@ -117,14 +117,14 @@ function AccountStep({
           {authMode === "sign-in" ? (
             <SignIn
               routing="hash"
-              forceRedirectUrl={paymentUrl}
+              forceRedirectUrl={plansUrl}
               signUpUrl={`${accountUrl}&auth=sign-up`}
               appearance={authAppearance}
             />
           ) : (
             <SignUp
               routing="hash"
-              forceRedirectUrl={paymentUrl}
+              forceRedirectUrl={plansUrl}
               signInUrl={`${accountUrl}&auth=sign-in`}
               appearance={authAppearance}
             />

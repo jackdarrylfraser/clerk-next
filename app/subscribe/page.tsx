@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { usePlans } from "@clerk/nextjs/experimental";
 import { use } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
 import { useRouter } from "next/navigation";
-import { getSubscribeUrls, parseSubscribeQuery } from "@/components/subscribe/flow-state";
+import {
+  getSubscribeUrls,
+  parseSubscribeQuery,
+  resolveSubscribeFlow,
+} from "@/components/subscribe/flow-state";
 import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
 import type {
   Period,
@@ -41,13 +45,26 @@ function SubscribePlanContent({
   const { isLoaded, isSignedIn } = useAuth();
   const devAuthBypassEnabled = useDevAuthBypass();
   const urls = getSubscribeUrls(query.plan, query.period);
+  const decision = resolveSubscribeFlow({
+    step: "plan",
+    planId: query.plan,
+    urls,
+    selectedPlanStatus: "ready",
+    isAuthLoaded: isLoaded,
+    isSignedIn: !!isSignedIn,
+  });
+  const redirectUrl = decision.kind === "redirect" ? decision.href : null;
+
+  useEffect(() => {
+    if (redirectUrl) router.replace(redirectUrl);
+  }, [redirectUrl, router]);
 
   function selectPeriod(period: "month" | "annual"): void {
     router.replace(getSubscribeUrls(query.plan, period).plans);
   }
 
   function selectPlan(planId: string): void {
-    router.push(getSubscribeUrls(planId, query.period).account);
+    router.push(getSubscribeUrls(planId, query.period).payment);
   }
 
   return (
@@ -59,20 +76,30 @@ function SubscribePlanContent({
       isSignedIn={!!isSignedIn}
       devAuthBypassEnabled={devAuthBypassEnabled}
     >
-      <PlanStep
-        plans={plans.data}
-        isLoading={plans.isLoading}
-        isError={plans.isError}
-        hasNextPage={plans.hasNextPage}
-        fetchNext={() => {
-          void plans.fetchNext();
-        }}
-        chosenPeriod={query.period}
-        onPeriodChange={selectPeriod}
-        selectedId={query.plan}
-        accountUrl={urls.account}
-        onChoosePlan={selectPlan}
-      />
+      {decision.kind === "redirect" ? (
+        <p className="muted-indent" role="status">
+          Taking you to the sign-in step...
+        </p>
+      ) : decision.kind === "loading" ? (
+        <p className="muted-indent" role="status">
+          Loading your account...
+        </p>
+      ) : (
+        <PlanStep
+          plans={plans.data}
+          isLoading={plans.isLoading}
+          isError={plans.isError}
+          hasNextPage={plans.hasNextPage}
+          fetchNext={() => {
+            void plans.fetchNext();
+          }}
+          chosenPeriod={query.period}
+          onPeriodChange={selectPeriod}
+          selectedId={query.plan}
+          paymentUrl={urls.payment}
+          onChoosePlan={selectPlan}
+        />
+      )}
     </SubscribeLayout>
   );
 }
@@ -86,7 +113,7 @@ function PlanStep({
   chosenPeriod,
   onPeriodChange,
   selectedId,
-  accountUrl,
+  paymentUrl,
   onChoosePlan,
 }: {
   plans: Plan[] | undefined;
@@ -97,7 +124,7 @@ function PlanStep({
   chosenPeriod: Period;
   onPeriodChange: (period: Period) => void;
   selectedId: string | null;
-  accountUrl: string;
+  paymentUrl: string;
   onChoosePlan: (planId: string) => void;
 }) {
   return (
@@ -195,7 +222,7 @@ function PlanStep({
       )}
       {selectedId && (
         <p className="resume-checkout">
-          Already chose a plan? <Link href={accountUrl}>Continue checkout →</Link>
+          Already chose a plan? <Link href={paymentUrl}>Continue checkout →</Link>
         </p>
       )}
     </>

@@ -53,12 +53,44 @@ describe("subscription flow state", () => {
       payment: "/subscribe/payment?plan=plan%20%2F%20one&period=annual",
     });
     expect(getSubscribeUrls(null, "month").plans).toBe("/subscribe?period=month");
+    expect(getSubscribeUrls(null, "month").account).toBe(
+      "/subscribe/account?period=month",
+    );
   });
 
-  it("sends a step without a plan to the plan picker", () => {
-    expect(resolve({ step: "account", planId: null })).toEqual({
+  it("allows account creation or sign-in before a plan is selected", () => {
+    expect(
+      resolve({
+        step: "account",
+        planId: null,
+        isSignedIn: false,
+      }),
+    ).toEqual({ kind: "ready" });
+  });
+
+  it("sends signed-in users from the account step directly to plans", () => {
+    expect(
+      resolve({
+        step: "account",
+        planId: null,
+        isSignedIn: true,
+      }),
+    ).toEqual({
       kind: "redirect",
       href: urls.plans,
+    });
+  });
+
+  it("requires sign-in before showing the plan picker", () => {
+    expect(
+      resolve({
+        step: "plan",
+        planId: null,
+        isSignedIn: false,
+      }),
+    ).toEqual({
+      kind: "redirect",
+      href: urls.account,
     });
   });
 
@@ -72,9 +104,18 @@ describe("subscription flow state", () => {
   });
 
   it("sends signed-out users to account before payment", () => {
-    expect(resolve({ step: "payment", isSignedIn: false })).toEqual({
+    expect(
+      resolve({ step: "payment", planId: null, isSignedIn: false }),
+    ).toEqual({
       kind: "redirect",
       href: urls.account,
+    });
+  });
+
+  it("sends signed-in users without a plan to the plan picker", () => {
+    expect(resolve({ step: "payment", planId: null })).toEqual({
+      kind: "redirect",
+      href: urls.plans,
     });
   });
 
