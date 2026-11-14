@@ -5,13 +5,12 @@ import type {
   Step,
   SubscribeQuery,
   SubscribeSearchParams,
-  SubscribeSessionState,
 } from "./types";
 
 const subscribeQuerySchema = z.object({
   plan: z.string().min(1).nullable().catch(null),
-  period: z.enum(["month", "annual"]).nullable().catch(null),
-  auth: z.enum(["sign-in", "sign-up"]).nullable().catch(null),
+  period: z.enum(["month", "annual"]).catch("month"),
+  auth: z.enum(["sign-in", "sign-up"]).catch("sign-up"),
 });
 
 export function parseSubscribeQuery(
@@ -22,20 +21,9 @@ export function parseSubscribeQuery(
 
   return subscribeQuerySchema.parse({
     plan: singleValue(query.plan),
-    period: singleValue(query.period),
-    auth: singleValue(query.auth),
+    period: singleValue(query.period) ?? undefined,
+    auth: singleValue(query.auth) ?? undefined,
   });
-}
-
-export function resolveSubscribeState(
-  query: SubscribeQuery,
-  savedState: SubscribeSessionState | null,
-): SubscribeSessionState {
-  return {
-    planId: query.plan ?? savedState?.planId ?? null,
-    period: query.period ?? savedState?.period ?? "month",
-    authMode: query.auth ?? savedState?.authMode ?? "sign-up",
-  };
 }
 
 export function getSubscribeUrls(planId: string | null, period: Period) {
@@ -44,7 +32,7 @@ export function getSubscribeUrls(planId: string | null, period: Period) {
     : null;
 
   return {
-    plans: `/subscribe?period=${period}`,
+    plans: `/subscribe?${planQuery ?? `period=${period}`}`,
     account: planQuery
       ? `/subscribe/account?${planQuery}`
       : "/subscribe/account",

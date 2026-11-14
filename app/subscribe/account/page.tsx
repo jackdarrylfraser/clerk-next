@@ -10,7 +10,6 @@ import {
 } from "@/components/subscribe/flow-state";
 import { AccountStep } from "@/components/subscribe/account-step";
 import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
-import { useSubscribeSession } from "@/components/subscribe/use-subscribe-session";
 import type { SubscribeSearchParams } from "@/components/subscribe/types";
 
 export default function SubscribeAccountPage({
@@ -29,14 +28,13 @@ function SubscribeAccountContent({
   searchParams: Promise<SubscribeSearchParams>;
 }) {
   const query = parseSubscribeQuery(use(searchParams));
-  const session = useSubscribeSession(query);
   const { isLoaded, isSignedIn } = useAuth();
   const devAuthBypassEnabled = useDevAuthBypass();
   const router = useRouter();
-  const urls = getSubscribeUrls(session.state.planId, session.state.period);
+  const urls = getSubscribeUrls(query.plan, query.period);
   const decision = resolveSubscribeFlow({
     step: "account",
-    planId: session.state.planId,
+    planId: query.plan,
     urls,
     selectedPlanStatus: "ready",
     isAuthLoaded: isLoaded,
@@ -45,23 +43,20 @@ function SubscribeAccountContent({
   const redirectUrl = decision.kind === "redirect" ? decision.href : null;
 
   useEffect(() => {
-    if (session.isReady && redirectUrl) router.replace(redirectUrl);
-  }, [session.isReady, redirectUrl, router]);
+    if (redirectUrl) router.replace(redirectUrl);
+  }, [redirectUrl, router]);
 
   return (
     <SubscribeLayout
       step="account"
-      selectedId={session.state.planId}
+      selectedId={query.plan}
       isLoaded={isLoaded}
       isSignedIn={!!isSignedIn}
       devAuthBypassEnabled={devAuthBypassEnabled}
-      storageError={session.storageError}
     >
-      {!session.isReady || decision.kind === "loading" ? (
+      {decision.kind === "loading" ? (
         <p className="muted-indent" role="status">
-          {!session.isReady
-            ? "Restoring your subscription choices..."
-            : "Loading your account..."}
+          Loading your account...
         </p>
       ) : redirectUrl ? (
         <p className="muted-indent" role="status">
@@ -70,11 +65,10 @@ function SubscribeAccountContent({
       ) : (
         <AccountStep
           isSignedIn={!!isSignedIn}
-          authMode={session.state.authMode}
+          authMode={query.auth}
           plansUrl={urls.plans}
           accountUrl={urls.account}
           paymentUrl={urls.payment}
-          onAuthModeChange={(authMode) => session.update({ authMode })}
         />
       )}
     </SubscribeLayout>

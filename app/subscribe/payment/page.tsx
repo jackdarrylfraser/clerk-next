@@ -12,7 +12,6 @@ import {
 } from "@/components/subscribe/flow-state";
 import { PaymentStep } from "@/components/subscribe/payment-step";
 import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
-import { useSubscribeSession } from "@/components/subscribe/use-subscribe-session";
 import type { SubscribeSearchParams } from "@/components/subscribe/types";
 
 export default function SubscribePaymentPage({
@@ -31,27 +30,26 @@ function SubscribePaymentContent({
   searchParams: Promise<SubscribeSearchParams>;
 }) {
   const query = parseSubscribeQuery(use(searchParams));
-  const session = useSubscribeSession(query);
   const { isLoaded, isSignedIn } = useAuth();
   const devAuthBypassEnabled = useDevAuthBypass();
   const router = useRouter();
   const plans = usePlans({ for: "user", pageSize: 10, infinite: true });
   const matchingPlan = plans.data?.find(
-    (plan) => plan.id === session.state.planId,
+    (plan) => plan.id === query.plan,
   );
   const selectedPlanState = getSelectedPlanState({
     plan: matchingPlan,
-    period: session.state.period,
+    period: query.period,
     isLoading: plans.isLoading,
     hasMore: plans.hasNextPage,
     hasError: plans.isError,
   });
   const selectedPlan =
     "plan" in selectedPlanState ? selectedPlanState.plan : undefined;
-  const urls = getSubscribeUrls(session.state.planId, session.state.period);
+  const urls = getSubscribeUrls(query.plan, query.period);
   const decision = resolveSubscribeFlow({
     step: "payment",
-    planId: session.state.planId,
+    planId: query.plan,
     urls,
     selectedPlanStatus: selectedPlanState.status,
     isAuthLoaded: isLoaded,
@@ -62,10 +60,9 @@ function SubscribePaymentContent({
 
   useEffect(() => {
     if (
-      !session.isReady ||
-      !session.state.planId ||
-      selectedPlan ||
-      plans.isError ||
+        !query.plan ||
+        selectedPlan ||
+        plans.isError ||
       !plans.hasNextPage
     ) {
       return;
@@ -77,28 +74,22 @@ function SubscribePaymentContent({
     plans.hasNextPage,
     plans.isError,
     selectedPlan,
-    session.isReady,
-    session.state.planId,
+    query.plan,
   ]);
 
   useEffect(() => {
-    if (session.isReady && redirectUrl) router.replace(redirectUrl);
-  }, [session.isReady, redirectUrl, router]);
+    if (redirectUrl) router.replace(redirectUrl);
+  }, [redirectUrl, router]);
 
   return (
     <SubscribeLayout
       step="payment"
-      selectedId={session.state.planId}
+      selectedId={query.plan}
       isLoaded={isLoaded}
       isSignedIn={!!isSignedIn}
       devAuthBypassEnabled={devAuthBypassEnabled}
-      storageError={session.storageError}
     >
-      {!session.isReady ? (
-        <p className="muted-indent" role="status">
-          Restoring your subscription choices...
-        </p>
-      ) : decision.kind === "redirect" ? (
+      {decision.kind === "redirect" ? (
         <p className="muted-indent" role="status">
           Taking you to the right step...
         </p>
@@ -111,10 +102,9 @@ function SubscribePaymentContent({
       ) : selectedPlan ? (
         <PaymentStep
           selectedPlan={selectedPlan}
-          period={session.state.period}
+          period={query.period}
           accountUrl={urls.account}
           plansUrl={urls.plans}
-          onCheckoutComplete={session.clear}
         />
       ) : null}
     </SubscribeLayout>

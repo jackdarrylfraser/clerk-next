@@ -7,18 +7,12 @@ export type Plan = NonNullable<ReturnType<typeof usePlans>["data"]>[number];
 
 export interface SubscribeQuery {
   plan: string | null;
-  period: Period | null;
-  auth: AuthMode | null;
+  period: Period;
+  auth: AuthMode;
 }
 
 export interface SubscribeSearchParams {
   [key: string]: string | string[] | undefined;
-}
-
-export interface SubscribeSessionState {
-  planId: string | null;
-  period: Period;
-  authMode: AuthMode;
 }
 
 export function money(amount: {

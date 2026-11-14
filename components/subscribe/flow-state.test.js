@@ -2,7 +2,6 @@ import { describe, expect, it } from "bun:test";
 import {
   getSubscribeUrls,
   parseSubscribeQuery,
-  resolveSubscribeState,
   resolveSubscribeFlow,
 } from "./flow-state";
 
@@ -21,7 +20,7 @@ function resolve(overrides = {}) {
 }
 
 describe("subscription flow state", () => {
-  it("leaves missing or invalid URL options available for session fallback", () => {
+  it("uses safe defaults for missing or invalid URL options", () => {
     expect(
       parseSubscribeQuery({
         plan: null,
@@ -30,8 +29,8 @@ describe("subscription flow state", () => {
       }),
     ).toEqual({
       plan: null,
-      period: null,
-      auth: null,
+      period: "month",
+      auth: "sign-up",
     });
 
     expect(
@@ -42,60 +41,18 @@ describe("subscription flow state", () => {
       }),
     ).toEqual({
       plan: "standard",
-      period: null,
-      auth: null,
-    });
-  });
-
-  it("restores session choices and lets valid URL values take precedence", () => {
-    const savedState = {
-      planId: "saved-plan",
-      period: "annual",
-      authMode: "sign-in",
-    };
-
-    expect(
-      resolveSubscribeState(
-        parseSubscribeQuery({ plan: null, period: null, auth: null }),
-        savedState,
-      ),
-    ).toEqual(savedState);
-
-    expect(
-      resolveSubscribeState(
-        parseSubscribeQuery({
-          plan: "url-plan",
-          period: "month",
-          auth: "sign-up",
-        }),
-        savedState,
-      ),
-    ).toEqual({
-      planId: "url-plan",
       period: "month",
-      authMode: "sign-up",
-    });
-  });
-
-  it("uses safe defaults when neither the URL nor session has choices", () => {
-    expect(
-      resolveSubscribeState(
-        parseSubscribeQuery({ plan: null, period: null, auth: null }),
-        null,
-      ),
-    ).toEqual({
-      planId: null,
-      period: "month",
-      authMode: "sign-up",
+      auth: "sign-up",
     });
   });
 
   it("builds URLs with the selected plan and billing period", () => {
     expect(getSubscribeUrls("plan / one", "annual")).toEqual({
-      plans: "/subscribe?period=annual",
+      plans: "/subscribe?plan=plan%20%2F%20one&period=annual",
       account: "/subscribe/account?plan=plan%20%2F%20one&period=annual",
       payment: "/subscribe/payment?plan=plan%20%2F%20one&period=annual",
     });
+    expect(getSubscribeUrls(null, "month").plans).toBe("/subscribe?period=month");
   });
 
   it("sends a step without a plan to the plan picker", () => {
