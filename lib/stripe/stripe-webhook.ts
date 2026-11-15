@@ -52,9 +52,8 @@ export async function processStripeWebhookEvent(
     return { status: "ignored" };
   }
 
-  const result = await runIdempotently(
-    event,
-    LIFECYCLE_NOTIFICATION_SCOPE,
+  const result = await idempotency.run(
+    { scope: LIFECYCLE_NOTIFICATION_SCOPE, key: event.id },
     async () => {
       const user = await getStripeCustomerOwner(notification.customerId);
       if (!user) {
@@ -72,6 +71,10 @@ export async function processStripeWebhookEvent(
       return { userId: user.id };
     },
   );
+
+  if (result.status === "error") {
+    throw result.error;
+  }
 
   return result;
 }
@@ -100,9 +103,8 @@ async function processCheckoutCompletedEvent(
     );
   }
 
-  return runIdempotently(
-    event,
-    CHECKOUT_PROVISIONING_SCOPE,
+  const result = await idempotency.run(
+    { scope: CHECKOUT_PROVISIONING_SCOPE, key: event.id },
     async () => {
       const user = await getStripeCheckoutUser(userId);
       if (!user) {
@@ -130,16 +132,6 @@ async function processCheckoutCompletedEvent(
       return { userId: user.id };
     },
   );
-}
-
-async function runIdempotently(
-  event: StripeWebhookEvent,
-  scope: string,
-  operation: () => Promise<{ userId: string }>,
-): Promise<
-  Exclude<IdempotencyRunResult<{ userId: string }>, { status: "error" }>
-> {
-  const result = await idempotency.run({ scope, key: event.id }, operation);
   if (result.status === "error") {
     throw result.error;
   }
