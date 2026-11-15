@@ -8,17 +8,12 @@ import {
   isLeadVerificationCurrent,
   leadAccessWindowMs,
 } from "@/lib/lead-access-policy";
-import { hasPaidContentAccess } from "@/lib/paid-access";
 import {
   leadAccessCookieName,
   verifyLeadAccessToken,
 } from "@/lib/lead-access-token";
 
 export async function hasGuestContentAccess(): Promise<boolean> {
-  if (await hasPaidContentAccess()) {
-    return true;
-  }
-
   const cookieStore = await cookies();
   const leadToken = verifyLeadAccessToken(
     cookieStore.get(leadAccessCookieName)?.value,

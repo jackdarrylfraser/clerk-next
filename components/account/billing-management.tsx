@@ -23,6 +23,15 @@ export function BillingManagement({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  function redirectToSubscriptionIfRequired(response: Response): boolean {
+    if (!response.redirected) {
+      return false;
+    }
+
+    router.replace("/subscribe/plan?required=true");
+    return true;
+  }
+
   async function submitBillingEmail(
     event: React.FormEvent<HTMLFormElement>,
     customer: StripeAccountCustomer,
@@ -42,6 +51,7 @@ export function BillingManagement({
           email: emails[customer.id] ?? "",
         }),
       });
+      if (redirectToSubscriptionIfRequired(response)) return;
       const responseBody: unknown = await response.json();
 
       if (!response.ok) {
@@ -82,6 +92,7 @@ export function BillingManagement({
           action,
         }),
       });
+      if (redirectToSubscriptionIfRequired(response)) return;
       const responseBody: unknown = await response.json();
 
       if (!response.ok) {
@@ -118,6 +129,7 @@ export function BillingManagement({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ customerId }),
       });
+      if (redirectToSubscriptionIfRequired(response)) return;
       const responseBody: unknown = await response.json();
 
       if (!response.ok || !isPortalSessionResponse(responseBody)) {

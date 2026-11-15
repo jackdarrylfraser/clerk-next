@@ -8,23 +8,23 @@ Stripe Checkout Sessions are created on the server for the signed-in user.
 ## What the app does
 
 - **Authentication and account access:** Better Auth handles email-code
-  sign-in and session management. The account page is available to
-  `self_guided` and `admin` users. Profile editing and subscription management
-  are not yet migrated.
+  sign-in and session management. Account pages, account APIs, and member
+  content require active Stripe access; users without it are sent to the
+  subscription page.
 - **Billing:** Stripe provides subscription access and server-created Checkout
   Sessions. Checkout requires a Better Auth session; Stripe customer IDs are
   linked to that existing user by a signed webhook. Stripe-provided email
   addresses are not used to find or create app accounts.
 - **Member content:** The home page lists paginated activities from
-  `content/self-guided` for `self_guided` and `admin` users. Individual
-  activity pages and tags use the same access rule.
+  `content/self-guided` for users with Stripe access. Individual activity pages
+  and tags use the same access rule.
 - **Public content:** Markdown files in `content/public` are listed at
   `/public`, rendered at `/public/<slug>`, and filterable by tag. Public pages also
   include the contact form.
 - **Guest content:** Markdown files in `content/guest` are listed at
   `/guest`, rendered at `/guest/<slug>`, and filterable by starter tags.
-  Signed-in users with `guest`, `self_guided`, or `admin` access can view it.
-  Signed-out visitors see an email-code sign-in gate.
+  Access requires a valid lead-verification cookie. Signing in or having a
+  subscription does not grant guest-content access.
 - **Contact capture:** The form posts names, email, and explicit marketing
   consent to `/api/contacts`. The endpoint records consent details, adds the
   contact to Resend's Marketing topic, and starts an educational email
@@ -112,9 +112,10 @@ Better Auth is configured in `lib/better-auth.ts`, mounted at
 `/api/auth/[...all]`, and uses the Drizzle singleton in `lib/drizzle.ts`.
 Checkout account creation/sign-in uses Better Auth's email OTP plugin and
 sends through Resend. The separate lead-verification flow remains unchanged.
-Guest content requires sign-in; self-guided activities require an unexpired
-paid Stripe invoice period or current trial. Subscription access
-uses only Stripe customer IDs explicitly linked to the Better Auth user.
+Guest content requires a valid lead-verification cookie. Account pages, account
+APIs, and self-guided activities require an unexpired paid Stripe invoice
+period or current trial. Subscription access uses only Stripe customer IDs
+explicitly linked to the Better Auth user.
 Define database tables in `db/schema.ts`; Drizzle Kit
 uses `drizzle.config.ts` and writes migrations to `drizzle/`. Generate and
 apply the initial auth migration with `bun run db:generate` and

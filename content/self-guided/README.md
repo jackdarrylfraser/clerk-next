@@ -9,8 +9,8 @@ tags:
 # Permissioned Activity Content
 
 Markdown files in this directory are converted to HTML and served from
-`/activity/<filename-without-extension>`. Access requires an active Clerk user
-plan with the `site_access` feature.
+`/activity/<filename-without-extension>`. Access requires Stripe subscription
+access associated with the signed-in Better Auth user.
 
 Every activity must start with YAML frontmatter containing a non-empty `title`,
 `description`, and a `tags` list with at least one non-empty tag. Missing or

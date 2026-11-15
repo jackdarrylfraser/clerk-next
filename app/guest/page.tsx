@@ -65,7 +65,7 @@ async function GuestPagesContent({
       <div className="activity-heading">
         <p className="eyebrow">GUEST CONTENT</p>
         <h1>Guest content.</h1>
-        <p>Browse the guest content available with your membership.</p>
+        <p>Verify your email to browse guest content.</p>
       </div>
       <div className="activity-list-container">
         {pageEntries.length > 0 ? (

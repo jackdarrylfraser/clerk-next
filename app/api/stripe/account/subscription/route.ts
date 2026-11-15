@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { env } from "@/env";
-import { getCurrentUser } from "@/lib/server-access";
+import {
+  createSubscriptionRequiredRedirect,
+  getPaidSubscriptionStatus,
+} from "@/lib/server-access";
+import type { PaidSubscriptionStatus } from "@/lib/server-access";
 import { getStripeCustomerIdsForUser } from "@/lib/stripe-customers";
 import {
   canManageStripeSubscription,
@@ -23,23 +27,30 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Request origin is not allowed." }, { status: 403 });
   }
 
-  let currentUser;
+  let access: PaidSubscriptionStatus;
   try {
-    currentUser = await getCurrentUser();
+    access = await getPaidSubscriptionStatus();
   } catch (error) {
-    console.error("Could not verify the current user for a Stripe subscription update", error);
+    console.error(
+      "Could not verify the current user and subscription for a Stripe subscription update",
+      error,
+    );
     return Response.json(
       { error: "Subscription details are temporarily unavailable." },
       { status: 503 },
     );
   }
 
-  if (!currentUser) {
+  if (access.status === "unauthenticated") {
     return Response.json(
       { error: "Sign in before changing a subscription." },
       { status: 401 },
     );
   }
+  if (access.status === "inactive") {
+    return createSubscriptionRequiredRedirect();
+  }
+  const currentUser = access.user;
 
   const body = await readRequestBody(request);
   if (!body.success) {
