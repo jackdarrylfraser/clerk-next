@@ -67,7 +67,7 @@ The following topics are not yet covered and are on the roadmap for future addit
 **Common Patterns**
 - Soft delete implementation (global filters, `deletedAt` columns)
 - Multi-tenancy (schema-based vs row-based isolation)
-- Auth provider integration (Better Auth, NextAuth, Lucia, Clerk) schema mapping
+- Auth provider integration (Better Auth, NextAuth, Lucia) schema mapping
 
 **Integrations**
 - Drizzle + Zod/Valibot/ArkType schema validation

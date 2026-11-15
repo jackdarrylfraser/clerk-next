@@ -1,5 +1,5 @@
 {
-  "name": "@clerk-next/kv",
+  "name": "@outbound-endurance/kv",
   "version": "0.1.0",
   "private": true,
   "type": "module",

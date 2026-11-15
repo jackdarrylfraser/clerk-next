@@ -34,7 +34,7 @@ describe("idempotency", () => {
   it("runs work once and marks the key complete", async () => {
     const { idempotency, records, setOptions } = createStore();
     const key = {
-      scope: "clerk-next:campaign",
+      scope: "outbound-endurance:campaign",
       key: "campaign/42",
     };
     async function sendCampaign() {
@@ -52,8 +52,8 @@ describe("idempotency", () => {
 
     const keyHash = createHash("sha256").update(key.key).digest("hex");
     expect([...records.keys()]).toEqual([
-      `clerk-next:campaign:lock:${keyHash}`,
-      `clerk-next:campaign:completed:${keyHash}`,
+      `outbound-endurance:campaign:lock:${keyHash}`,
+      `outbound-endurance:campaign:completed:${keyHash}`,
     ]);
     expect([...records.keys()][0]).not.toContain("42");
     const completedKey = [...records.keys()][1];
@@ -62,7 +62,7 @@ describe("idempotency", () => {
 
   it("allows overriding the completion TTL", async () => {
     const { idempotency, records, setOptions } = createStore();
-    const key = { scope: "clerk-next:campaign", key: "campaign/43" };
+    const key = { scope: "outbound-endurance:campaign", key: "campaign/43" };
     async function sendCampaign() {
       return "sent";
     }
@@ -78,7 +78,7 @@ describe("idempotency", () => {
 
   it("returns a cached result for its custom TTL", async () => {
     const { idempotency, records, setOptions } = createStore();
-    const key = { scope: "clerk-next:cache", key: "user-1" };
+    const key = { scope: "outbound-endurance:cache", key: "user-1" };
     let runs = 0;
 
     const first = await idempotency.run(
@@ -115,7 +115,7 @@ describe("idempotency", () => {
 
   it("forgets both the lock and cached result", async () => {
     const { idempotency, records } = createStore();
-    const key = { scope: "clerk-next:cache", key: "user-1" };
+    const key = { scope: "outbound-endurance:cache", key: "user-1" };
     await idempotency.run(
       { ...key, resultTtlSeconds: 30 },
       async () => ({ access: true }),
@@ -128,7 +128,7 @@ describe("idempotency", () => {
 
   it("uses a custom result TTL and stores the result", async () => {
     const { idempotency, records, setOptions } = createStore();
-    const key = { scope: "clerk-next:cache", key: "user-2" };
+    const key = { scope: "outbound-endurance:cache", key: "user-2" };
     const result = await idempotency.run(
       { ...key, resultTtlSeconds: (value) => value.ttl },
       async () => ({ ttl: 30 }),
@@ -144,7 +144,7 @@ describe("idempotency", () => {
 
   it("reports an in-progress operation without running its work", async () => {
     const { idempotency } = createStore();
-    const key = { scope: "clerk-next:campaign", key: "campaign/42" };
+    const key = { scope: "outbound-endurance:campaign", key: "campaign/42" };
     let finishOperation;
     let signalStarted;
     const operationStarted = new Promise((resolve) => {
@@ -188,13 +188,13 @@ describe("idempotency", () => {
 
     expect(
       await idempotency.run(
-        { scope: "clerk-next:first", key: "request-1" },
+        { scope: "outbound-endurance:first", key: "request-1" },
         sendFirst,
       ),
     ).toMatchObject({ status: "executed" });
     expect(
       await idempotency.run(
-        { scope: "clerk-next:second", key: "request-1" },
+        { scope: "outbound-endurance:second", key: "request-1" },
         sendSecond,
       ),
     ).toMatchObject({ status: "executed" });
@@ -203,7 +203,7 @@ describe("idempotency", () => {
 
   it("does not mark work complete when the operation throws", async () => {
     const { idempotency, records } = createStore();
-    const key = { scope: "clerk-next:contact", key: "request-1" };
+    const key = { scope: "outbound-endurance:contact", key: "request-1" };
     const keyHash = createHash("sha256").update(key.key).digest("hex");
 
     async function failOperation() {
@@ -222,7 +222,7 @@ describe("idempotency", () => {
 
   it("does not complete a claim after its lock changes", async () => {
     const { idempotency, records } = createStore();
-    const key = { scope: "clerk-next:contact", key: "request-1" };
+    const key = { scope: "outbound-endurance:contact", key: "request-1" };
     const keyHash = createHash("sha256").update(key.key).digest("hex");
     const lockKey = `${key.scope}:lock:${keyHash}`;
     const completedKey = `${key.scope}:completed:${keyHash}`;
@@ -247,14 +247,14 @@ describe("idempotency", () => {
     ).rejects.toThrow("Idempotency scopes");
     await expect(
       idempotency.run(
-        { scope: "clerk-next:contact", key: " " },
+        { scope: "outbound-endurance:contact", key: " " },
         noOperation,
       ),
     ).rejects.toThrow("Idempotency keys");
     await expect(
       idempotency.run(
         {
-          scope: "clerk-next:contact",
+          scope: "outbound-endurance:contact",
           key: "request-1",
           lockTtlSeconds: 0,
         },
@@ -264,7 +264,7 @@ describe("idempotency", () => {
     await expect(
       idempotency.run(
         {
-          scope: "clerk-next:contact",
+          scope: "outbound-endurance:contact",
           key: "request-1",
           completionTtlSeconds: 0,
         },

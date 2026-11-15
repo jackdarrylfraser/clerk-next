@@ -1,4 +1,4 @@
-import type { IdempotencyRunResult } from "@clerk-next/kv";
+import type { IdempotencyRunResult } from "@outbound-endurance/kv";
 import type { BillingNotificationContent } from "@/emails/billing-notification-content";
 import {
   createCancellationScheduledEmail,

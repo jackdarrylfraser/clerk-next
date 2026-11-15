@@ -20,7 +20,7 @@ Before writing any code, gather requirements by scanning the project and asking 
 Analyze the codebase to auto-detect:
 - **Framework** — Look for `next.config`, `svelte.config`, `nuxt.config`, `astro.config`, `vite.config`, or Express/Hono entry files.
 - **Database/ORM** — Look for `prisma/schema.prisma`, `drizzle.config.ts`, `package.json` deps (`pg`, `postgres`, `@neondatabase/serverless`, `mysql2`, `better-sqlite3`, `mongoose`, `mongodb`). If `drizzle.config.ts` exists, read its `dialect` field to determine the DB type (e.g., `"postgresql"` → Drizzle + Postgres). Also check which Drizzle driver is installed (`drizzle-orm/node-postgres` → `pg`, `drizzle-orm/postgres-js` → `postgres`, `drizzle-orm/neon-http` → Neon).
-- **Existing auth** — Look for existing auth libraries (`next-auth`, `lucia`, `clerk`, `supabase/auth`, `firebase/auth`) in `package.json` or imports.
+- **Existing auth** — Look for existing auth libraries (`next-auth`, `lucia`, `supabase/auth`, `firebase/auth`) in `package.json` or imports.
 - **Package manager** — Check for `pnpm-lock.yaml`, `yarn.lock`, `bun.lockb`, or `package-lock.json`.
 
 Use what you find to pre-fill defaults and skip questions you can already answer.

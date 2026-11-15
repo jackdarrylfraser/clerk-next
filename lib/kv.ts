@@ -1,4 +1,7 @@
-import { createIdempotencyStore, createRedisClient } from "@clerk-next/kv";
+import {
+  createIdempotencyStore,
+  createRedisClient,
+} from "@outbound-endurance/kv";
 import { env } from "@/env";
 
 export const getRedisClient = createRedisClient({

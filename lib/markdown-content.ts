@@ -1,7 +1,7 @@
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import matter from "gray-matter";
-import { renderMarkdown as renderMarkdownSource } from "@clerk-next/markdown-engine";
+import { renderMarkdown as renderMarkdownSource } from "@outbound-endurance/markdown-engine";
 import { getTagSlug } from "@/lib/tags";
 
 const slugPattern = /^[a-z0-9_-]+$/i;

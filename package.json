@@ -1,5 +1,5 @@
 {
-  "name": "clerk-next",
+  "name": "outbound-endurance",
   "version": "0.1.0",
   "private": true,
   "workspaces": [
@@ -17,8 +17,8 @@
     "emails:sync": "bun emails/automations/sync.ts"
   },
   "dependencies": {
-    "@clerk-next/kv": "workspace:*",
-    "@clerk-next/markdown-engine": "workspace:*",
+    "@outbound-endurance/kv": "workspace:*",
+    "@outbound-endurance/markdown-engine": "workspace:*",
     "@libsql/client": "^0.18.0",
     "@next/env": "16.4.5",
     "@t3-oss/env-nextjs": "^0.13.11",

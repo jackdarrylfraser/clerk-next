@@ -1,4 +1,4 @@
-# Clerk Next
+# Outbound Endurance
 
 If you're reading this six months from now, this is a small membership site
 built with Next.js, Better Auth, Stripe, Resend, and Upstash Redis. Visitors

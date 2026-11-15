@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
-  transpilePackages: ["@clerk-next/markdown-engine"],
+  transpilePackages: ["@outbound-endurance/markdown-engine"],
   turbopack: {
     rules: {
       "*.css": {

@@ -3,7 +3,7 @@ import { z } from "zod";
 import {
   createRateLimiter,
   getIpRateLimitIdentifier,
-} from "@clerk-next/kv";
+} from "@outbound-endurance/kv";
 import { env } from "@/env";
 import { getRedisClient } from "@/lib/kv";
 import { sendMarketingOptInEvent } from "@/emails/automations/events";
@@ -13,7 +13,7 @@ const limitContactSubmissions = createRateLimiter({
   getRedisClient,
   limit: 5,
   window: "10 m",
-  prefix: "clerk-next:contact",
+  prefix: "outbound-endurance:contact",
   timeoutMs: 1_000,
 });
 

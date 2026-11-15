@@ -7,8 +7,8 @@ than splitting a file mid-feature.
 
 ## Starting point
 
-Begin with the existing Clerk Billing flow, its multi-step subscribe pages and
-webhook, and locally stored access-level records. The Stripe client,
+Begin with the existing legacy billing flow, its multi-step subscribe pages
+and webhook, and locally stored access-level records. The Stripe client,
 user-to-Stripe-customer mapping, Stripe-based access lookup, Payment Link
 checkout, and Stripe webhook flow described below still need to be added.
 Do not treat any Stripe implementation files or migrations as prerequisites:
@@ -73,7 +73,7 @@ Stripe calls.
 **Files:** `app/subscribe/plan/page.tsx`, `app/subscribe/page.tsx`, and the
 legacy subscribe account/payment pages.
 
-Replace the Clerk plan picker and account-before-checkout steps with monthly
+Replace the legacy plan picker and account-before-checkout steps with monthly
 and annual Payment Link buttons. A visitor should be able to check out without
 an app account. Keep the Stripe URLs in configuration, not in code.
 
@@ -132,10 +132,10 @@ rejected.
 
 ### 10. Remove legacy billing and finish
 
-**Files:** old Clerk billing webhook and subscribe-flow files, `lib/better-auth.ts`,
+**Files:** old billing webhook and subscribe-flow files, `lib/better-auth.ts`,
 `scripts/seed-admin.ts`, `README.md`, and the final database migration.
 
-Remove unused Clerk Billing code and persisted access-level behavior only
+Remove unused legacy billing code and persisted access-level behavior only
 after the Stripe access gates are active. Update setup instructions, then run
 `bun run lint`, `bun test`, `bunx drizzle-kit check`, and `bun run build`.
 
