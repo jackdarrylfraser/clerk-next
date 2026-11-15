@@ -50,8 +50,7 @@ legacy `user_access` table only after the app no longer reads or writes it.
 **Files:** new `lib/stripe-access-policy.ts`, `lib/stripe-access.test.js`, and
 `lib/stripe-access.ts`.
 
-Implement access from paid invoice period ends (and trial ends where
-applicable), not from locally stored subscription status. Cache positive
+Implement access from paid invoice period ends. Cache in KV positive
 results only until paid-through expiry; use a short default TTL for denied
 results. Surface Stripe or Redis failures instead of granting from stale
 state.

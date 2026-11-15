@@ -13,6 +13,13 @@ function createStore(records = new Map()) {
       setOptions.set(key, options);
       return "OK";
     },
+    del: async (...keys) => {
+      let deleted = 0;
+      for (const key of keys) {
+        deleted += Number(records.delete(key));
+      }
+      return deleted;
+    },
     ttl: async () => 45,
   });
 
@@ -40,6 +47,7 @@ describe("idempotency", () => {
     });
     expect(await idempotency.run(key, sendCampaign)).toEqual({
       status: "duplicate",
+      value: "sent",
     });
 
     const keyHash = createHash("sha256").update(key.key).digest("hex");
@@ -49,7 +57,7 @@ describe("idempotency", () => {
     ]);
     expect([...records.keys()][0]).not.toContain("42");
     const completedKey = [...records.keys()][1];
-    expect(setOptions.get(completedKey)).toEqual({ ex: 3_600 });
+    expect(setOptions.get(completedKey)).toEqual({ ex: 604_800 });
   });
 
   it("allows overriding the completion TTL", async () => {
@@ -66,6 +74,72 @@ describe("idempotency", () => {
 
     const completedKey = [...records.keys()][1];
     expect(setOptions.get(completedKey)).toEqual({ ex: 604_800 });
+  });
+
+  it("returns a cached result for its custom TTL", async () => {
+    const { idempotency, records, setOptions } = createStore();
+    const key = { scope: "clerk-next:cache", key: "user-1" };
+    let runs = 0;
+
+    const first = await idempotency.run(
+      {
+        ...key,
+        resultTtlSeconds: (result) => result.ttl,
+      },
+      async () => {
+        runs += 1;
+        return { access: true, ttl: 30 };
+      },
+    );
+    const second = await idempotency.run(
+      key,
+      async () => {
+        runs += 1;
+        return { access: false, ttl: 60 };
+      },
+    );
+
+    expect(first).toEqual({
+      status: "executed",
+      value: { access: true, ttl: 30 },
+    });
+    expect(second).toEqual({
+      status: "duplicate",
+      value: { access: true, ttl: 30 },
+    });
+    expect(runs).toBe(1);
+
+    const completedKey = [...records.keys()][1];
+    expect(setOptions.get(completedKey)).toEqual({ ex: 30 });
+  });
+
+  it("forgets both the lock and cached result", async () => {
+    const { idempotency, records } = createStore();
+    const key = { scope: "clerk-next:cache", key: "user-1" };
+    await idempotency.run(
+      { ...key, resultTtlSeconds: 30 },
+      async () => ({ access: true }),
+    );
+
+    await idempotency.forget(key);
+
+    expect(records.size).toBe(0);
+  });
+
+  it("uses a custom result TTL and stores the result", async () => {
+    const { idempotency, records, setOptions } = createStore();
+    const key = { scope: "clerk-next:cache", key: "user-2" };
+    const result = await idempotency.run(
+      { ...key, resultTtlSeconds: (value) => value.ttl },
+      async () => ({ ttl: 30 }),
+    );
+
+    expect(result).toEqual({ status: "executed", value: { ttl: 30 } });
+    const completedKey = [...records.keys()][1];
+    expect(records.get(completedKey)).toBe(
+      '{"completed":true,"value":{"ttl":30}}',
+    );
+    expect(setOptions.get(completedKey)).toEqual({ ex: 30 });
   });
 
   it("reports an in-progress operation without running its work", async () => {
