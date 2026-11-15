@@ -1,11 +1,10 @@
 import { z } from "zod";
-import type Stripe from "stripe";
 import { env } from "@/env";
 import {
-  getManagedPriceIdsToDeactivate,
   isProductionDeploymentPromotion,
 } from "@/lib/stripe-catalog-policy";
 import { readBuiltStripeCatalog } from "@/lib/stripe-catalog";
+import { activateBuiltStripeCatalog } from "@/lib/stripe-catalog-sync";
 import { stripe } from "@/lib/stripe";
 import { verifyVercelWebhookSignature } from "@/lib/vercel-webhook-signature";
 
@@ -76,38 +75,7 @@ export async function POST(request: Request): Promise<Response> {
       throw new Error("The generated Stripe catalog is missing from this deployment");
     }
 
-    const currentPrice = await stripe.prices.retrieve(catalog.priceId);
-    if (
-      typeof currentPrice.product === "string"
-        ? currentPrice.product !== catalog.productId
-        : currentPrice.product.id !== catalog.productId
-    ) {
-      throw new Error("The current Stripe Price does not belong to the catalog Product");
-    }
-    if (!currentPrice.active) {
-      await stripe.prices.update(currentPrice.id, { active: true });
-    }
-
-    await stripe.products.update(catalog.productId, {
-      default_price: catalog.priceId,
-    });
-
-    const activePrices: Stripe.Price[] = [];
-    for await (const price of stripe.prices.list({
-      product: catalog.productId,
-      active: true,
-      limit: 100,
-    })) {
-      activePrices.push(price);
-    }
-
-    const oldPriceIds = getManagedPriceIdsToDeactivate(
-      activePrices,
-      catalog.priceId,
-    );
-    for (const priceId of oldPriceIds) {
-      await stripe.prices.update(priceId, { active: false });
-    }
+    const oldPriceIds = await activateBuiltStripeCatalog(stripe, catalog);
 
     return Response.json({
       received: true,

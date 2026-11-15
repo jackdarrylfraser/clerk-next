@@ -1,3 +1,14 @@
+export interface StripeCatalogDefinition {
+  catalogKey: string;
+  lookupKey: string;
+  productName: string;
+  productDescription: string;
+  unitAmount: number;
+  currency: string;
+  interval: "day" | "week" | "month" | "year";
+  intervalCount: number;
+}
+
 export const monthlyMembershipDefinition = {
   catalogKey: "monthly-membership",
   lookupKey: "monthly-membership",
@@ -7,4 +18,4 @@ export const monthlyMembershipDefinition = {
   currency: "usd",
   interval: "month",
   intervalCount: 1,
-} as const;
+} as const satisfies StripeCatalogDefinition;

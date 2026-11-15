@@ -5,9 +5,12 @@ import {
   getPaidSubscriptionStatus,
 } from "@/lib/server-access";
 import type { PaidSubscriptionStatus } from "@/lib/server-access";
-import { getStripeCustomerIdsForUser } from "@/lib/stripe-customers";
-import { isStripeCustomerMappedToUser } from "@/lib/stripe-account-policy";
+import { isStripeCustomerOwnedByUser } from "@/lib/stripe-customers";
 import { stripe } from "@/lib/stripe";
+import {
+  isStripeRequestOriginAllowed,
+  readStripeRequestBody,
+} from "@/lib/stripe-request";
 
 const requestSchema = z.object({
   customerId: z.string().trim().min(1).max(255),
@@ -15,7 +18,12 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: Request): Promise<Response> {
-  if (!isAllowedOrigin(request.headers.get("origin"))) {
+  if (
+    !isStripeRequestOriginAllowed(
+      request.headers.get("origin"),
+      env.BETTER_AUTH_URL,
+    )
+  ) {
     return Response.json({ error: "Request origin is not allowed." }, { status: 403 });
   }
 
@@ -44,7 +52,7 @@ export async function POST(request: Request): Promise<Response> {
   }
   const currentUser = access.user;
 
-  const body = await readRequestBody(request);
+  const body = await readStripeRequestBody(request);
   if (!body.success) {
     return Response.json({ error: "A valid JSON request body is required." }, { status: 400 });
   }
@@ -58,8 +66,12 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const customerIds = await getStripeCustomerIdsForUser(currentUser.id);
-    if (!isStripeCustomerMappedToUser(customerIds, parsed.data.customerId)) {
+    if (
+      !(await isStripeCustomerOwnedByUser(
+        currentUser.id,
+        parsed.data.customerId,
+      ))
+    ) {
       return Response.json(
         { error: "That Stripe customer is not linked to your account." },
         { status: 403 },
@@ -85,27 +97,5 @@ export async function POST(request: Request): Promise<Response> {
       { error: "Billing email could not be updated. Please try again." },
       { status: 502 },
     );
-  }
-}
-
-async function readRequestBody(
-  request: Request,
-): Promise<{ success: true; value: unknown } | { success: false }> {
-  try {
-    return { success: true, value: await request.json() };
-  } catch {
-    return { success: false };
-  }
-}
-
-function isAllowedOrigin(origin: string | null): boolean {
-  if (origin === null) {
-    return true;
-  }
-
-  try {
-    return new URL(origin).origin === new URL(env.BETTER_AUTH_URL).origin;
-  } catch {
-    return false;
   }
 }

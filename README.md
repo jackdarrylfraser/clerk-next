@@ -113,13 +113,12 @@ is promoted. To automate this on Vercel, configure a team webhook for the
 `https://<production-domain>/api/webhooks/vercel/deployment`. Save the webhook
 secret as `VERCEL_WEBHOOK_SECRET` and the Vercel project ID as
 `VERCEL_WEBHOOK_PROJECT_ID`. Vercel account webhooks require a Pro or
-Enterprise plan. The handler verifies Vercel's signature, ensures the
-deployed catalog Price is active, sets it as the Product default, then
-deactivates only older active Prices marked as managed by this catalog.
-Existing subscriptions remain on their original Price. If a Vercel rollback
-restores a build whose Price was already deactivated, checkout reactivates
-that build's Price and deactivates the newer managed Price before creating the
-Checkout Session.
+Enterprise plan. The handler verifies Vercel's signature, ensures the deployed catalog Price is
+active, sets it as the Product default, then deactivates only older active
+Prices marked as managed by this catalog. Checkout uses the same catalog
+activation flow, so a Vercel rollback reactivates the build's Price and
+deactivates newer managed Prices before creating a Checkout Session. Existing
+subscriptions remain on their original Price.
 
 Use the matching Stripe test or live secret in each Vercel environment.
 Configure the Stripe webhook endpoint at

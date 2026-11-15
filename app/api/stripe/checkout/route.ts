@@ -1,13 +1,18 @@
-import type Stripe from "stripe";
 import { env } from "@/env";
 import { getCurrentUser } from "@/lib/server-access";
 import { getStripeCustomerIdForUser } from "@/lib/stripe-customers";
 import { stripe } from "@/lib/stripe";
 import { readBuiltStripeCatalog } from "@/lib/stripe-catalog";
-import { getManagedPriceIdsToDeactivate } from "@/lib/stripe-catalog-policy";
+import { activateBuiltStripeCatalog } from "@/lib/stripe-catalog-sync";
+import { isStripeRequestOriginAllowed } from "@/lib/stripe-request";
 
 export async function POST(request: Request): Promise<Response> {
-  if (!isAllowedOrigin(request.headers.get("origin"))) {
+  if (
+    !isStripeRequestOriginAllowed(
+      request.headers.get("origin"),
+      env.BETTER_AUTH_URL,
+    )
+  ) {
     return Response.json({ error: "Request origin is not allowed." }, { status: 403 });
   }
 
@@ -51,7 +56,7 @@ export async function POST(request: Request): Promise<Response> {
   const priceId = catalog.priceId;
 
   try {
-    await restoreCatalogPriceIfNeeded(catalog);
+    await activateBuiltStripeCatalog(stripe, catalog);
 
     const customerId = await getStripeCustomerIdForUser(currentUser.id);
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -81,56 +86,5 @@ export async function POST(request: Request): Promise<Response> {
       { error: "Checkout could not be started. Please try again." },
       { status: 502 },
     );
-  }
-}
-
-async function restoreCatalogPriceIfNeeded(
-  catalog: NonNullable<Awaited<ReturnType<typeof readBuiltStripeCatalog>>>,
-): Promise<void> {
-  const price = await stripe.prices.retrieve(catalog.priceId);
-  const productId =
-    typeof price.product === "string" ? price.product : price.product.id;
-  if (
-    productId !== catalog.productId ||
-    price.metadata.appCatalogKey !== catalog.catalogKey
-  ) {
-    throw new Error("The generated Stripe Price does not match its catalog");
-  }
-  if (price.active) {
-    return;
-  }
-
-  await stripe.prices.update(price.id, { active: true });
-  await stripe.products.update(catalog.productId, {
-    default_price: catalog.priceId,
-  });
-
-  const activePrices: Stripe.Price[] = [];
-  for await (const activePrice of stripe.prices.list({
-    product: catalog.productId,
-    active: true,
-    limit: 100,
-  })) {
-    activePrices.push(activePrice);
-  }
-
-  const oldPriceIds = getManagedPriceIdsToDeactivate(
-    activePrices,
-    catalog.priceId,
-  );
-  for (const oldPriceId of oldPriceIds) {
-    await stripe.prices.update(oldPriceId, { active: false });
-  }
-}
-
-function isAllowedOrigin(origin: string | null): boolean {
-  if (origin === null) {
-    return true;
-  }
-
-  try {
-    return new URL(origin).origin === new URL(env.BETTER_AUTH_URL).origin;
-  } catch {
-    return false;
   }
 }

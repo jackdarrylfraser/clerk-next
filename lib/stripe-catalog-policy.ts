@@ -1,5 +1,3 @@
-import { monthlyMembershipDefinition } from "./stripe-catalog-definition";
-
 interface ManagedPrice {
   id: string;
   active: boolean;
@@ -9,14 +7,14 @@ interface ManagedPrice {
 export function getManagedPriceIdsToDeactivate(
   prices: readonly ManagedPrice[],
   currentPriceId: string,
+  catalogKey: string,
 ): string[] {
   return prices
     .filter(
       (price) =>
         price.id !== currentPriceId &&
         price.active &&
-        price.metadata.appCatalogKey ===
-          monthlyMembershipDefinition.catalogKey,
+        price.metadata.appCatalogKey === catalogKey,
     )
     .map((price) => price.id);
 }

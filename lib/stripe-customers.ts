@@ -20,6 +20,14 @@ export async function getStripeCustomerIdsForUser(
   return rows.map((row) => row.stripeCustomerId);
 }
 
+export async function isStripeCustomerOwnedByUser(
+  userId: string,
+  stripeCustomerId: string,
+): Promise<boolean> {
+  const customerIds = await getStripeCustomerIdsForUser(userId);
+  return customerIds.includes(stripeCustomerId);
+}
+
 export async function getStripeCustomerIdForUser(
   userId: string,
 ): Promise<string | null> {
