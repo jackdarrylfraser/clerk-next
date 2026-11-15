@@ -85,6 +85,10 @@ for production. Never commit real values.
 | --- | --- |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk on the client; required to run/build the app |
 | `CLERK_SECRET_KEY` | Clerk server-side operations; required to run/build the app |
+| `STRIPE_SECRET_KEY` | Stripe server-side API access; required to run/build the app |
+| `STRIPE_WEBHOOK_SECRET` | Verifying Stripe webhook deliveries |
+| `NEXT_PUBLIC_STRIPE_MONTHLY_PAYMENT_LINK_URL` | Public Stripe monthly Payment Link URL |
+| `NEXT_PUBLIC_STRIPE_ANNUAL_PAYMENT_LINK_URL` | Public Stripe annual Payment Link URL |
 | `BETTER_AUTH_SECRET` | Better Auth session signing; use a random secret of at least 32 characters |
 | `BETTER_AUTH_URL` | Better Auth application URL, such as `http://localhost:3000` |
 | `RESEND_API_KEY` | Resend contact, event, and transactional email APIs; required to run/build the app |
@@ -93,6 +97,10 @@ for production. Never commit real values.
 | `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` | Contact rate limiting and idempotency for contact/subscription events; both must be set |
 | `RESEND_FROM_EMAIL` | Verified sender for billing emails and `bun run emails:sync` |
 | `DEV_AUTH_BYPASS` | Optional local member-content preview; set to `true` only for development |
+
+Set the Stripe secret and webhook signing secret for the same Stripe mode as the
+Payment Links. `NEXT_PUBLIC_` values are included in the client bundle at build
+time, so configure the correct Payment Link URLs before building.
 
 Better Auth is configured in `lib/better-auth.ts`, mounted at
 `/api/auth/[...all]`, and uses the Drizzle singleton in `lib/drizzle.ts`.
