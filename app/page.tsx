@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
+import { hasPaidContentAccess } from "@/lib/paid-access";
 import { getCurrentUser } from "@/lib/server-access";
-import { hasStripeSubscriptionAccess } from "@/lib/stripe-access";
 
 const activityDirectory = join(process.cwd(), "content", "self-guided");
 const activitiesPerPage = 5;
@@ -34,7 +34,7 @@ async function HomeContent({
   const canViewActivities =
     isDevAuthBypassEnabled ||
     (current !== null &&
-      (await hasStripeSubscriptionAccess(current.id, current.email)));
+      (await hasPaidContentAccess()));
   if (canViewActivities) {
     const { page: pageParam } = await searchParams;
     const requestedPage =

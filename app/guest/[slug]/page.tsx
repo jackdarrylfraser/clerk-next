@@ -4,12 +4,12 @@ import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
 import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
+import { hasGuestContentAccess } from "@/lib/guest-access";
 import {
   getMarkdownMetadata,
   getMarkdownParams,
   renderMarkdown,
 } from "@/lib/markdown-content";
-import { getCurrentUser } from "@/lib/server-access";
 
 const guestDirectory = join(process.cwd(), "content", "guest");
 
@@ -24,8 +24,7 @@ async function GuestMarkdownPage({
 }) {
   const { slug } = await params;
   if (!isDevAuthBypassEnabled) {
-    const current = await getCurrentUser();
-    if (!current) {
+    if (!(await hasGuestContentAccess())) {
       const pageExists = (await getMarkdownParams(guestDirectory, "slug")).some(
         (page) => page.slug === slug,
       );

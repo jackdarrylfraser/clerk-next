@@ -4,8 +4,8 @@ import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
 import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
+import { hasGuestContentAccess } from "@/lib/guest-access";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
-import { getCurrentUser } from "@/lib/server-access";
 import { getTagSlug } from "@/lib/tags";
 
 const guestDirectory = join(process.cwd(), "content", "guest");
@@ -45,8 +45,7 @@ async function GuestTagPageContent({
 }) {
   const { slug } = await params;
   if (!isDevAuthBypassEnabled) {
-    const current = await getCurrentUser();
-    if (!current) {
+    if (!(await hasGuestContentAccess())) {
       return (
         <GuestEmailVerificationGate
           returnTo={`/guest/tag/${encodeURIComponent(slug)}`}

@@ -120,3 +120,28 @@ export const verification = sqliteTable(
   },
   (table) => [index("verification_identifier_index").on(table.identifier)],
 );
+
+export const lead = sqliteTable(
+  "lead",
+  {
+    id: text("id").primaryKey(),
+    email: text("email").notNull(),
+    verifiedAt: integer("verified_at", { mode: "timestamp_ms" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`)
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [uniqueIndex("lead_email_unique").on(table.email)],
+);
+
+export const leadVerification = sqliteTable("lead_verification", {
+  email: text("email").primaryKey(),
+  codeHash: text("code_hash").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  lastSentAt: integer("last_sent_at", { mode: "timestamp_ms" }).notNull(),
+});

@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
 import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
+import { hasGuestContentAccess } from "@/lib/guest-access";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
-import { getCurrentUser } from "@/lib/server-access";
 
 const guestDirectory = join(process.cwd(), "content", "guest");
 const pagesPerPage = 2;
@@ -41,8 +41,7 @@ async function GuestPagesContent({
     : "/guest";
 
   if (!isDevAuthBypassEnabled) {
-    const current = await getCurrentUser();
-    if (!current) {
+    if (!(await hasGuestContentAccess())) {
       return <GuestEmailVerificationGate returnTo={returnTo} />;
     }
   }

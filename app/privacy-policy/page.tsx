@@ -39,6 +39,11 @@ export default function PrivacyPolicyPage() {
             marketing consent.
           </li>
           <li>
+            Email addresses submitted for guest access, verification-code
+            challenges, and the date an email address was most recently
+            verified.
+          </li>
+          <li>
             Website usage information measured through Umami analytics. The
             exact information collected depends on the deployed Umami settings
             and must be confirmed before publication.
@@ -52,8 +57,8 @@ export default function PrivacyPolicyPage() {
         <p>
           We use information to provide and manage memberships, process
           subscriptions, respond to messages, send requested service or
-          marketing email, protect the site from abuse, and understand website
-          usage.
+          marketing email, verify email addresses for guest-content access,
+          protect the site from abuse, and understand website usage.
         </p>
 
         <h2>Service providers</h2>
@@ -68,9 +73,10 @@ export default function PrivacyPolicyPage() {
         <h2>Cookies and similar technologies</h2>
         <p>
           Sign-in, checkout, or analytics settings may use cookies or similar
-          technologies. Confirm the production configuration and the
-          information associated with those technologies before publishing
-          this policy.
+          technologies. A signed, httpOnly cookie may remember a verified lead
+          for guest-content access for up to 30 days. Confirm the production
+          configuration and the information associated with those technologies
+          before publishing this policy.
         </p>
 
         <h2>Retention and your choices</h2>

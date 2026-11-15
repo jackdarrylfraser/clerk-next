@@ -12,6 +12,7 @@ import {
 import { sendEmail } from "../emails/send-email";
 import { env } from "../env";
 import { getDb } from "./drizzle";
+import { leadEmailOTP } from "./lead-email-otp-plugin";
 
 export const auth = betterAuth({
   appName: "Outbound Endurance",
@@ -22,6 +23,7 @@ export const auth = betterAuth({
     schema: { user, session, account, verification },
   }),
   plugins: [
+    leadEmailOTP(),
     emailOTP({
       otpLength: 6,
       expiresIn: 300,

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { authClient } from "@/lib/better-auth-client";
 
 export type EmailCodeVerificationCopy = {
   emailHeading: string;
@@ -55,12 +54,13 @@ export function EmailCodeVerificationForm({
     setIsSubmitting(true);
 
     try {
-      const { error } = await authClient.emailOtp.sendVerificationOtp({
-        email: trimmedEmailAddress,
-        type: "sign-in",
+      const response = await fetch("/api/auth/lead-email-otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmailAddress }),
       });
 
-      if (error) {
+      if (!response.ok) {
         setStatus({ kind: "error", message: copy.requestError });
         return;
       }
@@ -87,12 +87,16 @@ export function EmailCodeVerificationForm({
     setIsSubmitting(true);
 
     try {
-      const { error } = await authClient.signIn.emailOtp({
-        email: emailAddress,
-        otp: verificationCode.trim(),
+      const response = await fetch("/api/auth/lead-email-otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: emailAddress,
+          otp: verificationCode.trim(),
+        }),
       });
 
-      if (error) {
+      if (!response.ok) {
         setStatus({ kind: "error", message: copy.verifyError });
         return;
       }
@@ -150,6 +154,8 @@ export function EmailCodeVerificationForm({
                 autoComplete="one-time-code"
                 autoFocus
                 inputMode="numeric"
+                maxLength={6}
+                pattern="[0-9]{6}"
                 onChange={(event) => setVerificationCode(event.target.value)}
                 required
                 type="text"
