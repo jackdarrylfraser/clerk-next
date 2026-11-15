@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useSignIn } from "@clerk/nextjs";
+import { authClient } from "@/lib/better-auth-client";
 
 export type EmailCodeVerificationCopy = {
   emailHeading: string;
@@ -13,7 +13,6 @@ export type EmailCodeVerificationCopy = {
   requestError: string;
   requestFailure: string;
   verifyError: string;
-  incompleteError: string;
   verifyFailure: string;
 };
 
@@ -27,24 +26,38 @@ type Status = {
   message: string;
 };
 
+function getSafeReturnDestination(destination: string): string {
+  try {
+    const url = new URL(destination, window.location.origin);
+    if (url.origin !== window.location.origin) {
+      return "/";
+    }
+
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return "/";
+  }
+}
+
 export function EmailCodeVerificationForm({
   copy,
   getReturnTo,
 }: EmailCodeVerificationFormProps) {
-  const { signIn, fetchStatus } = useSignIn();
   const [emailAddress, setEmailAddress] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [hasSentCode, setHasSentCode] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
-  const isSubmitting = fetchStatus === "fetching";
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function requestVerificationCode() {
     const trimmedEmailAddress = emailAddress.trim();
     setStatus(null);
+    setIsSubmitting(true);
 
     try {
-      const { error } = await signIn.emailCode.sendCode({
-        emailAddress: trimmedEmailAddress,
+      const { error } = await authClient.emailOtp.sendVerificationOtp({
+        email: trimmedEmailAddress,
+        type: "sign-in",
       });
 
       if (error) {
@@ -58,6 +71,8 @@ export function EmailCodeVerificationForm({
     } catch (error) {
       console.error("Email verification code request failed", error);
       setStatus({ kind: "error", message: copy.requestFailure });
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -69,10 +84,12 @@ export function EmailCodeVerificationForm({
   async function verifyEmail(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus(null);
+    setIsSubmitting(true);
 
     try {
-      const { error } = await signIn.emailCode.verifyCode({
-        code: verificationCode.trim(),
+      const { error } = await authClient.signIn.emailOtp({
+        email: emailAddress,
+        otp: verificationCode.trim(),
       });
 
       if (error) {
@@ -80,27 +97,16 @@ export function EmailCodeVerificationForm({
         return;
       }
 
-      if (signIn.status !== "complete") {
-        setStatus({ kind: "error", message: copy.incompleteError });
-        return;
-      }
-
-      await signIn.finalize({
-        navigate: ({ session, decorateUrl }) => {
-          const destination = session.currentTask
-            ? `/sign-in/tasks/${session.currentTask.key}`
-            : getReturnTo();
-          window.location.assign(decorateUrl(destination));
-        },
-      });
+      window.location.assign(getSafeReturnDestination(getReturnTo()));
     } catch (error) {
       console.error("Email verification failed", error);
       setStatus({ kind: "error", message: copy.verifyFailure });
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   function changeEmail() {
-    signIn.reset();
     setHasSentCode(false);
     setVerificationCode("");
     setStatus(null);

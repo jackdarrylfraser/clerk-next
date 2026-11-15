@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { Suspense, use, useEffect } from "react";
 import { usePlans } from "@clerk/nextjs/experimental";
-import { useAuth } from "@clerk/nextjs";
 import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
+import { authClient } from "@/lib/better-auth-client";
 import { useRouter } from "next/navigation";
 import {
   getSelectedPlanState,
@@ -42,7 +42,9 @@ function SubscribePlanContent({
   const query = parseSubscribeQuery(use(searchParams));
   const router = useRouter();
   const plans = usePlans({ for: "user", pageSize: 10, infinite: true });
-  const { isLoaded, isSignedIn } = useAuth();
+  const { data: session, isPending: isAuthPending } = authClient.useSession();
+  const isLoaded = !isAuthPending;
+  const isSignedIn = !!session;
   const devAuthBypassEnabled = useDevAuthBypass();
   const matchingPlan = plans.data?.find((plan) => plan.id === query.plan);
   const selectedPlanState = getSelectedPlanState({

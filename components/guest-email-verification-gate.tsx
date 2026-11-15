@@ -29,8 +29,6 @@ const guestVerificationCopy = ({
   requestFailure: "We couldn't send a verification code. Please try again.",
   verifyError:
     "That code couldn't be verified. Check it and try again, or request a new code.",
-  incompleteError:
-    "Your account needs another security check before this content is available. Please contact support.",
   verifyFailure:
     "We couldn't verify that code. Please try again or request a new one.",
 });

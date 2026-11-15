@@ -1,6 +1,5 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { Suspense } from "react";
 import { CustomSignInForm } from "@/components/custom-sign-in-form";
@@ -13,6 +12,7 @@ import {
   resolveSubscribeFlow,
 } from "@/components/subscribe/flow-state";
 import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
+import { authClient } from "@/lib/better-auth-client";
 import type { SubscribeSearchParams } from "@/components/subscribe/types";
 
 export default function SubscribeAccountPage({
@@ -33,7 +33,9 @@ function SubscribeAccountContent({
   searchParams: Promise<SubscribeSearchParams>;
 }) {
   const query = parseSubscribeQuery(use(searchParams));
-  const { isLoaded, isSignedIn } = useAuth();
+  const { data: session, isPending: isAuthPending } = authClient.useSession();
+  const isLoaded = !isAuthPending;
+  const isSignedIn = !!session;
   const devAuthBypassEnabled = useDevAuthBypass();
   const router = useRouter();
   const urls = getSubscribeUrls(query.plan, query.period);

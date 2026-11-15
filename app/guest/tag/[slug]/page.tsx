@@ -1,11 +1,12 @@
-import { auth } from "@clerk/nextjs/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
 import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
+import { hasAccessLevel } from "@/lib/access-policy";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
+import { getCurrentUserAccess } from "@/lib/server-access";
 import { getTagSlug } from "@/lib/tags";
 
 const guestDirectory = join(process.cwd(), "content", "guest");
@@ -45,15 +46,17 @@ async function GuestTagPageContent({
 }) {
   const { slug } = await params;
   if (!isDevAuthBypassEnabled) {
-    const { isAuthenticated } = await auth();
-    if (!isAuthenticated) {
+    const current = await getCurrentUserAccess();
+    if (!current) {
       return (
         <GuestEmailVerificationGate
           returnTo={`/guest/tag/${encodeURIComponent(slug)}`}
         />
       );
     }
-    await auth.protect({ feature: "guest" });
+    if (!hasAccessLevel(current.accessLevel, "guest")) {
+      redirect("/subscribe/plan");
+    }
   }
 
   if (!tagSlugPattern.test(slug)) {

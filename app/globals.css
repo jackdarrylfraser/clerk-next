@@ -1146,6 +1146,22 @@ button.text-button {
   color: #858c81;
   font-size: 14px;
 }
+.account-details {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid #dfe3da;
+  border-radius: 12px;
+  max-width: 520px;
+}
+.account-details p {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+}
+.account-details strong {
+  min-width: 64px;
+}
 @media (max-width: 800px) {
   .billing-options {
     grid-template-columns: 1fr;

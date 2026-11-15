@@ -3,7 +3,13 @@ import { createHash } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP } from "better-auth/plugins";
-import { account, session, user, verification } from "../db/schema";
+import {
+  account,
+  session,
+  user,
+  userAccess,
+  verification,
+} from "../db/schema";
 import { sendEmail } from "../emails/send-email";
 import { env } from "../env";
 import { getDb } from "./drizzle";
@@ -16,6 +22,18 @@ export const auth = betterAuth({
     provider: "sqlite",
     schema: { user, session, account, verification },
   }),
+  databaseHooks: {
+    user: {
+      create: {
+        async after(createdUser) {
+          await getDb()
+            .insert(userAccess)
+            .values({ userId: createdUser.id, accessLevel: "guest" })
+            .onConflictDoNothing();
+        },
+      },
+    },
+  },
   plugins: [
     emailOTP({
       otpLength: 6,

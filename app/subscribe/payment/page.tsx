@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense } from "react";
-import { useAuth } from "@clerk/nextjs";
 import {
   CheckoutProvider,
   PaymentElement,
@@ -11,6 +10,7 @@ import {
   usePlans,
 } from "@clerk/nextjs/experimental";
 import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
+import { authClient } from "@/lib/better-auth-client";
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -44,7 +44,9 @@ function SubscribePaymentContent({
   searchParams: Promise<SubscribeSearchParams>;
 }) {
   const query = parseSubscribeQuery(use(searchParams));
-  const { isLoaded, isSignedIn } = useAuth();
+  const { data: session, isPending: isAuthPending } = authClient.useSession();
+  const isLoaded = !isAuthPending;
+  const isSignedIn = !!session;
   const devAuthBypassEnabled = useDevAuthBypass();
   const router = useRouter();
   const plans = usePlans({ for: "user", pageSize: 10, infinite: true });
@@ -147,6 +149,10 @@ function PaymentStep({
           Change
         </Link>
       </div>
+      <p className="status-message" role="status">
+        Checkout still uses Clerk Billing and is not connected to Better Auth
+        sign-in yet.
+      </p>
       <Checkout selectedId={selectedPlan.id} period={period} />
     </>
   );

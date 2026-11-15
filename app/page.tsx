@@ -1,10 +1,11 @@
-import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { join } from "node:path";
 import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
+import { hasAccessLevel } from "@/lib/access-policy";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
+import { getCurrentUserAccess } from "@/lib/server-access";
 
 const activityDirectory = join(process.cwd(), "content", "self-guided");
 const activitiesPerPage = 5;
@@ -28,9 +29,12 @@ async function HomeContent({
 }: {
   searchParams: Promise<{ page?: string | string[] }>;
 }) {
-  const isAuthenticated =
-    isDevAuthBypassEnabled || (await auth()).isAuthenticated;
-  if (isAuthenticated) {
+  const current =
+    isDevAuthBypassEnabled ? null : await getCurrentUserAccess();
+  const canViewActivities =
+    isDevAuthBypassEnabled ||
+    (current !== null && hasAccessLevel(current.accessLevel, "self_guided"));
+  if (canViewActivities) {
     const { page: pageParam } = await searchParams;
     const requestedPage =
       typeof pageParam === "string" ? Number(pageParam) : Number.NaN;

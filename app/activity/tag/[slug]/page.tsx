@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { join } from "node:path";
@@ -6,6 +5,7 @@ import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getTagSlug } from "@/lib/tags";
+import { requireUserAccess } from "@/lib/server-access";
 
 const activityDirectory = join(process.cwd(), "content", "self-guided");
 const tagSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -42,11 +42,14 @@ async function TagPageContent({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
   if (!isDevAuthBypassEnabled) {
-    await auth.protect({ feature: "user:site_access" });
+    await requireUserAccess(
+      "self_guided",
+      `/activity/tag/${encodeURIComponent(slug)}`,
+    );
   }
 
-  const { slug } = await params;
   if (!tagSlugPattern.test(slug)) {
     notFound();
   }

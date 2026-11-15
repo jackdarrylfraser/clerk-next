@@ -1,11 +1,12 @@
 "use client";
 
-import { UserButton, useAuth } from "@clerk/nextjs";
 import { useDevAuthBypass } from "@/components/dev-auth-bypass-provider";
+import { SignOutButton } from "@/components/sign-out-button";
+import { authClient } from "@/lib/better-auth-client";
 import Link from "next/link";
 
 export default function Navigation() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { data: session, isPending, error } = authClient.useSession();
   const devAuthBypassEnabled = useDevAuthBypass();
 
   return (
@@ -14,11 +15,13 @@ export default function Navigation() {
         Outbound Endurance
       </Link>
       <nav className="header-right" aria-label="Main navigation">
-        {isLoaded &&
-          (isSignedIn ? (
+        {error ? (
+          <span role="alert">Unable to load your account.</span>
+        ) : !isPending ? (
+          session ? (
             <>
               <Link href="/account">Your account</Link>
-              <UserButton />
+              <SignOutButton />
             </>
           ) : devAuthBypassEnabled ? (
             <>
@@ -29,7 +32,8 @@ export default function Navigation() {
             <Link href="/sign-in" className="subscribe-link">
               Sign in / Sign up
             </Link>
-          ))}
+          )
+        ) : null}
       </nav>
     </header>
   );

@@ -1,28 +1,32 @@
 # Clerk Next
 
 If you're reading this six months from now, this is a small membership site
-built with Next.js, Clerk, Resend, and Upstash Redis. Visitors choose a
-membership plan, then sign in or create an account through the same account
-flow before checkout. The selected plan stays in the URL so signed-in users
-can go straight to checkout.
+built with Next.js, Better Auth, Clerk Billing, Resend, and Upstash Redis.
+Visitors choose a membership plan, then sign in or create an account through
+the same account flow. The selected plan stays in the URL so signed-in users
+can resume the flow.
 
 ## What the app does
 
-- **Membership and account management:** Clerk provides sign-in/sign-up,
-  user-facing billing plans, checkout, and the profile and subscription
-  management UI. The `/subscribe` flow is split into account, plan, and
-  payment steps. The selected plan and billing period stay in the URL so the
-  flow can resume after sign-in or a refresh. Terms acceptance is held in
-  browser session storage; it is not a durable audit record.
+- **Authentication and account access:** Better Auth handles email-code
+  sign-in and session management. The account page is available to
+  `self_guided` and `admin` users. Profile editing and subscription management
+  are not yet migrated.
+- **Billing migration status:** Plan lookup and checkout still use Clerk
+  Billing. Better Auth sessions are not Clerk sessions, so checkout is not
+  available to users signed in through the Better Auth flow until billing is
+  migrated. The `/subscribe` flow keeps the selected plan and billing period
+  in the URL so it can resume after sign-in or a refresh.
 - **Member content:** The home page lists paginated activities from
-  `content/self-guided`. Individual activity pages require the Clerk
-  `user:site_access` feature entitlement. Tag links filter activities.
+  `content/self-guided` for `self_guided` and `admin` users. Individual
+  activity pages and tags use the same access rule.
 - **Public content:** Markdown files in `content/public` are listed at
   `/public`, rendered at `/public/<slug>`, and filterable by tag. Public pages also
   include the contact form.
 - **Guest content:** Markdown files in `content/guest` are listed at
   `/guest`, rendered at `/guest/<slug>`, and filterable by starter tags.
-  Access requires the Clerk `user:site_access` feature entitlement.
+  Signed-in users with `guest`, `self_guided`, or `admin` access can view it.
+  Signed-out visitors see an email-code sign-in gate.
 - **Contact capture:** The form posts names, email, and explicit marketing
   consent to `/api/contacts`. The endpoint records consent details, adds the
   contact to Resend's Marketing topic, and starts an educational email
@@ -37,9 +41,9 @@ can go straight to checkout.
   subscription event delivery. If Redis is missing or unavailable, these
   operations fail rather than running without protection.
 - **Local member-content preview:** `DEV_AUTH_BYPASS=true` in development lets
-  you browse self-guided and starter content without signing in. It does not
-  create a Clerk session, so checkout and account management still need real
-  authentication.
+  you browse self-guided and guest content without signing in. It does not
+  create a Better Auth session, so account access still requires a real
+  self-guided or admin session.
 
 ## Start here
 
@@ -50,7 +54,8 @@ bun install
 bun run dev
 ```
 
-Create `.env.local` with the Clerk keys and Resend API key below, then open
+Create `.env.local` with the Better Auth, database, Clerk Billing, and Resend
+keys below, then open
 <http://localhost:3000>. To preview member content without a Clerk session,
 also set `DEV_AUTH_BYPASS=true` and restart the dev server. The bypass is
 disabled outside development.
@@ -91,17 +96,14 @@ for production. Never commit real values.
 Better Auth is configured in `lib/better-auth.ts`, mounted at
 `/api/auth/[...all]`, and uses the Drizzle singleton in `lib/drizzle.ts`.
 Email-code sign-in uses Better Auth's email OTP plugin and sends through
-Resend. Define database tables in `db/schema.ts`; Drizzle Kit uses
+Resend. New users receive `guest` access by default; `self_guided` and `admin`
+access is stored in `user_access`. Define database tables in `db/schema.ts`; Drizzle Kit uses
 `drizzle.config.ts` and writes migrations to `drizzle/`. Generate and apply the
 initial auth migration with `bun run db:generate` and `bun run db:migrate`.
 
-Before expecting checkout to work, configure Clerk Billing, connect its payment
-provider, publish user plans, and enable the desired sign-in methods in the
-Clerk Dashboard. In the Dashboard's User model settings, turn off **Allow users
-to set their first and last name** if accounts should not collect names.
-Optional fields are hidden in the app's Clerk components. Member plans must
-have the `site_access` feature entitlement. Plan names, prices, trial settings,
-and features are read from Clerk rather than hard-coded here.
+Clerk Billing still supplies plan and checkout data. Configure it for the
+legacy billing UI as needed, but Better Auth sign-in does not create a Clerk
+session; migrate billing before enabling checkout for Better Auth users.
 
 To enable email workflows:
 
@@ -118,9 +120,9 @@ To enable email workflows:
 3. Configure both Upstash Redis variables. Contact capture and event
    idempotency return an error when Redis is not configured.
 
-Checkout uses Clerk's experimental Billing APIs. Check Clerk's current
-version-pinning guidance before deploying. Test payment flows with the
-development Clerk instance and payment provider's test mode.
+Checkout still uses Clerk's experimental Billing APIs. Check Clerk's current
+version-pinning guidance before deploying. Payment flows need to be migrated
+before they can use Better Auth sessions.
 
 ## Where to make changes
 

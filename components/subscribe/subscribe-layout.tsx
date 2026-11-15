@@ -43,8 +43,9 @@ export function SubscribeLayout({
         </div>
         {devAuthBypassEnabled && isLoaded && !isSignedIn && (
           <p className="dev-auth-notice" role="status">
-            Development access is enabled for member content. Account
-            management and checkout still require a Clerk sign-in.
+            Development access is enabled for member content. Account access
+            uses Better Auth; checkout remains on the existing Clerk billing
+            integration.
           </p>
         )}
         <nav className="progress" aria-label="Subscription progress">

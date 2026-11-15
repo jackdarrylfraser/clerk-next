@@ -1,15 +1,16 @@
-import { auth } from "@clerk/nextjs/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
 import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
+import { hasAccessLevel } from "@/lib/access-policy";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import {
   getMarkdownMetadata,
   getMarkdownParams,
   renderMarkdown,
 } from "@/lib/markdown-content";
+import { getCurrentUserAccess } from "@/lib/server-access";
 
 const guestDirectory = join(process.cwd(), "content", "guest");
 
@@ -24,8 +25,8 @@ async function GuestMarkdownPage({
 }) {
   const { slug } = await params;
   if (!isDevAuthBypassEnabled) {
-    const { isAuthenticated } = await auth();
-    if (!isAuthenticated) {
+    const current = await getCurrentUserAccess();
+    if (!current) {
       const pageExists = (await getMarkdownParams(guestDirectory, "slug")).some(
         (page) => page.slug === slug,
       );
@@ -40,7 +41,9 @@ async function GuestMarkdownPage({
         />
       );
     }
-    await auth.protect({ feature: "guest" });
+    if (!hasAccessLevel(current.accessLevel, "guest")) {
+      redirect("/subscribe/plan");
+    }
   }
 
   const content = await renderMarkdown(guestDirectory, slug);
