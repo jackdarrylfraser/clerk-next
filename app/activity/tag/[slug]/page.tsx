@@ -3,10 +3,9 @@ import { Suspense } from "react";
 import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import { ACCESS_LEVELS } from "@/lib/constants";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getTagSlug } from "@/lib/tags";
-import { requireUserAccess } from "@/lib/server-access";
+import { requirePaidSubscription } from "@/lib/server-access";
 
 const activityDirectory = join(process.cwd(), "content", "self-guided");
 const tagSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -45,10 +44,7 @@ async function TagPageContent({
 }) {
   const { slug } = await params;
   if (!isDevAuthBypassEnabled) {
-    await requireUserAccess(
-      ACCESS_LEVELS.SELF_GUIDED.value,
-      `/activity/tag/${encodeURIComponent(slug)}`,
-    );
+    await requirePaidSubscription(`/activity/tag/${encodeURIComponent(slug)}`);
   }
 
   if (!tagSlugPattern.test(slug)) {

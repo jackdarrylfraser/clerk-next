@@ -1,71 +1,29 @@
 import "server-only";
-import { eq } from "drizzle-orm";
 import { io } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { userAccess } from "@/db/schema";
 import { auth } from "@/lib/better-auth";
-import {
-  ACCESS_LEVELS,
-  isAccessLevel,
-  type AccessLevel,
-} from "@/lib/constants";
-import { getDb } from "@/lib/drizzle";
-import { hasAccessLevel } from "@/lib/access-policy";
+import { hasStripeSubscriptionAccess } from "@/lib/stripe-access";
 
 type AuthSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
 
-export type CurrentUserAccess = {
-  user: AuthSession["user"];
-  accessLevel: AccessLevel;
-};
+export type CurrentUser = AuthSession["user"];
 
-export async function getCurrentUserAccess(): Promise<CurrentUserAccess | null> {
+export async function getCurrentUser(): Promise<CurrentUser | null> {
   await io();
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return null;
-  }
-
-  const db = getDb();
-  const [record] = await db
-    .select({ accessLevel: userAccess.accessLevel })
-    .from(userAccess)
-    .where(eq(userAccess.userId, session.user.id))
-    .limit(1);
-
-  if (!record) {
-    await db
-      .insert(userAccess)
-      .values({
-        userId: session.user.id,
-        accessLevel: ACCESS_LEVELS.GUEST.value,
-      })
-      .onConflictDoNothing();
-
-    return {
-      user: session.user,
-      accessLevel: ACCESS_LEVELS.GUEST.value,
-    };
-  }
-
-  if (!isAccessLevel(record.accessLevel)) {
-    throw new Error(`Invalid access level for user ${session.user.id}`);
-  }
-
-  return { user: session.user, accessLevel: record.accessLevel };
+  return session?.user ?? null;
 }
 
-export async function requireUserAccess(
-  required: AccessLevel,
+export async function requirePaidSubscription(
   returnTo: string,
-): Promise<CurrentUserAccess> {
-  const current = await getCurrentUserAccess();
+): Promise<CurrentUser> {
+  const current = await getCurrentUser();
   if (!current) {
     redirect(`/sign-in?redirect_url=${encodeURIComponent(returnTo)}`);
   }
 
-  if (!hasAccessLevel(current.accessLevel, required)) {
+  if (!(await hasStripeSubscriptionAccess(current.id, current.email))) {
     redirect("/subscribe/plan");
   }
 

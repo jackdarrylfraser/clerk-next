@@ -7,12 +7,10 @@ import {
   account,
   session,
   user,
-  userAccess,
   verification,
 } from "../db/schema";
 import { sendEmail } from "../emails/send-email";
 import { env } from "../env";
-import { ACCESS_LEVELS } from "./constants";
 import { getDb } from "./drizzle";
 
 export const auth = betterAuth({
@@ -23,21 +21,6 @@ export const auth = betterAuth({
     provider: "sqlite",
     schema: { user, session, account, verification },
   }),
-  databaseHooks: {
-    user: {
-      create: {
-        async after(createdUser) {
-          await getDb()
-            .insert(userAccess)
-            .values({
-              userId: createdUser.id,
-              accessLevel: ACCESS_LEVELS.GUEST.value,
-            })
-            .onConflictDoNothing();
-        },
-      },
-    },
-  },
   plugins: [
     emailOTP({
       otpLength: 6,

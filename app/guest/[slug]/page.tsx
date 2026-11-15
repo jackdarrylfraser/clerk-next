@@ -1,17 +1,15 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
 import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
-import { hasAccessLevel } from "@/lib/access-policy";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import { ACCESS_LEVELS } from "@/lib/constants";
 import {
   getMarkdownMetadata,
   getMarkdownParams,
   renderMarkdown,
 } from "@/lib/markdown-content";
-import { getCurrentUserAccess } from "@/lib/server-access";
+import { getCurrentUser } from "@/lib/server-access";
 
 const guestDirectory = join(process.cwd(), "content", "guest");
 
@@ -26,7 +24,7 @@ async function GuestMarkdownPage({
 }) {
   const { slug } = await params;
   if (!isDevAuthBypassEnabled) {
-    const current = await getCurrentUserAccess();
+    const current = await getCurrentUser();
     if (!current) {
       const pageExists = (await getMarkdownParams(guestDirectory, "slug")).some(
         (page) => page.slug === slug,
@@ -41,9 +39,6 @@ async function GuestMarkdownPage({
           title={title}
         />
       );
-    }
-    if (!hasAccessLevel(current.accessLevel, ACCESS_LEVELS.GUEST.value)) {
-      redirect("/subscribe/plan");
     }
   }
 

@@ -3,12 +3,9 @@ import { join } from "node:path";
 import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
 import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
-import { hasAccessLevel } from "@/lib/access-policy";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import { ACCESS_LEVELS } from "@/lib/constants";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
-import { getCurrentUserAccess } from "@/lib/server-access";
-import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/server-access";
 
 const guestDirectory = join(process.cwd(), "content", "guest");
 const pagesPerPage = 2;
@@ -44,12 +41,9 @@ async function GuestPagesContent({
     : "/guest";
 
   if (!isDevAuthBypassEnabled) {
-    const current = await getCurrentUserAccess();
+    const current = await getCurrentUser();
     if (!current) {
       return <GuestEmailVerificationGate returnTo={returnTo} />;
-    }
-    if (!hasAccessLevel(current.accessLevel, ACCESS_LEVELS.GUEST.value)) {
-      redirect("/subscribe/plan");
     }
   }
 

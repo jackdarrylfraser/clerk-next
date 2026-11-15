@@ -2,9 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import { hasAccessLevel } from "@/lib/access-policy";
-import { ACCESS_LEVELS } from "@/lib/constants";
-import { getCurrentUserAccess } from "@/lib/server-access";
+import { getCurrentUser } from "@/lib/server-access";
 import { SignOutButton } from "@/components/sign-out-button";
 
 export default function AccountPage() {
@@ -12,7 +10,7 @@ export default function AccountPage() {
 }
 
 async function Account() {
-  const current = await getCurrentUserAccess();
+  const current = await getCurrentUser();
   if (!current && isDevAuthBypassEnabled) {
     return (
       <main className="account-page">
@@ -32,22 +30,17 @@ async function Account() {
   if (!current) {
     redirect(`/sign-in?redirect_url=${encodeURIComponent("/account")}`);
   }
-  if (
-    !hasAccessLevel(current.accessLevel, ACCESS_LEVELS.SELF_GUIDED.value)
-  ) {
-    redirect("/subscribe/plan");
-  }
 
   return (
     <main className="account-page">
       <div className="account-heading">
         <div className="eyebrow"><span /> YOUR MEMBERSHIP</div>
         <h1>Your account.</h1>
-        <p>Signed in as {current.user.email}.</p>
+        <p>Signed in as {current.email}.</p>
       </div>
       <div className="account-details">
-        <p><strong>Name</strong> {current.user.name}</p>
-        <p><strong>Email</strong> {current.user.email}</p>
+        <p><strong>Name</strong> {current.name}</p>
+        <p><strong>Email</strong> {current.email}</p>
         <SignOutButton />
       </div>
     </main>

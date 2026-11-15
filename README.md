@@ -71,7 +71,6 @@ bun run lint         # ESLint
 bun run db:generate  # generate migrations from db/schema.ts
 bun run db:migrate   # apply generated migrations to Turso
 bun run db:studio    # inspect the database
-bun run db:seed-admin # create/promote the Better Auth admin user
 bun run emails:sync  # create/update declared Resend email resources
 ```
 
@@ -105,17 +104,13 @@ time, so configure the correct Payment Link URLs before building.
 Better Auth is configured in `lib/better-auth.ts`, mounted at
 `/api/auth/[...all]`, and uses the Drizzle singleton in `lib/drizzle.ts`.
 Email-code sign-in uses Better Auth's email OTP plugin and sends through
-Resend. New users receive `guest` access by default; `self_guided` and `admin`
-access is stored in `user_access`. Define database tables in `db/schema.ts`; Drizzle Kit uses
-`drizzle.config.ts` and writes migrations to `drizzle/`. Generate and apply the
-initial auth migration with `bun run db:generate` and `bun run db:migrate`.
-
-To seed an admin user, set `SEED_ADMIN_EMAIL` in `.env.local` and run
-`bun run db:seed-admin` after applying migrations. `SEED_ADMIN_NAME` is optional
-and defaults to `Admin`. The script is safe to rerun: it creates the Better Auth
-user if needed and sets their access level to `admin`. The email remains
-unverified until the user signs in with an email code. This only grants app
-access; it does not create a Clerk Billing subscription.
+Resend. Guest content requires sign-in; self-guided activities require an
+unexpired paid Stripe invoice period or current trial. Subscription access
+uses linked Stripe customers when available and otherwise looks up customers
+by the Better Auth email. Define database tables in `db/schema.ts`; Drizzle Kit
+uses `drizzle.config.ts` and writes migrations to `drizzle/`. Generate and
+apply the initial auth migration with `bun run db:generate` and
+`bun run db:migrate`.
 
 Clerk Billing still supplies plan and checkout data. Configure it for the
 legacy billing UI as needed, but Better Auth sign-in does not create a Clerk

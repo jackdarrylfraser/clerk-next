@@ -1,13 +1,11 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
 import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
-import { hasAccessLevel } from "@/lib/access-policy";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import { ACCESS_LEVELS } from "@/lib/constants";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
-import { getCurrentUserAccess } from "@/lib/server-access";
+import { getCurrentUser } from "@/lib/server-access";
 import { getTagSlug } from "@/lib/tags";
 
 const guestDirectory = join(process.cwd(), "content", "guest");
@@ -47,16 +45,13 @@ async function GuestTagPageContent({
 }) {
   const { slug } = await params;
   if (!isDevAuthBypassEnabled) {
-    const current = await getCurrentUserAccess();
+    const current = await getCurrentUser();
     if (!current) {
       return (
         <GuestEmailVerificationGate
           returnTo={`/guest/tag/${encodeURIComponent(slug)}`}
         />
       );
-    }
-    if (!hasAccessLevel(current.accessLevel, ACCESS_LEVELS.GUEST.value)) {
-      redirect("/subscribe/plan");
     }
   }
 

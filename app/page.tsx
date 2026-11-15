@@ -3,10 +3,9 @@ import { join } from "node:path";
 import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import { hasAccessLevel } from "@/lib/access-policy";
-import { ACCESS_LEVELS } from "@/lib/constants";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
-import { getCurrentUserAccess } from "@/lib/server-access";
+import { getCurrentUser } from "@/lib/server-access";
+import { hasStripeSubscriptionAccess } from "@/lib/stripe-access";
 
 const activityDirectory = join(process.cwd(), "content", "self-guided");
 const activitiesPerPage = 5;
@@ -31,11 +30,11 @@ async function HomeContent({
   searchParams: Promise<{ page?: string | string[] }>;
 }) {
   const current =
-    isDevAuthBypassEnabled ? null : await getCurrentUserAccess();
+    isDevAuthBypassEnabled ? null : await getCurrentUser();
   const canViewActivities =
     isDevAuthBypassEnabled ||
     (current !== null &&
-      hasAccessLevel(current.accessLevel, ACCESS_LEVELS.SELF_GUIDED.value));
+      (await hasStripeSubscriptionAccess(current.id, current.email)));
   if (canViewActivities) {
     const { page: pageParam } = await searchParams;
     const requestedPage =

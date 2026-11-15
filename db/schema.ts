@@ -5,7 +5,6 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
-import { ACCESS_LEVELS, type AccessLevel } from "@/lib/constants";
 import { sql } from "drizzle-orm";
 
 export const user = sqliteTable(
