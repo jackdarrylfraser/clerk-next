@@ -6,6 +6,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 import { ACCESS_LEVELS, type AccessLevel } from "@/lib/constants";
+import { sql } from "drizzle-orm";
 
 export const user = sqliteTable(
   "user",
@@ -17,24 +18,29 @@ export const user = sqliteTable(
       .notNull()
       .default(false),
     image: text("image"),
-    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`)
+      .$onUpdate(() => new Date()),
   },
   (table) => [uniqueIndex("user_email_unique").on(table.email)],
 );
 
-export const userAccess = sqliteTable(
-  "user_access",
+export const stripeCustomer = sqliteTable(
+  "stripe_customer",
   {
+    stripeCustomerId: text("stripe_customer_id").primaryKey(),
     userId: text("user_id")
-      .primaryKey()
-      .references(() => user.id, { onDelete: "cascade" }),
-    accessLevel: text("access_level")
-      .$type<AccessLevel>()
       .notNull()
-      .default(ACCESS_LEVELS.GUEST.value),
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
   },
-  (table) => [index("user_access_level_index").on(table.accessLevel)],
+  (table) => [index("stripe_customer_user_id_index").on(table.userId)],
 );
 
 export const session = sqliteTable(
@@ -43,8 +49,13 @@ export const session = sqliteTable(
     id: text("id").primaryKey(),
     expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
     token: text("token").notNull(),
-    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`)
+      .$onUpdate(() => new Date()),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
     userId: text("user_id")
@@ -77,8 +88,13 @@ export const account = sqliteTable(
     }),
     scope: text("scope"),
     password: text("password"),
-    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
-    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch() * 1000)`)
+      .$onUpdate(() => new Date()),
   },
   (table) => [
     uniqueIndex("account_provider_account_unique").on(
@@ -96,8 +112,12 @@ export const verification = sqliteTable(
     identifier: text("identifier").notNull(),
     value: text("value").notNull(),
     expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
-    createdAt: integer("created_at", { mode: "timestamp_ms" }),
-    updatedAt: integer("updated_at", { mode: "timestamp_ms" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).default(
+      sql`(unixepoch() * 1000)`,
+    ),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .default(sql`(unixepoch() * 1000)`)
+      .$onUpdate(() => new Date()),
   },
   (table) => [index("verification_identifier_index").on(table.identifier)],
 );
