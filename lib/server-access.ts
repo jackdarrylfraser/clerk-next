@@ -3,7 +3,7 @@ import { io } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/better-auth";
-import { hasPaidContentAccess } from "@/lib/paid-access";
+import { hasStripeAccess } from "@/lib/stripe-access";
 
 type AuthSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
 
@@ -23,7 +23,7 @@ export async function requirePaidSubscription(
     redirect(`/sign-in?redirect_url=${encodeURIComponent(returnTo)}`);
   }
 
-  if (!(await hasPaidContentAccess())) {
+  if (!(await hasStripeAccess(current.id))) {
     redirect("/subscribe/plan");
   }
 
