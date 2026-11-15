@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 
 const steps = [
   { key: "plan", title: "Monthly plan", description: "Choose your membership" },
-  { key: "account", title: "Create account", description: "Then continue to checkout" },
+  { key: "account", title: "Your account", description: "Sign in to continue" },
+  { key: "payment", title: "Payment", description: "Complete secure checkout" },
 ] as const;
 
 export function SubscribeLayout({

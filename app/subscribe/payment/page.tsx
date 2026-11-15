@@ -1,20 +1,21 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { env } from "@/env";
+import { CheckoutButton } from "@/components/subscribe/checkout-button";
+import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
 import { getSubscribeRedirect } from "@/components/subscribe/flow-state";
 import { getCurrentUser } from "@/lib/server-access";
 
 export default function SubscribePaymentPage() {
   return (
     <Suspense
-      fallback={<main className="loading-page">Preparing checkout...</main>}
+      fallback={<main className="loading-page">Checking your account...</main>}
     >
-      <SubscribePaymentRedirect />
+      <SubscribePaymentContent />
     </Suspense>
   );
 }
 
-async function SubscribePaymentRedirect(): Promise<never> {
+async function SubscribePaymentContent() {
   const currentUser = await getCurrentUser();
   const redirectTo = getSubscribeRedirect("payment", !!currentUser);
 
@@ -22,5 +23,21 @@ async function SubscribePaymentRedirect(): Promise<never> {
     redirect(redirectTo);
   }
 
-  redirect(env.NEXT_PUBLIC_STRIPE_MONTHLY_PAYMENT_LINK_URL);
+  return (
+    <SubscribeLayout step="payment">
+      <div className="activity-heading">
+        <h1>Complete your membership.</h1>
+        <p>
+          Your subscription will be linked to the account you used to sign in.
+          Stripe will collect and process your payment securely.
+        </p>
+      </div>
+      <div className="billing-option">
+        <div className="billing-option-heading">
+          <h2>Monthly membership</h2>
+        </div>
+        <CheckoutButton />
+      </div>
+    </SubscribeLayout>
+  );
 }

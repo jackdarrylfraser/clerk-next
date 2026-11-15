@@ -1,23 +1,12 @@
 import "server-only";
-import { eq } from "drizzle-orm";
 import Stripe from "stripe";
-import { stripeCustomer } from "@/db/schema";
-import { getDb } from "@/lib/drizzle";
 import { idempotency } from "@/lib/kv";
 import { stripe } from "@/lib/stripe";
+import { getStripeCustomerIdsForUser } from "@/lib/stripe-customers";
 import {
   checkStripeAccess,
   invalidateStripeAccessCache as invalidateAccessCache,
 } from "@/lib/stripe-access-policy";
-
-async function getCustomerIds(userId: string): Promise<string[]> {
-  const rows = await getDb()
-    .select({ stripeCustomerId: stripeCustomer.stripeCustomerId })
-    .from(stripeCustomer)
-    .where(eq(stripeCustomer.userId, userId));
-
-  return rows.map((row) => row.stripeCustomerId);
-}
 
 function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
   const parent = invoice.parent;
@@ -82,7 +71,7 @@ async function getCustomerAccessStates(
 
 export function hasStripeAccess(userId: string): Promise<boolean> {
   return checkStripeAccess(userId, {
-    getCustomerIds,
+    getCustomerIds: getStripeCustomerIdsForUser,
     getAccessStates: getCustomerAccessStates,
     idempotency,
   });
