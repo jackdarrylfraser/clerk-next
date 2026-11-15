@@ -145,3 +145,10 @@ export const leadVerification = sqliteTable("lead_verification", {
   attempts: integer("attempts").notNull().default(0),
   lastSentAt: integer("last_sent_at", { mode: "timestamp_ms" }).notNull(),
 });
+
+export const publicOnlyState = sqliteTable("public_only_state", {
+  id: integer("id").primaryKey(),
+  leadAccessRevokedBefore: integer("lead_access_revoked_before", {
+    mode: "timestamp_ms",
+  }).notNull(),
+});

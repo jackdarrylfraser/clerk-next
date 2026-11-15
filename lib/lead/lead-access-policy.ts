@@ -9,3 +9,13 @@ export function isLeadVerificationCurrent(
     verifiedAt.getTime() >= now.getTime() - leadAccessWindowMs
   );
 }
+
+export function isLeadAccessIssuedAfterRevocation(
+  issuedAt: number | undefined,
+  revokedBefore: Date | null,
+): boolean {
+  return (
+    revokedBefore === null ||
+    (issuedAt !== undefined && issuedAt >= revokedBefore.getTime())
+  );
+}

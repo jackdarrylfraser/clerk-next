@@ -5,6 +5,7 @@ export const leadAccessCookieName = "lead-access";
 export type LeadAccessTokenPayload = {
   leadId: string;
   expiresAt: number;
+  issuedAt?: number;
 };
 
 export function createLeadAccessToken(
@@ -58,6 +59,17 @@ export function verifyLeadAccessToken(
     return null;
   }
 
+  const issuedAt =
+    typeof payload === "object" &&
+    payload !== null &&
+    "issuedAt" in payload
+      ? payload.issuedAt
+      : undefined;
+  const hasIssuedAt =
+    typeof payload === "object" &&
+    payload !== null &&
+    "issuedAt" in payload;
+
   if (
     typeof payload !== "object" ||
     payload === null ||
@@ -66,12 +78,20 @@ export function verifyLeadAccessToken(
     !("expiresAt" in payload) ||
     typeof payload.expiresAt !== "number" ||
     !Number.isSafeInteger(payload.expiresAt) ||
-    payload.expiresAt <= now
+    payload.expiresAt <= now ||
+    (hasIssuedAt &&
+      (typeof issuedAt !== "number" ||
+        !Number.isSafeInteger(issuedAt) ||
+        issuedAt > now))
   ) {
     return null;
   }
 
-  return { leadId: payload.leadId, expiresAt: payload.expiresAt };
+  return {
+    leadId: payload.leadId,
+    expiresAt: payload.expiresAt,
+    ...(typeof issuedAt === "number" ? { issuedAt } : {}),
+  };
 }
 
 function sign(value: string, secret: string): string {

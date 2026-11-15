@@ -21,6 +21,12 @@ Stripe Checkout Sessions are created on the server for the signed-in user.
 - **Public content:** Markdown files in `content/public` are listed at
   `/public`, rendered at `/public/<slug>`, and filterable by tag. Public pages also
   include the contact form.
+- **Public-only mode:** Set `PUBLIC_ONLY_MODE=true` to serve public pages only.
+  Sign-in, member and guest content, subscriptions, contact capture, and lead
+  verification are disabled. Startup revokes existing member sessions and
+  invalidates previously issued lead-access cookies; these revocations persist
+  after the mode is turned off. Apply the database migration before enabling
+  the mode, then restart or redeploy with `PUBLIC_ONLY_MODE=true`.
 - **Guest content:** Markdown files in `content/guest` are listed at
   `/guest`, rendered at `/guest/<slug>`, and filterable by starter tags.
   Access requires a valid lead-verification cookie. Signing in or having a
@@ -93,6 +99,7 @@ for production. Never commit real values.
 | `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` | Contact rate limiting and idempotency for contact/subscription events; both must be set |
 | `RESEND_FROM_EMAIL` | Verified sender for billing emails and `bun run emails:sync` |
 | `DEV_AUTH_BYPASS` | Optional local member-content preview; set to `true` only for development |
+| `PUBLIC_ONLY_MODE` | Optional public-only mode; set to `true` to disable sign-in, member/guest access, subscriptions, contact capture, and lead verification |
 
 The Stripe catalog is declared in `lib/stripe/stripe-catalog.ts` and currently sets
 the monthly membership to USD $25. `bun run build` first reconciles its Product
@@ -136,7 +143,8 @@ configuration and returns customers to `/account`.
 Better Auth is configured in `lib/better-auth.ts`, mounted at
 `/api/auth/[...all]`, and uses the Drizzle singleton in `lib/drizzle.ts`.
 Checkout account creation/sign-in uses Better Auth's email OTP plugin and
-sends through Resend. The separate lead-verification flow remains unchanged.
+sends through Resend. The separate lead-verification flow issues signed access
+cookies; public-only mode revokes those cookies and blocks new verification.
 Guest content requires a valid lead-verification cookie. Account pages, account
 APIs, and self-guided activities require an unexpired paid Stripe invoice
 period or current trial. Subscription access uses only Stripe customer IDs

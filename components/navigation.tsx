@@ -5,7 +5,28 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { authClient } from "@/lib/better-auth-client";
 import Link from "next/link";
 
-export default function Navigation() {
+export default function Navigation({
+  publicOnlyMode,
+}: {
+  publicOnlyMode: boolean;
+}) {
+  if (publicOnlyMode) {
+    return (
+      <header className="site-header">
+        <Link href="/" className="brand" aria-label="Membership home">
+          Outbound Endurance
+        </Link>
+        <nav className="header-right" aria-label="Main navigation">
+          <Link href="/public">Public articles</Link>
+        </nav>
+      </header>
+    );
+  }
+
+  return <AuthenticatedNavigation />;
+}
+
+function AuthenticatedNavigation() {
   const { data: session, isPending, error } = authClient.useSession();
   const devAuthBypassEnabled = useDevAuthBypass();
 

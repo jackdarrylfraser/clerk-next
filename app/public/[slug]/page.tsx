@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { notFound } from "next/navigation";
 import ActivityCard from "@/components/activity-card";
 import { LeadCaptureForm } from "@/components/lead-capture-form";
+import { isPublicOnlyMode } from "@/lib/auth";
 import {
   getMarkdownMetadata,
   getMarkdownParams,
@@ -43,7 +44,7 @@ export default async function PublicMarkdownPage({
         className="markdown-content"
         dangerouslySetInnerHTML={{ __html: content }}
       />
-      <LeadCaptureForm />
+      {!isPublicOnlyMode && <LeadCaptureForm />}
     </main>
   );
 }

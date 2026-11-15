@@ -24,6 +24,7 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().min(1),
     RESEND_FROM_EMAIL: z.string().trim().min(1).optional(),
     DEV_AUTH_BYPASS: z.enum(["true", "false"]).optional().default("false"),
+    PUBLIC_ONLY_MODE: z.enum(["true", "false"]).optional().default("false"),
   },
   client: {
   },
@@ -44,6 +45,7 @@ export const env = createEnv({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     DEV_AUTH_BYPASS: process.env.DEV_AUTH_BYPASS,
+    PUBLIC_ONLY_MODE: process.env.PUBLIC_ONLY_MODE,
   },
   emptyStringAsUndefined: true,
 });

@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { DevAuthBypassProvider } from "@/components/dev-auth-bypass-provider";
 import Navigation from "@/components/navigation";
 import SiteFooter from "@/components/site-footer";
-import { isDevAuthBypassEnabled } from "@/lib/auth";
+import { isDevAuthBypassEnabled, isPublicOnlyMode } from "@/lib/auth";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <DevAuthBypassProvider enabled={isDevAuthBypassEnabled}>
-          <Navigation />
+          <Navigation publicOnlyMode={isPublicOnlyMode} />
           {children}
           <SiteFooter />
         </DevAuthBypassProvider>

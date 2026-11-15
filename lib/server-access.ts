@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/better-auth";
 import { hasStripeAccess } from "@/lib/stripe/stripe-access";
+import { isPublicOnlyMode } from "@/lib/auth";
 import { env } from "@/env";
 
 type AuthSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
@@ -17,6 +18,10 @@ export type PaidSubscriptionStatus =
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   await io();
+  if (isPublicOnlyMode) {
+    return null;
+  }
+
   const session = await auth.api.getSession({ headers: await headers() });
   return session?.user ?? null;
 }
@@ -35,6 +40,10 @@ export async function getPaidSubscriptionStatus(): Promise<PaidSubscriptionStatu
 export async function requirePaidSubscription(
   returnTo: string,
 ): Promise<CurrentUser> {
+  if (isPublicOnlyMode) {
+    redirect("/public");
+  }
+
   const access = await getPaidSubscriptionStatus();
   if (access.status === "unauthenticated") {
     redirect(`/sign-in?redirect_url=${encodeURIComponent(returnTo)}`);

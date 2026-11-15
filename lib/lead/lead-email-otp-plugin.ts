@@ -206,6 +206,7 @@ export function leadEmailOTP() {
           const accessToken = createLeadAccessToken({
             leadId: verifiedLead.id,
             expiresAt,
+            issuedAt: now.getTime(),
           }, env.BETTER_AUTH_SECRET);
           const cookie = ctx.context.createAuthCookie(leadAccessCookieName, {
             maxAge: accessLifetimeSeconds,

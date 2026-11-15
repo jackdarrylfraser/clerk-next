@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { join } from "node:path";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import ActivityCard from "@/components/activity-card";
-import { isDevAuthBypassEnabled } from "@/lib/auth";
+import { isDevAuthBypassEnabled, isPublicOnlyMode } from "@/lib/auth";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getCurrentUser } from "@/lib/server-access";
 import { hasStripeAccess } from "@/lib/stripe/stripe-access";
@@ -15,6 +16,10 @@ export default function Home({
 }: {
   searchParams: Promise<{ page?: string | string[] }>;
 }) {
+  if (isPublicOnlyMode) {
+    redirect("/public");
+  }
+
   return (
     <Suspense
       fallback={<main className="loading-page">Loading activities...</main>}

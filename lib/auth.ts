@@ -1,4 +1,8 @@
 import { env } from "@/env";
 
+export const isPublicOnlyMode = env.PUBLIC_ONLY_MODE === "true";
+
 export const isDevAuthBypassEnabled =
-  env.NODE_ENV === "development" && env.DEV_AUTH_BYPASS === "true";
+  !isPublicOnlyMode &&
+  env.NODE_ENV === "development" &&
+  env.DEV_AUTH_BYPASS === "true";
