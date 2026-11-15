@@ -1,5 +1,6 @@
 import "server-only";
 import { eq } from "drizzle-orm";
+import { io } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { accessLevels, userAccess, type AccessLevel } from "@/db/schema";
@@ -15,6 +16,7 @@ export type CurrentUserAccess = {
 };
 
 export async function getCurrentUserAccess(): Promise<CurrentUserAccess | null> {
+  await io();
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
     return null;

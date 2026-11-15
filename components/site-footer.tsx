@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { io } from "next/cache";
+import { Suspense } from "react";
 
-export default async function SiteFooter() {
-  const year = await getCurrentYear();
-
+export default function SiteFooter() {
   return (
     <footer className="site-footer">
-      <span>© {year} MEMBERSHIP</span>
+      <span>
+        © <Suspense fallback={null}><CurrentYear /></Suspense> MEMBERSHIP
+      </span>
       <nav className="legal-footer-links" aria-label="Site information">
         <Link href="/terms-of-service">Terms of Service</Link>
         <Link href="/privacy-policy">Privacy Policy</Link>
@@ -16,8 +18,7 @@ export default async function SiteFooter() {
   );
 }
 
-async function getCurrentYear() {
-  "use cache";
-
+async function CurrentYear() {
+  await io();
   return new Date().getFullYear();
 }
