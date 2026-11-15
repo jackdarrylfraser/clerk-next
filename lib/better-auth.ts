@@ -12,7 +12,7 @@ import {
 import { sendEmail } from "../emails/send-email";
 import { env } from "../env";
 import { getDb } from "./drizzle";
-import { leadEmailOTP } from "./lead-email-otp-plugin";
+import { leadEmailOTP } from "./lead/lead-email-otp-plugin";
 
 export const auth = betterAuth({
   appName: "Outbound Endurance",

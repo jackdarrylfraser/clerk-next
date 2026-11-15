@@ -7,11 +7,11 @@ import { getDb } from "@/lib/drizzle";
 import {
   isLeadVerificationCurrent,
   leadAccessWindowMs,
-} from "@/lib/lead-access-policy";
+} from "@/lib/lead/lead-access-policy";
 import {
   leadAccessCookieName,
   verifyLeadAccessToken,
-} from "@/lib/lead-access-token";
+} from "@/lib/lead/lead-access-token";
 
 export async function hasGuestContentAccess(): Promise<boolean> {
   const cookieStore = await cookies();

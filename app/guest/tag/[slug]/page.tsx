@@ -4,7 +4,7 @@ import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
 import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
-import { hasGuestContentAccess } from "@/lib/guest-access";
+import { hasGuestContentAccess } from "@/lib/lead/guest-access";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getTagSlug } from "@/lib/tags";
 

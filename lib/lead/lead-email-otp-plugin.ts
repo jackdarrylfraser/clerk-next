@@ -14,7 +14,7 @@ import { getDb } from "@/lib/drizzle";
 import {
   createLeadAccessToken,
   leadAccessCookieName,
-} from "@/lib/lead-access-token";
+} from "@/lib/lead/lead-access-token";
 
 const codeLength = 6;
 const codeLifetimeMs = 5 * 60 * 1000;
