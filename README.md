@@ -87,7 +87,6 @@ for production. Never commit real values.
 | `STRIPE_SECRET_KEY` | Stripe server-side API access; required to run/build the app |
 | `STRIPE_WEBHOOK_SECRET` | Verifying Stripe webhook deliveries |
 | `NEXT_PUBLIC_STRIPE_MONTHLY_PAYMENT_LINK_URL` | Public Stripe monthly Payment Link URL |
-| `NEXT_PUBLIC_STRIPE_ANNUAL_PAYMENT_LINK_URL` | Public Stripe annual Payment Link URL |
 | `BETTER_AUTH_SECRET` | Better Auth session signing; use a random secret of at least 32 characters |
 | `BETTER_AUTH_URL` | Better Auth application URL, such as `http://localhost:3000` |
 | `RESEND_API_KEY` | Resend contact, event, and transactional email APIs; required to run/build the app |
@@ -103,9 +102,10 @@ time, so configure the correct Payment Link URLs before building.
 
 Better Auth is configured in `lib/better-auth.ts`, mounted at
 `/api/auth/[...all]`, and uses the Drizzle singleton in `lib/drizzle.ts`.
-Email-code sign-in uses Better Auth's email OTP plugin and sends through
-Resend. Guest content requires sign-in; self-guided activities require an
-unexpired paid Stripe invoice period or current trial. Subscription access
+Checkout account creation/sign-in uses Better Auth's email OTP plugin and
+sends through Resend. The separate lead-verification flow remains unchanged.
+Guest content requires sign-in; self-guided activities require an unexpired
+paid Stripe invoice period or current trial. Subscription access
 uses linked Stripe customers when available and otherwise looks up customers
 by the Better Auth email. Define database tables in `db/schema.ts`; Drizzle Kit
 uses `drizzle.config.ts` and writes migrations to `drizzle/`. Generate and

@@ -1,37 +1,19 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { getSubscribeUrls } from "./flow-state";
-import type { Step } from "./types";
 
-const steps: { key: Step; title: string; description: string }[] = [
-  { key: "plan", title: "Choose a plan", description: "Find the right fit" },
-  { key: "account", title: "Sign in / Sign up", description: "One flow for both" },
-  { key: "payment", title: "Payment", description: "Complete checkout" },
-];
+const steps = [
+  { key: "plan", title: "Monthly plan", description: "Choose your membership" },
+  { key: "account", title: "Create account", description: "Then continue to checkout" },
+] as const;
 
 export function SubscribeLayout({
   step,
-  selectedId,
-  urls,
-  isLoaded,
-  isSignedIn,
-  devAuthBypassEnabled,
   children,
 }: {
-  step: Step;
-  selectedId: string | null;
-  urls: ReturnType<typeof getSubscribeUrls>;
-  isLoaded: boolean;
-  isSignedIn: boolean;
-  devAuthBypassEnabled: boolean;
+  step: (typeof steps)[number]["key"];
   children: ReactNode;
 }) {
   const stepIndex = steps.findIndex((item) => item.key === step);
-  const stepUrls = {
-    plan: urls.plans,
-    account: urls.account,
-    payment: urls.payment,
-  };
 
   return (
     <div className="site-shell">
@@ -41,19 +23,10 @@ export function SubscribeLayout({
             <span>●</span> SECURE CHECKOUT
           </span>
         </div>
-        {devAuthBypassEnabled && isLoaded && !isSignedIn && (
-          <p className="dev-auth-notice" role="status">
-            Development access is enabled for member content. Account access
-            uses Better Auth; checkout remains on the existing Clerk billing
-            integration.
-          </p>
-        )}
         <nav className="progress" aria-label="Subscription progress">
           <ol>
             {steps.map((item, index) => {
-              const completed =
-                index < stepIndex &&
-                (item.key === "account" ? isSignedIn : !!selectedId);
+              const completed = index < stepIndex;
 
               return (
                 <li
@@ -67,14 +40,13 @@ export function SubscribeLayout({
                   }
                   aria-current={index === stepIndex ? "step" : undefined}
                 >
-                  {index < stepIndex &&
-                  !(item.key === "account" && isSignedIn) ? (
+                  {completed ? (
                     <Link
                       className="progress-step progress-link"
-                      href={stepUrls[item.key]}
+                      href="/subscribe/plan"
                     >
                       <span className="progress-number">
-                        {completed ? "✓" : `0${index + 1}`}
+                        ✓
                       </span>
                       <span>
                         <strong>{item.title}</strong>
@@ -84,7 +56,7 @@ export function SubscribeLayout({
                   ) : (
                     <span className="progress-step">
                       <span className="progress-number">
-                        {completed ? "✓" : `0${index + 1}`}
+                        {`0${index + 1}`}
                       </span>
                       <span>
                         <strong>{item.title}</strong>
