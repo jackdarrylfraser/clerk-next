@@ -48,6 +48,60 @@ export function createSubscriptionCanceledEmail({
   });
 }
 
+export function createSubscriptionRenewedEmail({
+  firstName,
+  planName,
+}: BillingNotificationDetails): BillingNotificationContent {
+  const plan = getPlanDescription(planName);
+  return createEmailContent({
+    firstName,
+    subject: "Your subscription payment was received",
+    sentence: `Your ${plan} renewal payment was received. Your access remains available through any period you've already paid for.`,
+  });
+}
+
+export function createSubscriptionPaymentFailedEmail({
+  firstName,
+  planName,
+}: BillingNotificationDetails): BillingNotificationContent {
+  const plan = getPlanDescription(planName);
+  return createEmailContent({
+    firstName,
+    subject: "Your subscription payment failed",
+    sentence: `We couldn't process a renewal payment for your ${plan}. Your access remains based on any period you've already paid for.`,
+  });
+}
+
+export function createCancellationScheduledEmail({
+  firstName,
+  planName,
+  cancellationDate,
+}: BillingNotificationDetails & {
+  cancellationDate?: string;
+}): BillingNotificationContent {
+  const plan = getPlanDescription(planName);
+  const ending = cancellationDate
+    ? `Your ${plan} is scheduled to end on ${cancellationDate}.`
+    : `Your ${plan} is scheduled to end.`;
+  return createEmailContent({
+    firstName,
+    subject: "Your subscription cancellation is scheduled",
+    sentence: `${ending} Your access remains available through any period you've already paid for.`,
+  });
+}
+
+export function createSubscriptionEndedEmail({
+  firstName,
+  planName,
+}: BillingNotificationDetails): BillingNotificationContent {
+  const plan = getPlanDescription(planName);
+  return createEmailContent({
+    firstName,
+    subject: "Your subscription has ended",
+    sentence: `Your ${plan} has ended. Your access remains available through any period you've already paid for.`,
+  });
+}
+
 function getPlanDescription(planName?: string): string {
   const normalizedPlanName = planName?.trim();
   return normalizedPlanName

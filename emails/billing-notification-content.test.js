@@ -1,11 +1,50 @@
 import { describe, expect, it } from "bun:test";
 import {
+  createCancellationScheduledEmail,
   createPaymentFailedEmail,
+  createSubscriptionEndedEmail,
+  createSubscriptionPaymentFailedEmail,
+  createSubscriptionRenewedEmail,
   createSubscriptionCanceledEmail,
   createSubscriptionCreatedEmail,
 } from "./billing-notification-content";
 
 describe("billing notification email content", () => {
+  it("creates a subscription renewal notice", () => {
+    expect(
+      createSubscriptionRenewedEmail({ firstName: "Ada" }),
+    ).toEqual({
+      subject: "Your subscription payment was received",
+      text: "Hello Ada,\n\nYour subscription renewal payment was received. Your access remains available through any period you've already paid for.",
+      html: "<p>Hello Ada,</p>\n<p>Your subscription renewal payment was received. Your access remains available through any period you&#39;ve already paid for.</p>",
+    });
+  });
+
+  it("creates a renewal payment failure notice", () => {
+    expect(
+      createSubscriptionPaymentFailedEmail({ firstName: "Ada" }).subject,
+    ).toBe("Your subscription payment failed");
+  });
+
+  it("creates a cancellation scheduling notice with its effective date", () => {
+    expect(
+      createCancellationScheduledEmail({
+        firstName: "Ada",
+        cancellationDate: "2026-12-01",
+      }),
+    ).toEqual({
+      subject: "Your subscription cancellation is scheduled",
+      text: "Hello Ada,\n\nYour subscription is scheduled to end on 2026-12-01. Your access remains available through any period you've already paid for.",
+      html: "<p>Hello Ada,</p>\n<p>Your subscription is scheduled to end on 2026-12-01. Your access remains available through any period you&#39;ve already paid for.</p>",
+    });
+  });
+
+  it("creates a subscription-ended notice", () => {
+    expect(
+      createSubscriptionEndedEmail({ firstName: "Ada" }).subject,
+    ).toBe("Your subscription has ended");
+  });
+
   it("creates a subscription confirmation", () => {
     expect(
       createSubscriptionCreatedEmail({

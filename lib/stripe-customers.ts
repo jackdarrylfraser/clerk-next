@@ -1,7 +1,13 @@
 import "server-only";
 import { eq } from "drizzle-orm";
-import { stripeCustomer } from "@/db/schema";
+import { stripeCustomer, user } from "@/db/schema";
 import { getDb } from "@/lib/drizzle";
+
+export interface StripeCustomerOwner {
+  id: string;
+  email: string;
+  name: string;
+}
 
 export async function getStripeCustomerIdsForUser(
   userId: string,
@@ -19,6 +25,19 @@ export async function getStripeCustomerIdForUser(
 ): Promise<string | null> {
   const customerIds = await getStripeCustomerIdsForUser(userId);
   return customerIds[0] ?? null;
+}
+
+export async function getStripeCustomerOwner(
+  stripeCustomerId: string,
+): Promise<StripeCustomerOwner | null> {
+  const [owner] = await getDb()
+    .select({ id: user.id, email: user.email, name: user.name })
+    .from(stripeCustomer)
+    .innerJoin(user, eq(stripeCustomer.userId, user.id))
+    .where(eq(stripeCustomer.stripeCustomerId, stripeCustomerId))
+    .limit(1);
+
+  return owner ?? null;
 }
 
 export async function associateStripeCustomerWithUser(

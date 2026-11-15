@@ -1,10 +1,14 @@
 import { eq } from "drizzle-orm";
 import { env } from "@/env";
+import { sendEmail } from "@/emails/send-email";
 import { user as appUser } from "@/db/schema";
 import { getDb } from "@/lib/drizzle";
 import { idempotency } from "@/lib/kv";
 import { invalidateStripeAccessCache } from "@/lib/stripe-access";
-import { associateStripeCustomerWithUser } from "@/lib/stripe-customers";
+import {
+  associateStripeCustomerWithUser,
+  getStripeCustomerOwner,
+} from "@/lib/stripe-customers";
 import { processStripeWebhookEvent } from "@/lib/stripe-webhook";
 import { verifyStripeWebhookEvent } from "@/lib/stripe-webhook-signature";
 import { stripe } from "@/lib/stripe";
@@ -40,6 +44,14 @@ export async function POST(request: Request): Promise<Response> {
       },
       associateCustomer: associateStripeCustomerWithUser,
       invalidateAccess: invalidateStripeAccessCache,
+      findUserForCustomer: getStripeCustomerOwner,
+      async sendLifecycleNotification(account, event, content) {
+        await sendEmail({
+          idempotencyKey: `stripe/${event.type}/${event.id}`,
+          to: account.email,
+          content,
+        });
+      },
     });
 
     if (result.status === "in-progress") {

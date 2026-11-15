@@ -96,8 +96,10 @@ for production. Never commit real values.
 
 Set the Stripe secret, monthly Price ID, and webhook signing secret for the
 same Stripe mode. Configure the Stripe webhook endpoint at
-`/api/webhooks/stripe` for `checkout.session.completed`. Delayed payment methods
-are not enabled; checkout currently accepts card payments only.
+`/api/webhooks/stripe` for `checkout.session.completed`, `invoice.paid`,
+`invoice.payment_failed`, `customer.subscription.updated`, and
+`customer.subscription.deleted`. Delayed payment methods are not enabled;
+checkout currently accepts card payments only.
 
 Better Auth is configured in `lib/better-auth.ts`, mounted at
 `/api/auth/[...all]`, and uses the Drizzle singleton in `lib/drizzle.ts`.
@@ -129,9 +131,13 @@ To enable email workflows:
 3. Configure both Upstash Redis variables. Contact capture and event
    idempotency return an error when Redis is not configured.
 
-The Stripe webhook currently handles only paid subscription checkout sessions.
-It ignores non-subscription, unpaid, and delayed-payment checkout events;
-renewals and other subscription lifecycle events are not yet handled.
+The Stripe webhook handles paid subscription checkout, recurring invoice
+renewals and failures, newly scheduled cancellations, and deleted
+subscriptions. Lifecycle notifications use the app email for the mapped Stripe
+customer; Stripe-provided email addresses are not used for account lookup.
+Lifecycle events do not invalidate access caches or write local subscription
+snapshots. Access continues through paid-through time, and the cache expires
+naturally at that boundary.
 
 ## Where to make changes
 
