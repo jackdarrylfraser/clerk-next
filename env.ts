@@ -23,7 +23,6 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
     NEXT_PUBLIC_STRIPE_MONTHLY_PAYMENT_LINK_URL: z.url(),
-    NEXT_PUBLIC_STRIPE_ANNUAL_PAYMENT_LINK_URL: z.url(),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -44,8 +43,6 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     NEXT_PUBLIC_STRIPE_MONTHLY_PAYMENT_LINK_URL:
       process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PAYMENT_LINK_URL,
-    NEXT_PUBLIC_STRIPE_ANNUAL_PAYMENT_LINK_URL:
-      process.env.NEXT_PUBLIC_STRIPE_ANNUAL_PAYMENT_LINK_URL,
   },
   emptyStringAsUndefined: true,
 });
