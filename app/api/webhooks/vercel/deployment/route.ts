@@ -3,8 +3,8 @@ import { env } from "@/env";
 import {
   isProductionDeploymentPromotion,
 } from "@/lib/stripe/helper/stripe-catalog-policy";
-import { readBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog";
-import { activateBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog-sync";
+import { readBuiltStripeCatalog } from "@/lib/stripe/build/stripe-catalog";
+import { activateBuiltStripeCatalog } from "@/lib/stripe/build/stripe-catalog-sync";
 import { verifyVercelWebhookSignature } from "@/lib/vercel-webhook-signature";
 
 const vercelEventSchema = z.object({

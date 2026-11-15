@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import {
   monthlyMembershipDefinition,
   type StripeCatalogDefinition,
-} from "../../lib/stripe/helper/stripe-catalog-definition";
+} from "../helper/stripe-catalog-definition";
 
 const metadataKey = "appCatalogKey";
 

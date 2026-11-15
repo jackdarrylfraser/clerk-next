@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe/stripe";
 import type { BuiltStripeCatalog } from "./stripe-catalog";
-import { getManagedPriceIdsToDeactivate } from "./helper/stripe-catalog-policy";
+import { getManagedPriceIdsToDeactivate } from "../helper/stripe-catalog-policy";
 
 type BuiltStripeCatalogReference = Pick<
   BuiltStripeCatalog,

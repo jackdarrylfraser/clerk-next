@@ -5,7 +5,7 @@ import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
 import { getSubscribeRedirect } from "@/components/subscribe/flow-state";
 import { getCurrentUser } from "@/lib/server-access";
 import { formatStripeAmount } from "@/lib/stripe/helper/stripe-checkout-policy";
-import { getMonthlyMembershipDetails } from "@/lib/stripe/stripe-catalog";
+import { getMonthlyMembershipDetails } from "@/lib/stripe/build/stripe-catalog";
 
 export default function SubscribePaymentPage() {
   return (

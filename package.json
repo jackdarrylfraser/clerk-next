@@ -15,7 +15,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "emails:sync": "bun emails/automations/sync.ts",
-    "stripe:sync": "bun scripts/stripe/sync-catalog.ts"
+    "stripe:sync": "bun lib/stripe/build/sync-catalog.ts"
   },
   "dependencies": {
     "@outbound-endurance/kv": "workspace:*",
