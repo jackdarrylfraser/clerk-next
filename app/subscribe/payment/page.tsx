@@ -4,6 +4,8 @@ import { CheckoutButton } from "@/components/subscribe/checkout-button";
 import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
 import { getSubscribeRedirect } from "@/components/subscribe/flow-state";
 import { getCurrentUser } from "@/lib/server-access";
+import { formatStripeAmount } from "@/lib/stripe-checkout-policy";
+import { getMonthlyMembershipDetails } from "@/lib/stripe-catalog";
 
 export default function SubscribePaymentPage() {
   return (
@@ -16,7 +18,11 @@ export default function SubscribePaymentPage() {
 }
 
 async function SubscribePaymentContent() {
-  const currentUser = await getCurrentUser();
+  const [currentUser, plan] = await Promise.all([
+    getCurrentUser(),
+    getMonthlyMembershipDetails(),
+  ]);
+  const formattedAmount = formatStripeAmount(plan.unitAmount, plan.currency);
   const redirectTo = getSubscribeRedirect("payment", !!currentUser);
 
   if (redirectTo) {
@@ -29,12 +35,15 @@ async function SubscribePaymentContent() {
         <h1>Complete your membership.</h1>
         <p>
           Your subscription will be linked to the account you used to sign in.
-          Stripe will collect and process your payment securely.
+          Stripe will collect and process your payment securely.{" "}
+          {formattedAmount
+            ? `The membership is ${formattedAmount} per ${plan.interval}.`
+            : ""}
         </p>
       </div>
       <div className="billing-option">
         <div className="billing-option-heading">
-          <h2>Monthly membership</h2>
+          <h2>{plan.productName}</h2>
         </div>
         <CheckoutButton />
       </div>

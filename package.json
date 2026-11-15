@@ -7,14 +7,15 @@
   ],
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "bun run stripe:sync && next build",
     "start": "next start",
     "test": "bun test",
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "emails:sync": "bun emails/automations/sync.ts"
+    "emails:sync": "bun emails/automations/sync.ts",
+    "stripe:sync": "bun scripts/stripe/sync-catalog.ts"
   },
   "dependencies": {
     "@outbound-endurance/kv": "workspace:*",

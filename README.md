@@ -62,7 +62,7 @@ Useful commands:
 
 ```sh
 bun run dev          # local app
-bun run build        # production build
+bun run build        # sync Stripe catalog, then create production build
 bun run start        # serve a production build
 bun test             # tests
 bun run lint         # ESLint
@@ -70,6 +70,7 @@ bun run db:generate  # generate migrations from db/schema.ts
 bun run db:migrate   # apply generated migrations to Turso
 bun run db:studio    # inspect the database
 bun run emails:sync  # create/update declared Resend email resources
+bun run stripe:sync  # create/update declared Stripe Product and Price
 ```
 
 ## Services and configuration
@@ -82,8 +83,9 @@ for production. Never commit real values.
 | --- | --- |
 | `STRIPE_SECRET_KEY` | Stripe server-side API access; required to run/build the app |
 | `STRIPE_WEBHOOK_SECRET` | Verifying Stripe webhook deliveries |
-| `STRIPE_MONTHLY_PRICE_ID` | Stripe Price ID used for monthly server-created Checkout Sessions |
 | `STRIPE_PAYMENT_METHOD_PORTAL_CONFIGURATION_ID` | Optional Stripe Customer Portal configuration used for payment-method updates |
+| `VERCEL_WEBHOOK_SECRET` | Optional signing secret for the Vercel production-promotion webhook |
+| `VERCEL_WEBHOOK_PROJECT_ID` | Vercel project ID allowed to trigger old-Price cleanup |
 | `BETTER_AUTH_SECRET` | Better Auth session signing; use a random secret of at least 32 characters |
 | `BETTER_AUTH_URL` | Better Auth application URL, such as `http://localhost:3000` |
 | `RESEND_API_KEY` | Resend contact, event, and transactional email APIs; required to run/build the app |
@@ -92,8 +94,35 @@ for production. Never commit real values.
 | `RESEND_FROM_EMAIL` | Verified sender for billing emails and `bun run emails:sync` |
 | `DEV_AUTH_BYPASS` | Optional local member-content preview; set to `true` only for development |
 
-Set the Stripe secret, monthly Price ID, and webhook signing secret for the
-same Stripe mode. Configure the Stripe webhook endpoint at
+The Stripe catalog is declared in `lib/stripe-catalog.ts` and currently sets
+the monthly membership to USD $25. `bun run build` first reconciles its Product
+and Price in Stripe and writes a generated catalog used by checkout and the
+subscription pages. The sync preserves existing subscriptions when a Price
+changes; Stripe Prices are immutable, so a changed amount creates a replacement
+Price. No Price ID is configured in the app environment. The build uses the
+declared catalog and stable Stripe metadata/lookup key to find its managed
+objects, creating them when they do not exist. To adopt a pre-existing Product
+and Price before the first sync, mark both Stripe objects with the metadata key
+`appCatalogKey=monthly-membership`; otherwise, the build treats them as
+unrelated and creates a new managed catalog. Marking the old Price also allows
+the post-deployment webhook to deactivate it after the new catalog is live.
+
+Superseded managed Prices are deactivated only after a production deployment
+is promoted. To automate this on Vercel, configure a team webhook for the
+`Deployment Promoted` event, scoped to this project, and point it at
+`https://<production-domain>/api/webhooks/vercel/deployment`. Save the webhook
+secret as `VERCEL_WEBHOOK_SECRET` and the Vercel project ID as
+`VERCEL_WEBHOOK_PROJECT_ID`. Vercel account webhooks require a Pro or
+Enterprise plan. The handler verifies Vercel's signature, ensures the
+deployed catalog Price is active, sets it as the Product default, then
+deactivates only older active Prices marked as managed by this catalog.
+Existing subscriptions remain on their original Price. If a Vercel rollback
+restores a build whose Price was already deactivated, checkout reactivates
+that build's Price and deactivates the newer managed Price before creating the
+Checkout Session.
+
+Use the matching Stripe test or live secret in each Vercel environment.
+Configure the Stripe webhook endpoint at
 `/api/webhooks/stripe` for `checkout.session.completed`, `invoice.paid`,
 `invoice.payment_failed`, `customer.subscription.updated`, and
 `customer.subscription.deleted`. Delayed payment methods are not enabled;

@@ -8,12 +8,13 @@ export const env = createEnv({
   server: {
     STRIPE_SECRET_KEY: z.string().min(1),
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
-    STRIPE_MONTHLY_PRICE_ID: z.string().trim().min(1).optional(),
     STRIPE_PAYMENT_METHOD_PORTAL_CONFIGURATION_ID: z
       .string()
       .trim()
       .min(1)
       .optional(),
+    VERCEL_WEBHOOK_SECRET: z.string().trim().min(1).optional(),
+    VERCEL_WEBHOOK_PROJECT_ID: z.string().trim().min(1).optional(),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.url(),
     TURSO_DATABASE_URL: z.string().trim().min(1),
@@ -30,9 +31,10 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-    STRIPE_MONTHLY_PRICE_ID: process.env.STRIPE_MONTHLY_PRICE_ID,
     STRIPE_PAYMENT_METHOD_PORTAL_CONFIGURATION_ID:
       process.env.STRIPE_PAYMENT_METHOD_PORTAL_CONFIGURATION_ID,
+    VERCEL_WEBHOOK_SECRET: process.env.VERCEL_WEBHOOK_SECRET,
+    VERCEL_WEBHOOK_PROJECT_ID: process.env.VERCEL_WEBHOOK_PROJECT_ID,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL,

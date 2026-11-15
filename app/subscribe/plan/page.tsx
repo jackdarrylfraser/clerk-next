@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
+import { formatStripeAmount } from "@/lib/stripe-checkout-policy";
+import { getMonthlyMembershipDetails } from "@/lib/stripe-catalog";
 
-export default function SubscribePlanPage({
+export default async function SubscribePlanPage({
   searchParams,
 }: {
   searchParams: Promise<{ required?: string | string[] }>;
 }) {
+  const plan = await getMonthlyMembershipDetails();
+  const formattedAmount = formatStripeAmount(plan.unitAmount, plan.currency);
+
   return (
     <SubscribeLayout step="plan">
       <Suspense fallback={null}>
@@ -15,16 +20,22 @@ export default function SubscribePlanPage({
       <article className="plan-card">
         <div className="plan-top">
           <div>
-            <h3>Monthly membership</h3>
+            <h3>{plan.productName}</h3>
             <p>
-              Continue to create an account. Stripe will show the current price
-              before you confirm payment.
+              {plan.productDescription}. The subscription renews every{" "}
+              {plan.intervalCount > 1 ? `${plan.intervalCount} ` : ""}
+              {plan.interval}
+              {plan.intervalCount > 1 ? "s" : ""}.
             </p>
           </div>
         </div>
         <div className="billing-option">
           <div className="billing-option-heading">
-            <h4>Monthly</h4>
+            <h4>
+              {formattedAmount
+                ? `${formattedAmount} / ${plan.interval}`
+                : plan.interval}
+            </h4>
           </div>
           <Link className="primary-button" href="/subscribe/account">
             Create account to continue <span>↗</span>

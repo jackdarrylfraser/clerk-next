@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   transpilePackages: ["@outbound-endurance/markdown-engine"],
+  outputFileTracingIncludes: {
+    "/api/stripe/checkout": ["./public/stripe-catalog.json"],
+    "/api/webhooks/vercel/deployment": ["./public/stripe-catalog.json"],
+  },
   turbopack: {
     rules: {
       "*.css": {
