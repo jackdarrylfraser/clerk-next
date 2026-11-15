@@ -2,7 +2,7 @@ import "server-only";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
-import { monthlyMembershipDefinition } from "./stripe-catalog-definition";
+import { monthlyMembershipDefinition } from "./helper/stripe-catalog-definition";
 
 const stripeCatalogSchema = z.object({
   catalogKey: z.literal(monthlyMembershipDefinition.catalogKey),

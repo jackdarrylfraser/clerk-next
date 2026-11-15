@@ -12,12 +12,12 @@ import {
   getStripeResourceId,
   isCancellationScheduled,
   isSubscriptionOwnedByCustomer,
-} from "@/lib/stripe/stripe-account-policy";
+} from "@/lib/stripe/helper/stripe-account-policy";
 import { stripe } from "@/lib/stripe/stripe";
 import {
   isStripeRequestOriginAllowed,
   readStripeRequestBody,
-} from "@/lib/stripe/stripe-request";
+} from "@/lib/stripe/helper/stripe-request";
 
 const requestSchema = z.object({
   customerId: z.string().trim().min(1).max(255),

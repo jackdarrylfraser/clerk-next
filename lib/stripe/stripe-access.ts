@@ -6,7 +6,7 @@ import { getStripeCustomerIdsForUser } from "@/lib/stripe/stripe-customers";
 import {
   checkStripeAccess,
   invalidateStripeAccessCache as invalidateAccessCache,
-} from "@/lib/stripe/stripe-access-policy";
+} from "@/lib/stripe/helper/stripe-access-policy";
 
 function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
   const parent = invoice.parent;

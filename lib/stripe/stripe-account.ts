@@ -1,11 +1,11 @@
 import "server-only";
 import Stripe from "stripe";
-import { formatStripeAmount } from "@/lib/stripe/stripe-checkout-policy";
+import { formatStripeAmount } from "@/lib/stripe/helper/stripe-checkout-policy";
 import {
   canManageStripeSubscription,
   getLatestPeriodEnd,
   isCancellationScheduled,
-} from "@/lib/stripe/stripe-account-policy";
+} from "@/lib/stripe/helper/stripe-account-policy";
 import { getStripeCustomerIdsForUser } from "@/lib/stripe/stripe-customers";
 import { stripe } from "@/lib/stripe/stripe";
 

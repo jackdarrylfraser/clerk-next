@@ -4,7 +4,7 @@ import type Stripe from "stripe";
 import {
   formatStripeAmount,
   getStripeCheckoutPaymentState,
-} from "@/lib/stripe/stripe-checkout-policy";
+} from "@/lib/stripe/helper/stripe-checkout-policy";
 import { stripe } from "@/lib/stripe/stripe";
 
 type CheckoutSuccessPageProps = {

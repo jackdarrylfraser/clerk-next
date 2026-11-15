@@ -4,7 +4,7 @@ import { getStripeCustomerIdForUser } from "@/lib/stripe/stripe-customers";
 import { stripe } from "@/lib/stripe/stripe";
 import { readBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog";
 import { activateBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog-sync";
-import { isStripeRequestOriginAllowed } from "@/lib/stripe/stripe-request";
+import { isStripeRequestOriginAllowed } from "@/lib/stripe/helper/stripe-request";
 
 export async function POST(request: Request): Promise<Response> {
   if (

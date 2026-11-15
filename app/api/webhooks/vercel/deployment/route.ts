@@ -2,7 +2,7 @@ import { z } from "zod";
 import { env } from "@/env";
 import {
   isProductionDeploymentPromotion,
-} from "@/lib/stripe/stripe-catalog-policy";
+} from "@/lib/stripe/helper/stripe-catalog-policy";
 import { readBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog";
 import { activateBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog-sync";
 import { verifyVercelWebhookSignature } from "@/lib/vercel-webhook-signature";
