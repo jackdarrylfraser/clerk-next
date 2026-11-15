@@ -30,10 +30,10 @@ Stripe Checkout Sessions are created on the server for the signed-in user.
   contact to Resend's Marketing topic, and starts an educational email
   automation. This is an information request, not an account signup; it does
   not send a signup-confirmation email.
-- **Email automations:** A verified Clerk webhook triggers a welcome
-  automation when a subscription is created. Contact and subscription events,
-  templates, and automations are declared in `emails/automations/definitions.ts`
-  and can be synced to Resend.
+- **Email automations:** Lead opt-ins trigger the education automation; Stripe
+  checkout and subscription lifecycle events send billing notifications
+  directly. Automation resources are declared in
+  `emails/automations/definitions.ts` and can be synced to Resend.
 - **Abuse and duplicate protection:** Upstash Redis backs a five-submission
   per IP, per ten-minute contact limit and idempotency records for contact and
   subscription event delivery. If Redis is missing or unavailable, these
@@ -54,7 +54,7 @@ bun run dev
 
 Create `.env.local` with the Better Auth, database, Stripe, and Resend
 keys below, then open
-<http://localhost:3000>. To preview member content without a Clerk session,
+<http://localhost:3000>. To preview member content without signing in,
 also set `DEV_AUTH_BYPASS=true` and restart the dev server. The bypass is
 disabled outside development.
 
@@ -80,8 +80,6 @@ for production. Never commit real values.
 
 | Variable | Needed for |
 | --- | --- |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk on the client; required to run/build the app |
-| `CLERK_SECRET_KEY` | Clerk server-side operations; required to run/build the app |
 | `STRIPE_SECRET_KEY` | Stripe server-side API access; required to run/build the app |
 | `STRIPE_WEBHOOK_SECRET` | Verifying Stripe webhook deliveries |
 | `STRIPE_MONTHLY_PRICE_ID` | Stripe Price ID used for monthly server-created Checkout Sessions |
@@ -89,7 +87,6 @@ for production. Never commit real values.
 | `BETTER_AUTH_SECRET` | Better Auth session signing; use a random secret of at least 32 characters |
 | `BETTER_AUTH_URL` | Better Auth application URL, such as `http://localhost:3000` |
 | `RESEND_API_KEY` | Resend contact, event, and transactional email APIs; required to run/build the app |
-| `CLERK_WEBHOOK_SIGNING_SECRET` | Verifying Clerk webhook deliveries; configure this before enabling the webhook |
 | `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` | Turso database used by Drizzle and Better Auth |
 | `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` | Contact rate limiting and idempotency for contact/subscription events; both must be set |
 | `RESEND_FROM_EMAIL` | Verified sender for billing emails and `bun run emails:sync` |
@@ -121,27 +118,23 @@ uses `drizzle.config.ts` and writes migrations to `drizzle/`. Generate and
 apply the initial auth migration with `bun run db:generate` and
 `bun run db:migrate`.
 
-The Clerk webhook remains for legacy billing notifications. Stripe checkout
-and customer provisioning use Better Auth sessions and the Stripe webhook.
+Stripe checkout and customer provisioning use Better Auth sessions and the
+Stripe webhook. Successful checkout and subscription lifecycle notifications
+are sent through Resend.
 
 To enable email workflows:
 
 1. Configure `RESEND_API_KEY` and `RESEND_FROM_EMAIL`, then run
    `bun run emails:sync`. The command provisions code-defined marketing topics,
    consent properties, events, templates, and automations. The contact endpoint
-   resolves the selected topic by its code-defined name.
-2. Add a Clerk webhook at `/api/webhooks/clerk` for `subscription.created`,
-   `paymentAttempt.created`, `paymentAttempt.updated`, and
-   `subscriptionItem.canceled`; set its signing secret in
-   `CLERK_WEBHOOK_SIGNING_SECRET`. Billing notifications are sent directly
-   through Resend and do not use Resend automations. Cancellation notifications
-   correspond to the canceled subscription item.
-3. Configure both Upstash Redis variables. Contact capture and event
+   resolves the selected topic by its code-defined name. The lead education
+   automation sends after marketing opt-in.
+2. Configure both Upstash Redis variables. Contact capture and event
    idempotency return an error when Redis is not configured.
 
 The Stripe webhook handles paid subscription checkout, recurring invoice
 renewals and failures, newly scheduled cancellations, and deleted
-subscriptions. Lifecycle notifications use the app email for the mapped Stripe
+subscriptions. Billing notifications use the app email for the mapped Stripe
 customer; Stripe-provided email addresses are not used for account lookup.
 Lifecycle events do not invalidate access caches or write local subscription
 snapshots. Access continues through paid-through time, and the cache expires
@@ -150,7 +143,7 @@ naturally at that boundary.
 ## Where to make changes
 
 - **Pages and routes:** `app/` (home, sign-in, account, subscribe, activities,
-  guest and public Markdown, contact API, and Clerk/Stripe webhooks).
+  guest and public Markdown, contact API, and Stripe webhooks).
 - **Shared UI and checkout steps:** `components/`; checkout state and URL
   handling live in `components/subscribe/`. The authenticated checkout endpoint
   is `app/api/stripe/checkout/route.ts`.
@@ -179,7 +172,7 @@ naturally at that boundary.
 - **Shared Redis helpers:** `packages/kv/` owns the Redis client, rate limiter,
   idempotency store, and IP identifier. Extend this package for new shared
   server-side Redis behavior instead of wiring Redis directly into routes.
-- **Environment and auth:** `env.ts`, `proxy.ts`, and `lib/auth.ts`.
+- **Environment and auth:** `env.ts`, `lib/auth.ts`, and `lib/better-auth.ts`.
 
 Markdown supports CommonMark/GitHub Flavored Markdown, tables, task lists,
 footnotes, KaTeX math, collapsible `<details>` sections, and `[!NOTE]`,
@@ -190,10 +183,10 @@ place to store secrets.
 
 ## A few things to remember
 
-- Local auth bypass is only for browsing member content. It does not test Clerk
-  sign-in, billing, entitlements, or account management.
+- Local auth bypass is only for browsing member content. It does not test
+  sign-in, billing, subscription access, or account management.
 - Redis credentials are optional for building, but contact submissions and
   email event idempotency will not work without both credentials.
-- The webhook only handles `subscription.created`; it is not a complete
-  subscription lifecycle integration.
+- Configure the Stripe webhook for the event types listed in Services and
+  configuration.
 - `gaps.md` tracks product and operational gaps that are not implemented yet.

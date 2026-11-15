@@ -1051,27 +1051,6 @@ button.text-button {
   font-size: 12px;
   line-height: 1.6;
 }
-.clerk-auth {
-  --sign-in-surface: #fff;
-  --sign-in-muted: #f7f8f3;
-  --sign-in-line: #e6e9e1;
-  --sign-in-ring: #809d70;
-}
-.clerk-auth .cl-card {
-  background-color: transparent;
-  border-radius: 6px;
-  box-shadow: none;
-}
-.auth-container.clerk-auth .cl-footer {
-  background: transparent;
-  border-top: 0;
-}
-.auth-container.clerk-auth .cl-formFieldInput:not(:focus) {
-  border-color: #9eac9d;
-}
-.auth-container.clerk-auth .cl-formFieldInput {
-  border-width: 2px;
-}
 .error-message {
   color: #a23d32;
   font-size: 12px;
@@ -1450,15 +1429,6 @@ button.text-button {
     --green: #b4cdaa;
   }
 
-  .clerk-auth {
-    --sign-in-surface: #1b211c;
-    --sign-in-muted: #222923;
-    --sign-in-line: #303a31;
-    --sign-in-ring: #b4cdaa;
-  }
-  .auth-container.clerk-auth .cl-formFieldInput:not(:focus) {
-    border-color: #657563;
-  }
 
   body {
     background: #151a16;

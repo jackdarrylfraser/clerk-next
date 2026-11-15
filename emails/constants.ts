@@ -5,7 +5,6 @@ export const EMAIL_EVENTS = {
   paymentFailed: "payment.failed",
   subscriptionCanceled: "subscription.canceled",
   marketingOptIn: "marketing.opted_in",
-  clerkUserCreated: "user.created",
 } as const;
 
 export const IDEMPOTENCY_PREFIXES = {

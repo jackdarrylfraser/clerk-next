@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
           </li>
           <li>
             Payment information submitted during checkout, which is handled by
-            Clerk and its payment processors, including Stripe.
+            Stripe and its payment processors.
           </li>
           <li>
             Contact-form information, including your name, email address, and
@@ -63,8 +63,8 @@ export default function PrivacyPolicyPage() {
 
         <h2>Service providers</h2>
         <p>
-          We use Clerk for account and checkout services, Stripe for payment
-          processing through checkout, Resend for contact and email
+          We use Better Auth and Turso to manage account and session data,
+          Stripe for payment processing, Resend for contact and email
           communications, Umami for website analytics, and Upstash for
           contact-form rate limiting and duplicate-submission handling. These
           providers process information as needed to provide their services.

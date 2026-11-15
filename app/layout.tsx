@@ -1,4 +1,3 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { DevAuthBypassProvider } from "@/components/dev-auth-bypass-provider";
@@ -30,13 +29,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ClerkProvider>
-          <DevAuthBypassProvider enabled={isDevAuthBypassEnabled}>
-            <Navigation />
-            {children}
-            <SiteFooter />
-          </DevAuthBypassProvider>
-        </ClerkProvider>
+        <DevAuthBypassProvider enabled={isDevAuthBypassEnabled}>
+          <Navigation />
+          {children}
+          <SiteFooter />
+        </DevAuthBypassProvider>
       </body>
     </html>
   );

@@ -19,7 +19,6 @@
   "dependencies": {
     "@clerk-next/kv": "workspace:*",
     "@clerk-next/markdown-engine": "workspace:*",
-    "@clerk/nextjs": "^7.9.25",
     "@libsql/client": "^0.18.0",
     "@next/env": "16.4.5",
     "@t3-oss/env-nextjs": "^0.13.11",

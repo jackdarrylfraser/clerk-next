@@ -6,8 +6,6 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   },
   server: {
-    CLERK_SECRET_KEY: z.string().min(1),
-    CLERK_WEBHOOK_SIGNING_SECRET: z.string().min(1).optional(),
     STRIPE_SECRET_KEY: z.string().min(1),
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
     STRIPE_MONTHLY_PRICE_ID: z.string().trim().min(1).optional(),
@@ -27,12 +25,9 @@ export const env = createEnv({
     DEV_AUTH_BYPASS: z.enum(["true", "false"]).optional().default("false"),
   },
   client: {
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
-    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
-    CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     STRIPE_MONTHLY_PRICE_ID: process.env.STRIPE_MONTHLY_PRICE_ID,
@@ -47,8 +42,6 @@ export const env = createEnv({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     DEV_AUTH_BYPASS: process.env.DEV_AUTH_BYPASS,
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
-      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
   },
   emptyStringAsUndefined: true,
 });

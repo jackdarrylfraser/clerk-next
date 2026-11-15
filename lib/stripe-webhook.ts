@@ -3,6 +3,7 @@ import type { BillingNotificationContent } from "@/emails/billing-notification-c
 import {
   createCancellationScheduledEmail,
   createSubscriptionEndedEmail,
+  createSubscriptionCreatedEmail,
   createSubscriptionPaymentFailedEmail,
   createSubscriptionRenewedEmail,
 } from "@/emails/billing-notification-content";
@@ -138,6 +139,17 @@ async function processCheckoutCompletedEvent(
 
       await dependencies.associateCustomer(customerId, user.id);
       await dependencies.invalidateAccess(user.id);
+
+      const owner = await dependencies.findUserForCustomer(customerId);
+      if (!owner) {
+        throw new Error(
+          "Stripe Checkout Session customer is not linked to an app user",
+        );
+      }
+
+      await dependencies.sendLifecycleNotification(owner, event, createSubscriptionCreatedEmail({
+        firstName: owner.name,
+      }));
 
       return { userId: user.id };
     },
