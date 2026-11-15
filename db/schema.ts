@@ -5,9 +5,7 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
-
-export const accessLevels = ["guest", "self_guided", "admin"] as const;
-export type AccessLevel = (typeof accessLevels)[number];
+import { ACCESS_LEVELS, type AccessLevel } from "@/lib/constants";
 
 export const user = sqliteTable(
   "user",
@@ -31,9 +29,10 @@ export const userAccess = sqliteTable(
     userId: text("user_id")
       .primaryKey()
       .references(() => user.id, { onDelete: "cascade" }),
-    accessLevel: text("access_level", { enum: accessLevels })
+    accessLevel: text("access_level")
+      .$type<AccessLevel>()
       .notNull()
-      .default("guest"),
+      .default(ACCESS_LEVELS.GUEST.value),
   },
   (table) => [index("user_access_level_index").on(table.accessLevel)],
 );

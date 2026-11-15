@@ -1,14 +1,22 @@
-import type { AccessLevel } from "@/db/schema";
-
-const accessRank: Record<AccessLevel, number> = {
-  guest: 0,
-  self_guided: 1,
-  admin: 2,
-};
+import {
+  ACCESS_LEVELS,
+  type AccessLevel,
+} from "@/lib/constants";
 
 export function hasAccessLevel(
   granted: AccessLevel,
   required: AccessLevel,
 ): boolean {
-  return accessRank[granted] >= accessRank[required];
+  const grantedLevel = Object.values(ACCESS_LEVELS).find(
+    (level) => level.value === granted,
+  );
+  const requiredLevel = Object.values(ACCESS_LEVELS).find(
+    (level) => level.value === required,
+  );
+
+  if (!grantedLevel || !requiredLevel) {
+    throw new Error("Unknown access level.");
+  }
+
+  return grantedLevel.rank >= requiredLevel.rank;
 }

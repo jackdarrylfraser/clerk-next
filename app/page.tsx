@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { hasAccessLevel } from "@/lib/access-policy";
+import { ACCESS_LEVELS } from "@/lib/constants";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getCurrentUserAccess } from "@/lib/server-access";
 
@@ -33,7 +34,8 @@ async function HomeContent({
     isDevAuthBypassEnabled ? null : await getCurrentUserAccess();
   const canViewActivities =
     isDevAuthBypassEnabled ||
-    (current !== null && hasAccessLevel(current.accessLevel, "self_guided"));
+    (current !== null &&
+      hasAccessLevel(current.accessLevel, ACCESS_LEVELS.SELF_GUIDED.value));
   if (canViewActivities) {
     const { page: pageParam } = await searchParams;
     const requestedPage =

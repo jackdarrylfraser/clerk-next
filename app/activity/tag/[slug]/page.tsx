@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { join } from "node:path";
 import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
+import { ACCESS_LEVELS } from "@/lib/constants";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getTagSlug } from "@/lib/tags";
 import { requireUserAccess } from "@/lib/server-access";
@@ -45,7 +46,7 @@ async function TagPageContent({
   const { slug } = await params;
   if (!isDevAuthBypassEnabled) {
     await requireUserAccess(
-      "self_guided",
+      ACCESS_LEVELS.SELF_GUIDED.value,
       `/activity/tag/${encodeURIComponent(slug)}`,
     );
   }

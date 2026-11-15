@@ -3,8 +3,13 @@ import { eq } from "drizzle-orm";
 import { io } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { accessLevels, userAccess, type AccessLevel } from "@/db/schema";
+import { userAccess } from "@/db/schema";
 import { auth } from "@/lib/better-auth";
+import {
+  ACCESS_LEVELS,
+  isAccessLevel,
+  type AccessLevel,
+} from "@/lib/constants";
 import { getDb } from "@/lib/drizzle";
 import { hasAccessLevel } from "@/lib/access-policy";
 
@@ -32,13 +37,19 @@ export async function getCurrentUserAccess(): Promise<CurrentUserAccess | null> 
   if (!record) {
     await db
       .insert(userAccess)
-      .values({ userId: session.user.id, accessLevel: "guest" })
+      .values({
+        userId: session.user.id,
+        accessLevel: ACCESS_LEVELS.GUEST.value,
+      })
       .onConflictDoNothing();
 
-    return { user: session.user, accessLevel: "guest" };
+    return {
+      user: session.user,
+      accessLevel: ACCESS_LEVELS.GUEST.value,
+    };
   }
 
-  if (!accessLevels.includes(record.accessLevel)) {
+  if (!isAccessLevel(record.accessLevel)) {
     throw new Error(`Invalid access level for user ${session.user.id}`);
   }
 

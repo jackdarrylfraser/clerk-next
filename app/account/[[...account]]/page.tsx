@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { hasAccessLevel } from "@/lib/access-policy";
+import { ACCESS_LEVELS } from "@/lib/constants";
 import { getCurrentUserAccess } from "@/lib/server-access";
 import { SignOutButton } from "@/components/sign-out-button";
 
@@ -31,7 +32,9 @@ async function Account() {
   if (!current) {
     redirect(`/sign-in?redirect_url=${encodeURIComponent("/account")}`);
   }
-  if (!hasAccessLevel(current.accessLevel, "self_guided")) {
+  if (
+    !hasAccessLevel(current.accessLevel, ACCESS_LEVELS.SELF_GUIDED.value)
+  ) {
     redirect("/subscribe/plan");
   }
 

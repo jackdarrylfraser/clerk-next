@@ -5,6 +5,7 @@ import ActivityCard from "@/components/activity-card";
 import { GuestEmailVerificationGate } from "@/components/guest-email-verification-gate";
 import { hasAccessLevel } from "@/lib/access-policy";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
+import { ACCESS_LEVELS } from "@/lib/constants";
 import {
   getMarkdownMetadata,
   getMarkdownParams,
@@ -41,7 +42,7 @@ async function GuestMarkdownPage({
         />
       );
     }
-    if (!hasAccessLevel(current.accessLevel, "guest")) {
+    if (!hasAccessLevel(current.accessLevel, ACCESS_LEVELS.GUEST.value)) {
       redirect("/subscribe/plan");
     }
   }

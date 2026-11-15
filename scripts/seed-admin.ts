@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "../db/schema";
 import { user, userAccess } from "../db/schema";
+import { ACCESS_LEVELS } from "../lib/constants";
 
 const { combinedEnv } = loadEnvConfig(process.cwd());
 
@@ -53,13 +54,18 @@ async function seedAdmin(): Promise<void> {
 
   await db
     .insert(userAccess)
-    .values({ userId: seededUser.id, accessLevel: "admin" })
+    .values({
+      userId: seededUser.id,
+      accessLevel: ACCESS_LEVELS.ADMIN.value,
+    })
     .onConflictDoUpdate({
       target: userAccess.userId,
-      set: { accessLevel: "admin" },
+      set: { accessLevel: ACCESS_LEVELS.ADMIN.value },
     });
 
-  console.info("Seeded Better Auth user access level: admin.");
+  console.info(
+    `Seeded Better Auth user access level: ${ACCESS_LEVELS.ADMIN.value}.`,
+  );
 }
 
 seedAdmin().catch((error: unknown) => {

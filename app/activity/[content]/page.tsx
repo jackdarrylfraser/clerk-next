@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { join } from "node:path";
+import { ACCESS_LEVELS } from "@/lib/constants";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import ActivityCard from "@/components/activity-card";
 import {
@@ -27,7 +28,10 @@ async function PermissionedActivityPage({
 }) {
   const { content: slug } = await params;
   if (!isDevAuthBypassEnabled) {
-    await requireUserAccess("self_guided", `/activity/${encodeURIComponent(slug)}`);
+    await requireUserAccess(
+      ACCESS_LEVELS.SELF_GUIDED.value,
+      `/activity/${encodeURIComponent(slug)}`,
+    );
   }
 
   const renderedContent = await renderMarkdown(activityDirectory, slug);
