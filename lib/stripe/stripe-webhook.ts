@@ -1,5 +1,6 @@
 import type { IdempotencyRunResult } from "@outbound-endurance/kv";
 import type { BillingNotificationContent } from "@/emails/billing-notification-content";
+import { sendEmail } from "@/emails/send-email";
 import {
   createCancellationScheduledEmail,
   createSubscriptionEndedEmail,
@@ -7,40 +8,19 @@ import {
   createSubscriptionPaymentFailedEmail,
   createSubscriptionRenewedEmail,
 } from "@/emails/billing-notification-content";
+import { idempotency } from "@/lib/kv";
+import { invalidateStripeAccessCache } from "@/lib/stripe/stripe-access";
+import {
+  associateStripeCustomerWithUser,
+  getStripeCheckoutUser,
+  getStripeCustomerOwner,
+  type StripeCustomerOwner,
+} from "@/lib/stripe/stripe-customers";
 
 export interface StripeWebhookEvent {
   id: string;
   type: string;
   data: { object: unknown; previous_attributes?: unknown };
-}
-
-export interface StripeCheckoutUser {
-  id: string;
-}
-
-export interface StripeLifecycleUser extends StripeCheckoutUser {
-  email: string;
-  name: string;
-}
-
-export interface StripeWebhookIdempotency {
-  run<T>(
-    config: { scope: string; key: string },
-    operation: () => Promise<T>,
-  ): Promise<IdempotencyRunResult<T>>;
-}
-
-export interface StripeWebhookDependencies {
-  idempotency: StripeWebhookIdempotency;
-  findUser(userId: string): Promise<StripeCheckoutUser | null>;
-  associateCustomer(customerId: string, userId: string): Promise<void>;
-  invalidateAccess(userId: string): Promise<void>;
-  findUserForCustomer(customerId: string): Promise<StripeLifecycleUser | null>;
-  sendLifecycleNotification(
-    user: StripeLifecycleUser,
-    event: { id: string; type: string },
-    content: BillingNotificationContent,
-  ): Promise<void>;
 }
 
 export type StripeWebhookProcessResult =
@@ -62,10 +42,9 @@ type LifecycleNotification =
 
 export async function processStripeWebhookEvent(
   event: StripeWebhookEvent,
-  dependencies: StripeWebhookDependencies,
 ): Promise<StripeWebhookProcessResult> {
   if (event.type === "checkout.session.completed") {
-    return processCheckoutCompletedEvent(event, dependencies);
+    return processCheckoutCompletedEvent(event);
   }
 
   const notification = getLifecycleNotification(event);
@@ -74,24 +53,21 @@ export async function processStripeWebhookEvent(
   }
 
   const result = await runIdempotently(
-    dependencies.idempotency,
     event,
     LIFECYCLE_NOTIFICATION_SCOPE,
     async () => {
-      const user = await dependencies.findUserForCustomer(
-        notification.customerId,
-      );
+      const user = await getStripeCustomerOwner(notification.customerId);
       if (!user) {
         throw new Error(
           "Stripe lifecycle event refers to an unmapped customer",
         );
       }
 
-      await dependencies.sendLifecycleNotification(
-        user,
-        { id: event.id, type: event.type },
-        createLifecycleEmail(notification, user),
-      );
+      await sendEmail({
+        idempotencyKey: `stripe/${event.type}/${event.id}`,
+        to: user.email,
+        content: createLifecycleEmail(notification, user),
+      });
 
       return { userId: user.id };
     },
@@ -102,7 +78,6 @@ export async function processStripeWebhookEvent(
 
 async function processCheckoutCompletedEvent(
   event: StripeWebhookEvent,
-  dependencies: StripeWebhookDependencies,
 ): Promise<StripeWebhookProcessResult> {
   if (!isRecord(event.data.object)) {
     throw new Error("Stripe Checkout Session data is invalid");
@@ -126,30 +101,31 @@ async function processCheckoutCompletedEvent(
   }
 
   return runIdempotently(
-    dependencies.idempotency,
     event,
     CHECKOUT_PROVISIONING_SCOPE,
     async () => {
-      const user = await dependencies.findUser(userId);
+      const user = await getStripeCheckoutUser(userId);
       if (!user) {
         throw new Error(
           "Stripe Checkout Session refers to an unknown app user",
         );
       }
 
-      await dependencies.associateCustomer(customerId, user.id);
-      await dependencies.invalidateAccess(user.id);
+      await associateStripeCustomerWithUser(customerId, user.id);
+      await invalidateStripeAccessCache(user.id);
 
-      const owner = await dependencies.findUserForCustomer(customerId);
+      const owner = await getStripeCustomerOwner(customerId);
       if (!owner) {
         throw new Error(
           "Stripe Checkout Session customer is not linked to an app user",
         );
       }
 
-      await dependencies.sendLifecycleNotification(owner, event, createSubscriptionCreatedEmail({
-        firstName: owner.name,
-      }));
+      await sendEmail({
+        idempotencyKey: `stripe/${event.type}/${event.id}`,
+        to: owner.email,
+        content: createSubscriptionCreatedEmail({ firstName: owner.name }),
+      });
 
       return { userId: user.id };
     },
@@ -157,7 +133,6 @@ async function processCheckoutCompletedEvent(
 }
 
 async function runIdempotently(
-  idempotency: StripeWebhookIdempotency,
   event: StripeWebhookEvent,
   scope: string,
   operation: () => Promise<{ userId: string }>,
@@ -295,7 +270,7 @@ function getCancellationDate(
 
 function createLifecycleEmail(
   notification: LifecycleNotification,
-  user: StripeLifecycleUser,
+  user: StripeCustomerOwner,
 ): BillingNotificationContent {
   const details = { firstName: user.name };
   switch (notification.kind) {

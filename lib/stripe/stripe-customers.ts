@@ -9,6 +9,18 @@ export interface StripeCustomerOwner {
   name: string;
 }
 
+export async function getStripeCheckoutUser(
+  userId: string,
+): Promise<{ id: string } | null> {
+  const [record] = await getDb()
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
+
+  return record ?? null;
+}
+
 export async function getStripeCustomerIdsForUser(
   userId: string,
 ): Promise<string[]> {

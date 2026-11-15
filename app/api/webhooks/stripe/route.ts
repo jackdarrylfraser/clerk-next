@@ -1,14 +1,4 @@
-import { eq } from "drizzle-orm";
 import { env } from "@/env";
-import { sendEmail } from "@/emails/send-email";
-import { user as appUser } from "@/db/schema";
-import { getDb } from "@/lib/drizzle";
-import { idempotency } from "@/lib/kv";
-import { invalidateStripeAccessCache } from "@/lib/stripe/stripe-access";
-import {
-  associateStripeCustomerWithUser,
-  getStripeCustomerOwner,
-} from "@/lib/stripe/stripe-customers";
 import { processStripeWebhookEvent } from "@/lib/stripe/stripe-webhook";
 import { verifyStripeWebhookEvent } from "@/lib/stripe/stripe-webhook-signature";
 
@@ -29,28 +19,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const result = await processStripeWebhookEvent(event, {
-      idempotency,
-      async findUser(userId) {
-        const [record] = await getDb()
-          .select({ id: appUser.id })
-          .from(appUser)
-          .where(eq(appUser.id, userId))
-          .limit(1);
-
-        return record ?? null;
-      },
-      associateCustomer: associateStripeCustomerWithUser,
-      invalidateAccess: invalidateStripeAccessCache,
-      findUserForCustomer: getStripeCustomerOwner,
-      async sendLifecycleNotification(account, event, content) {
-        await sendEmail({
-          idempotencyKey: `stripe/${event.type}/${event.id}`,
-          to: account.email,
-          content,
-        });
-      },
-    });
+    const result = await processStripeWebhookEvent(event);
 
     if (result.status === "in-progress") {
       return Response.json(
