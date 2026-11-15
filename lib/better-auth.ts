@@ -3,14 +3,11 @@ import { createHash } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { emailOTP } from "better-auth/plugins";
-import {
-  account,
-  session,
-  user,
-  verification,
-} from "../db/schema";
+import { createIdempotencyPrefix } from "@outbound-endurance/kv";
+import { account, session, user, verification } from "../db/schema";
 import { sendEmail } from "../emails/send-email";
 import { env } from "../env";
+import { IDEMPOTENCY_PREFIXES } from "./constants";
 import { getDb } from "./drizzle";
 import { leadEmailOTP } from "./lead/lead-email-otp-plugin";
 
@@ -36,7 +33,9 @@ export const auth = betterAuth({
           .digest("hex");
 
         await sendEmail({
-          idempotencyKey: `better-auth/otp/${idempotencyHash}`,
+          idempotencyKey: `${createIdempotencyPrefix({
+            ...IDEMPOTENCY_PREFIXES.betterAuth.otp,
+          })}/${idempotencyHash}`,
           to: email,
           content: {
             subject: `Your ${codeLabel} code`,

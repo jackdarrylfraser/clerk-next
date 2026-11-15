@@ -8,6 +8,36 @@ export interface IdempotencyKey {
   key: string;
 }
 
+export interface CreateIdempotencyPrefixOptions {
+  namespace: string;
+  scope: string;
+  event: string;
+  separator: string;
+}
+
+export function createIdempotencyPrefix({
+  namespace = "",
+  scope,
+  event,
+  separator,
+}: CreateIdempotencyPrefixOptions): string {
+  if (!separator) {
+    throw new Error("An idempotency prefix separator is required");
+  }
+  const components = [scope, event].filter(
+    (component): component is string => component !== undefined,
+  );
+  if (components.some((component) => !component.trim())) {
+    throw new Error("Idempotency prefix attributes must not be empty");
+  }
+  if (namespace && !namespace.trim()) {
+    throw new Error("An idempotency prefix namespace must not be empty");
+  }
+
+  const prefix = components.join(separator);
+  return namespace ? `${namespace}/${prefix}` : prefix;
+}
+
 export interface IdempotencyRunOptions<T = unknown> {
   lockTtlSeconds?: number;
   completionTtlSeconds?: number;
@@ -16,8 +46,7 @@ export interface IdempotencyRunOptions<T = unknown> {
 }
 
 export interface IdempotencyRunConfig<T = unknown>
-  extends IdempotencyKey,
-    IdempotencyRunOptions<T> {}
+  extends IdempotencyKey, IdempotencyRunOptions<T> {}
 
 export type IdempotencyRunResult<T> =
   | { status: "executed"; value: T }
@@ -199,9 +228,7 @@ export function createIdempotencyStore({
       if (completedResult.completed) {
         return { status: "duplicate" };
       }
-      return claim.status === "completed"
-        ? { status: "duplicate" }
-        : claim;
+      return claim.status === "completed" ? { status: "duplicate" } : claim;
     }
 
     try {

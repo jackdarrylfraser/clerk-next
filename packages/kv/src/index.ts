@@ -52,8 +52,9 @@ export function createRateLimiter({
   };
 }
 
-export { createIdempotencyStore } from "./idempotency";
+export { createIdempotencyPrefix, createIdempotencyStore } from "./idempotency";
 export type {
+  CreateIdempotencyPrefixOptions,
   IdempotencyKey,
   IdempotencyRunConfig,
   IdempotencyRunOptions,

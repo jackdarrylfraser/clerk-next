@@ -1,3 +1,6 @@
+import { createIdempotencyPrefix } from "@outbound-endurance/kv";
+import { IDEMPOTENCY_PREFIXES } from "@/lib/constants";
+
 interface SubscriptionAccessState {
   status: string;
   trialEnd: number | null;
@@ -64,7 +67,6 @@ export function hasSubscriptionAccess(
   return getSubscriptionAccessExpiry(state, now) !== null;
 }
 
-const ACCESS_IDEMPOTENCY_SCOPE = "stripe-access:v1";
 const DEFAULT_DENIED_CACHE_TTL_SECONDS = 60;
 const LOCK_TTL_SECONDS = 10;
 
@@ -100,7 +102,9 @@ export async function checkStripeAccess(
     !Number.isSafeInteger(deniedCacheTtlSeconds) ||
     deniedCacheTtlSeconds < 1
   ) {
-    throw new Error("The denied Stripe access cache TTL must be a positive integer");
+    throw new Error(
+      "The denied Stripe access cache TTL must be a positive integer",
+    );
   }
 
   function getIdempotencyKey(userId: string): {
@@ -110,13 +114,20 @@ export async function checkStripeAccess(
     if (!userId.trim()) {
       throw new Error("A user ID is required to check Stripe access");
     }
-    return { scope: ACCESS_IDEMPOTENCY_SCOPE, key: userId };
+    return {
+      scope: createIdempotencyPrefix({
+        ...IDEMPOTENCY_PREFIXES.stripe.access,
+      }),
+      key: userId,
+    };
   }
 
   async function lookupAccess(userId: string): Promise<StripeAccessResult> {
     const customerIds = await getCustomerIds(userId);
     const accessStates = (
-      await Promise.all(customerIds.map((customerId) => getAccessStates(customerId)))
+      await Promise.all(
+        customerIds.map((customerId) => getAccessStates(customerId)),
+      )
     ).flat();
     const currentTime = now();
     const accessExpiry = accessStates.reduce<number | null>(
@@ -196,5 +207,10 @@ export async function invalidateStripeAccessCache(
   if (!userId.trim()) {
     throw new Error("A user ID is required to invalidate Stripe access");
   }
-  await idempotency.forget({ scope: ACCESS_IDEMPOTENCY_SCOPE, key: userId });
+  await idempotency.forget({
+    scope: createIdempotencyPrefix({
+      ...IDEMPOTENCY_PREFIXES.stripe.access,
+    }),
+    key: userId,
+  });
 }

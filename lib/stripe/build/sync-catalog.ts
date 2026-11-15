@@ -1,6 +1,8 @@
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import Stripe from "stripe";
+import { createIdempotencyPrefix } from "@outbound-endurance/kv";
+import { IDEMPOTENCY_PREFIXES } from "@/lib/constants";
 import {
   monthlyMembershipDefinition,
   type StripeCatalogDefinition,
@@ -46,7 +48,9 @@ async function getOrCreateProduct(
         metadata: { [metadataKey]: definition.catalogKey },
       },
       {
-        idempotencyKey: `outbound-catalog-product-${definition.catalogKey}-v1`,
+        idempotencyKey: `${createIdempotencyPrefix({
+          ...IDEMPOTENCY_PREFIXES.stripe.catalog.product,
+        })}-${definition.catalogKey}-v1`,
       },
     );
   }
@@ -197,7 +201,9 @@ async function findOrCreatePrice(
       metadata: { [metadataKey]: definition.catalogKey },
     },
     {
-      idempotencyKey: `outbound-catalog-price-${definition.catalogKey}-${definition.currency}-${definition.unitAmount}-${definition.interval}-${definition.intervalCount}`,
+      idempotencyKey: `${createIdempotencyPrefix({
+        ...IDEMPOTENCY_PREFIXES.stripe.catalog.price,
+      })}-${definition.catalogKey}-${definition.currency}-${definition.unitAmount}-${definition.interval}-${definition.intervalCount}`,
     },
   );
 }
@@ -223,7 +229,11 @@ async function writeBuiltCatalog(
   };
 
   await mkdir(outputDirectory, { recursive: true });
-  await writeFile(temporaryPath, `${JSON.stringify(catalog, null, 2)}\n`, "utf8");
+  await writeFile(
+    temporaryPath,
+    `${JSON.stringify(catalog, null, 2)}\n`,
+    "utf8",
+  );
   await rename(temporaryPath, outputPath);
 }
 

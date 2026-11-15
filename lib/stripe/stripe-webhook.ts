@@ -1,6 +1,7 @@
 import type { IdempotencyRunResult } from "@outbound-endurance/kv";
 import type { BillingNotificationContent } from "@/emails/billing-notification-content";
 import { sendEmail } from "@/emails/send-email";
+import { IDEMPOTENCY_PREFIXES } from "@/lib/constants";
 import {
   createCancellationScheduledEmail,
   createSubscriptionEndedEmail,
@@ -8,6 +9,7 @@ import {
   createSubscriptionPaymentFailedEmail,
   createSubscriptionRenewedEmail,
 } from "@/emails/billing-notification-content";
+import { createIdempotencyPrefix } from "@outbound-endurance/kv";
 import { idempotency } from "@/lib/kv";
 import { invalidateStripeAccessCache } from "@/lib/stripe/stripe-access";
 import {
@@ -26,9 +28,6 @@ export interface StripeWebhookEvent {
 export type StripeWebhookProcessResult =
   | { status: "ignored" }
   | Exclude<IdempotencyRunResult<{ userId: string }>, { status: "error" }>;
-
-const CHECKOUT_PROVISIONING_SCOPE = "stripe-checkout-provisioning:v1";
-const LIFECYCLE_NOTIFICATION_SCOPE = "stripe-lifecycle-notification:v1";
 
 type LifecycleNotification =
   | { kind: "renewed"; customerId: string }
@@ -53,7 +52,12 @@ export async function processStripeWebhookEvent(
   }
 
   const result = await idempotency.run(
-    { scope: LIFECYCLE_NOTIFICATION_SCOPE, key: event.id },
+    {
+      scope: createIdempotencyPrefix({
+        ...IDEMPOTENCY_PREFIXES.stripe.lifecycleNotification,
+      }),
+      key: event.id,
+    },
     async () => {
       const user = await getStripeCustomerOwner(notification.customerId);
       if (!user) {
@@ -63,7 +67,9 @@ export async function processStripeWebhookEvent(
       }
 
       await sendEmail({
-        idempotencyKey: `stripe/${event.type}/${event.id}`,
+        idempotencyKey: `${createIdempotencyPrefix({
+          ...IDEMPOTENCY_PREFIXES.stripe.eventEmail,
+        })}/${event.type}/${event.id}`,
         to: user.email,
         content: createLifecycleEmail(notification, user),
       });
@@ -104,7 +110,12 @@ async function processCheckoutCompletedEvent(
   }
 
   const result = await idempotency.run(
-    { scope: CHECKOUT_PROVISIONING_SCOPE, key: event.id },
+    {
+      scope: createIdempotencyPrefix({
+        ...IDEMPOTENCY_PREFIXES.stripe.checkoutProvisioning,
+      }),
+      key: event.id,
+    },
     async () => {
       const user = await getStripeCheckoutUser(userId);
       if (!user) {
@@ -124,7 +135,9 @@ async function processCheckoutCompletedEvent(
       }
 
       await sendEmail({
-        idempotencyKey: `stripe/${event.type}/${event.id}`,
+        idempotencyKey: `${createIdempotencyPrefix({
+          ...IDEMPOTENCY_PREFIXES.stripe.eventEmail,
+        })}/${event.type}/${event.id}`,
         to: owner.email,
         content: createSubscriptionCreatedEmail({ firstName: owner.name }),
       });

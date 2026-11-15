@@ -1,4 +1,9 @@
-import { createHmac, randomInt, randomUUID, timingSafeEqual } from "node:crypto";
+import {
+  createHmac,
+  randomInt,
+  randomUUID,
+  timingSafeEqual,
+} from "node:crypto";
 import { and, eq, gt, lt, sql } from "drizzle-orm";
 import {
   APIError,
@@ -7,9 +12,11 @@ import {
 } from "better-auth/api";
 import type { BetterAuthPlugin } from "better-auth";
 import { z } from "zod";
+import { createIdempotencyPrefix } from "@outbound-endurance/kv";
 import { lead, leadVerification } from "@/db/schema";
 import { sendEmail } from "@/emails/send-email";
 import { env } from "@/env";
+import { IDEMPOTENCY_PREFIXES } from "@/lib/constants";
 import { getDb } from "@/lib/drizzle";
 import {
   createLeadAccessToken,
@@ -90,7 +97,9 @@ export function leadEmailOTP() {
 
           try {
             await sendEmail({
-              idempotencyKey: `better-auth/lead-otp/${hashCode(email, otp)}`,
+              idempotencyKey: `${createIdempotencyPrefix({
+                ...IDEMPOTENCY_PREFIXES.betterAuth.leadOtp,
+              })}/${hashCode(email, otp)}`,
               to: email,
               content: {
                 subject: "Your guest access code",
@@ -125,75 +134,74 @@ export function leadEmailOTP() {
           const email = normalizeEmail(ctx.body.email);
           const now = new Date();
           const codeHash = hashCode(email, ctx.body.otp);
-          const verifiedLead = await getDb().transaction(async (transaction) => {
-            const [challenge] = await transaction
-              .select()
-              .from(leadVerification)
-              .where(eq(leadVerification.email, email))
-              .limit(1);
+          const verifiedLead = await getDb().transaction(
+            async (transaction) => {
+              const [challenge] = await transaction
+                .select()
+                .from(leadVerification)
+                .where(eq(leadVerification.email, email))
+                .limit(1);
 
-            if (
-              !challenge ||
-              challenge.attempts >= maxCodeAttempts
-            ) {
-              return null;
-            }
+              if (!challenge || challenge.attempts >= maxCodeAttempts) {
+                return null;
+              }
 
-            if (challenge.expiresAt <= now) {
-              await transaction
+              if (challenge.expiresAt <= now) {
+                await transaction
+                  .delete(leadVerification)
+                  .where(eq(leadVerification.email, email));
+                return null;
+              }
+
+              if (!safeHashMatches(challenge.codeHash, codeHash)) {
+                await transaction
+                  .update(leadVerification)
+                  .set({ attempts: sql`${leadVerification.attempts} + 1` })
+                  .where(
+                    and(
+                      eq(leadVerification.email, email),
+                      eq(leadVerification.codeHash, challenge.codeHash),
+                      lt(leadVerification.attempts, maxCodeAttempts),
+                      gt(leadVerification.expiresAt, now),
+                    ),
+                  );
+                return null;
+              }
+
+              const consumed = await transaction
                 .delete(leadVerification)
-                .where(eq(leadVerification.email, email));
-              return null;
-            }
-
-            if (!safeHashMatches(challenge.codeHash, codeHash)) {
-              await transaction
-                .update(leadVerification)
-                .set({ attempts: sql`${leadVerification.attempts} + 1` })
                 .where(
                   and(
                     eq(leadVerification.email, email),
                     eq(leadVerification.codeHash, challenge.codeHash),
-                    lt(leadVerification.attempts, maxCodeAttempts),
                     gt(leadVerification.expiresAt, now),
+                    lt(leadVerification.attempts, maxCodeAttempts),
                   ),
-                );
-              return null;
-            }
+                )
+                .returning({ email: leadVerification.email });
 
-            const consumed = await transaction
-              .delete(leadVerification)
-              .where(
-                and(
-                  eq(leadVerification.email, email),
-                  eq(leadVerification.codeHash, challenge.codeHash),
-                  gt(leadVerification.expiresAt, now),
-                  lt(leadVerification.attempts, maxCodeAttempts),
-                ),
-              )
-              .returning({ email: leadVerification.email });
+              if (consumed.length === 0) {
+                return null;
+              }
 
-            if (consumed.length === 0) {
-              return null;
-            }
+              const [savedLead] = await transaction
+                .insert(lead)
+                .values({
+                  id: randomUUID(),
+                  email,
+                  verifiedAt: now,
+                  createdAt: now,
+                  updatedAt: now,
+                })
+                .onConflictDoUpdate({
+                  target: lead.email,
+                  set: { verifiedAt: now, updatedAt: now },
+                })
+                .returning({ id: lead.id });
 
-            const [savedLead] = await transaction
-              .insert(lead)
-              .values({
-                id: randomUUID(),
-                email,
-                verifiedAt: now,
-                createdAt: now,
-                updatedAt: now,
-              })
-              .onConflictDoUpdate({
-                target: lead.email,
-                set: { verifiedAt: now, updatedAt: now },
-              })
-              .returning({ id: lead.id });
-
-            return savedLead ?? null;
-          });
+              return savedLead ?? null;
+            },
+          );
 
           if (!verifiedLead) {
             throw APIError.from("BAD_REQUEST", {
@@ -203,10 +211,13 @@ export function leadEmailOTP() {
           }
 
           const expiresAt = now.getTime() + accessLifetimeSeconds * 1000;
-          const accessToken = createLeadAccessToken({
-            leadId: verifiedLead.id,
-            expiresAt,
-          }, env.BETTER_AUTH_SECRET);
+          const accessToken = createLeadAccessToken(
+            {
+              leadId: verifiedLead.id,
+              expiresAt,
+            },
+            env.BETTER_AUTH_SECRET,
+          );
           const cookie = ctx.context.createAuthCookie(leadAccessCookieName, {
             maxAge: accessLifetimeSeconds,
           });

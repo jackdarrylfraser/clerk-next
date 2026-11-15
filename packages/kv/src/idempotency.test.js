@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import { createHash } from "node:crypto";
-import { createIdempotencyStore } from "./idempotency";
+import {
+  createIdempotencyPrefix,
+  createIdempotencyStore,
+} from "./idempotency";
 
 function createStore(records = new Map()) {
   const setOptions = new Map();
@@ -29,6 +32,35 @@ function createStore(records = new Map()) {
     setOptions,
   };
 }
+
+describe("idempotency prefixes", () => {
+  it("joins configured components and applies an optional namespace", () => {
+    expect(
+      createIdempotencyPrefix({
+        namespace: "deployment",
+        scope: "stripe",
+        event: "invoice.paid",
+        separator: "/",
+      }),
+    ).toBe("deployment/stripe/invoice.paid");
+  });
+
+  it("rejects incomplete prefix attributes", () => {
+    expect(() =>
+      createIdempotencyPrefix({
+        scope: "stripe",
+        separator: "",
+      }),
+    ).toThrow("separator");
+    expect(() =>
+      createIdempotencyPrefix({
+        scope: "stripe",
+        event: " ",
+        separator: "/",
+      }),
+    ).toThrow("attributes");
+  });
+});
 
 describe("idempotency", () => {
   it("runs work once and marks the key complete", async () => {
