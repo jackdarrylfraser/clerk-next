@@ -1,10 +1,9 @@
 # Clerk Next
 
 If you're reading this six months from now, this is a small membership site
-built with Next.js, Better Auth, Clerk Billing, Resend, and Upstash Redis.
-Visitors choose a membership plan, then sign in or create an account through
-the same account flow. The selected plan stays in the URL so signed-in users
-can resume the flow.
+built with Next.js, Better Auth, Stripe, Resend, and Upstash Redis. Visitors
+choose a membership plan, then sign in or create an account before checkout.
+Stripe Checkout Sessions are created on the server for the signed-in user.
 
 ## What the app does
 
@@ -12,11 +11,10 @@ can resume the flow.
   sign-in and session management. The account page is available to
   `self_guided` and `admin` users. Profile editing and subscription management
   are not yet migrated.
-- **Billing migration status:** Plan lookup and checkout still use Clerk
-  Billing. Better Auth sessions are not Clerk sessions, so checkout is not
-  available to users signed in through the Better Auth flow until billing is
-  migrated. The `/subscribe` flow keeps the selected plan and billing period
-  in the URL so it can resume after sign-in or a refresh.
+- **Billing:** Stripe provides subscription access and server-created Checkout
+  Sessions. Checkout requires a Better Auth session; Stripe customer IDs are
+  linked to that existing user by a signed webhook. Stripe-provided email
+  addresses are not used to find or create app accounts.
 - **Member content:** The home page lists paginated activities from
   `content/self-guided` for `self_guided` and `admin` users. Individual
   activity pages and tags use the same access rule.
@@ -54,7 +52,7 @@ bun install
 bun run dev
 ```
 
-Create `.env.local` with the Better Auth, database, Clerk Billing, and Resend
+Create `.env.local` with the Better Auth, database, Stripe, and Resend
 keys below, then open
 <http://localhost:3000>. To preview member content without a Clerk session,
 also set `DEV_AUTH_BYPASS=true` and restart the dev server. The bypass is
@@ -86,7 +84,7 @@ for production. Never commit real values.
 | `CLERK_SECRET_KEY` | Clerk server-side operations; required to run/build the app |
 | `STRIPE_SECRET_KEY` | Stripe server-side API access; required to run/build the app |
 | `STRIPE_WEBHOOK_SECRET` | Verifying Stripe webhook deliveries |
-| `NEXT_PUBLIC_STRIPE_MONTHLY_PAYMENT_LINK_URL` | Public Stripe monthly Payment Link URL |
+| `STRIPE_MONTHLY_PRICE_ID` | Stripe Price ID used for monthly server-created Checkout Sessions |
 | `BETTER_AUTH_SECRET` | Better Auth session signing; use a random secret of at least 32 characters |
 | `BETTER_AUTH_URL` | Better Auth application URL, such as `http://localhost:3000` |
 | `RESEND_API_KEY` | Resend contact, event, and transactional email APIs; required to run/build the app |
@@ -96,9 +94,10 @@ for production. Never commit real values.
 | `RESEND_FROM_EMAIL` | Verified sender for billing emails and `bun run emails:sync` |
 | `DEV_AUTH_BYPASS` | Optional local member-content preview; set to `true` only for development |
 
-Set the Stripe secret and webhook signing secret for the same Stripe mode as the
-Payment Links. `NEXT_PUBLIC_` values are included in the client bundle at build
-time, so configure the correct Payment Link URLs before building.
+Set the Stripe secret, monthly Price ID, and webhook signing secret for the
+same Stripe mode. Configure the Stripe webhook endpoint at
+`/api/webhooks/stripe` for `checkout.session.completed`. Delayed payment methods
+are not enabled; checkout currently accepts card payments only.
 
 Better Auth is configured in `lib/better-auth.ts`, mounted at
 `/api/auth/[...all]`, and uses the Drizzle singleton in `lib/drizzle.ts`.
@@ -106,15 +105,14 @@ Checkout account creation/sign-in uses Better Auth's email OTP plugin and
 sends through Resend. The separate lead-verification flow remains unchanged.
 Guest content requires sign-in; self-guided activities require an unexpired
 paid Stripe invoice period or current trial. Subscription access
-uses linked Stripe customers when available and otherwise looks up customers
-by the Better Auth email. Define database tables in `db/schema.ts`; Drizzle Kit
+uses only Stripe customer IDs explicitly linked to the Better Auth user.
+Define database tables in `db/schema.ts`; Drizzle Kit
 uses `drizzle.config.ts` and writes migrations to `drizzle/`. Generate and
 apply the initial auth migration with `bun run db:generate` and
 `bun run db:migrate`.
 
-Clerk Billing still supplies plan and checkout data. Configure it for the
-legacy billing UI as needed, but Better Auth sign-in does not create a Clerk
-session; migrate billing before enabling checkout for Better Auth users.
+The Clerk webhook remains for legacy billing notifications. Stripe checkout
+and customer provisioning use Better Auth sessions and the Stripe webhook.
 
 To enable email workflows:
 
@@ -131,16 +129,17 @@ To enable email workflows:
 3. Configure both Upstash Redis variables. Contact capture and event
    idempotency return an error when Redis is not configured.
 
-Checkout still uses Clerk's experimental Billing APIs. Check Clerk's current
-version-pinning guidance before deploying. Payment flows need to be migrated
-before they can use Better Auth sessions.
+The Stripe webhook currently handles only paid subscription checkout sessions.
+It ignores non-subscription, unpaid, and delayed-payment checkout events;
+renewals and other subscription lifecycle events are not yet handled.
 
 ## Where to make changes
 
 - **Pages and routes:** `app/` (home, sign-in, account, subscribe, activities,
-  guest and public Markdown, contact API, and Clerk webhook).
+  guest and public Markdown, contact API, and Clerk/Stripe webhooks).
 - **Shared UI and checkout steps:** `components/`; checkout state and URL
-  handling live in `components/subscribe/`.
+  handling live in `components/subscribe/`. The authenticated checkout endpoint
+  is `app/api/stripe/checkout/route.ts`.
 - **Member activities:** add or edit Markdown files in `content/self-guided/`.
 - **Public pages:** add or edit Markdown files in `content/public/`.
   Each file needs YAML frontmatter with a non-empty `title`, `description`,

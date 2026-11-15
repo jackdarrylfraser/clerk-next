@@ -134,7 +134,7 @@ async function CheckoutSuccessContent({
     paymentState === "complete"
       ? "Your monthly membership payment was received."
       : paymentState === "processing"
-        ? "Checkout is complete, but Stripe has not confirmed the payment yet. Account setup will follow once payment is confirmed."
+        ? "Stripe has not confirmed the payment yet. Access is provisioned only after a successful card payment."
         : "Stripe has not confirmed a completed payment for this checkout session.";
   const lineItems = session.line_items?.data ?? [];
   const total = formatStripeAmount(session.amount_total, session.currency);
@@ -180,7 +180,7 @@ async function CheckoutSuccessContent({
       {paymentState === "complete" ? (
         <p className="checkout-confirmation-note" role="status">
           Your monthly membership payment is confirmed. Account access may take
-          a little time to become available for the account you created before
+          a little time to become available for the account you used to start
           checkout.
         </p>
       ) : paymentState === "incomplete" ? (

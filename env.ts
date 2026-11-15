@@ -10,6 +10,7 @@ export const env = createEnv({
     CLERK_WEBHOOK_SIGNING_SECRET: z.string().min(1).optional(),
     STRIPE_SECRET_KEY: z.string().min(1),
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
+    STRIPE_MONTHLY_PRICE_ID: z.string().trim().min(1).optional(),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.url(),
     TURSO_DATABASE_URL: z.string().trim().min(1),
@@ -22,7 +23,6 @@ export const env = createEnv({
   },
   client: {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
-    NEXT_PUBLIC_STRIPE_MONTHLY_PAYMENT_LINK_URL: z.url(),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -30,6 +30,7 @@ export const env = createEnv({
     CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    STRIPE_MONTHLY_PRICE_ID: process.env.STRIPE_MONTHLY_PRICE_ID,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL,
@@ -41,8 +42,6 @@ export const env = createEnv({
     DEV_AUTH_BYPASS: process.env.DEV_AUTH_BYPASS,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    NEXT_PUBLIC_STRIPE_MONTHLY_PAYMENT_LINK_URL:
-      process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PAYMENT_LINK_URL,
   },
   emptyStringAsUndefined: true,
 });
