@@ -4,45 +4,55 @@ import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
 import { formatStripeAmount } from "@/lib/stripe/helper/stripe-checkout-policy";
 import { getMonthlyMembershipDetails } from "@/lib/stripe/build/stripe-catalog";
 
-export default async function SubscribePlanPage({
+export default function SubscribePlanPage({
   searchParams,
 }: {
   searchParams: Promise<{ required?: string | string[] }>;
 }) {
-  const plan = await getMonthlyMembershipDetails();
-  const formattedAmount = formatStripeAmount(plan.unitAmount, plan.currency);
-
   return (
     <SubscribeLayout step="plan">
       <Suspense fallback={null}>
         <SubscriptionRequiredNotice searchParams={searchParams} />
       </Suspense>
-      <article className="plan-card">
-        <div className="plan-top">
-          <div>
-            <h3>{plan.productName}</h3>
-            <p>
-              {plan.productDescription}. The subscription renews every{" "}
-              {plan.intervalCount > 1 ? `${plan.intervalCount} ` : ""}
-              {plan.interval}
-              {plan.intervalCount > 1 ? "s" : ""}.
-            </p>
-          </div>
-        </div>
-        <div className="billing-option">
-          <div className="billing-option-heading">
-            <h4>
-              {formattedAmount
-                ? `${formattedAmount} / ${plan.interval}`
-                : plan.interval}
-            </h4>
-          </div>
-          <Link className="primary-button" href="/subscribe/account">
-            Create account to continue <span>↗</span>
-          </Link>
-        </div>
-      </article>
+      <Suspense
+        fallback={<p className="loading-page">Loading membership plan...</p>}
+      >
+        <MembershipPlan />
+      </Suspense>
     </SubscribeLayout>
+  );
+}
+
+async function MembershipPlan() {
+  const plan = await getMonthlyMembershipDetails();
+  const formattedAmount = formatStripeAmount(plan.unitAmount, plan.currency);
+
+  return (
+    <article className="plan-card">
+      <div className="plan-top">
+        <div>
+          <h3>{plan.productName}</h3>
+          <p>
+            {plan.productDescription}. The subscription renews every{" "}
+            {plan.intervalCount > 1 ? `${plan.intervalCount} ` : ""}
+            {plan.interval}
+            {plan.intervalCount > 1 ? "s" : ""}.
+          </p>
+        </div>
+      </div>
+      <div className="billing-option">
+        <div className="billing-option-heading">
+          <h4>
+            {formattedAmount
+              ? `${formattedAmount} / ${plan.interval}`
+              : plan.interval}
+          </h4>
+        </div>
+        <Link className="primary-button" href="/subscribe/account">
+          Create account to continue <span>↗</span>
+        </Link>
+      </div>
+    </article>
   );
 }
 
