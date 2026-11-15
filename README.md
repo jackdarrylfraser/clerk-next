@@ -85,6 +85,7 @@ for production. Never commit real values.
 | `STRIPE_SECRET_KEY` | Stripe server-side API access; required to run/build the app |
 | `STRIPE_WEBHOOK_SECRET` | Verifying Stripe webhook deliveries |
 | `STRIPE_MONTHLY_PRICE_ID` | Stripe Price ID used for monthly server-created Checkout Sessions |
+| `STRIPE_PAYMENT_METHOD_PORTAL_CONFIGURATION_ID` | Optional Stripe Customer Portal configuration used for payment-method updates |
 | `BETTER_AUTH_SECRET` | Better Auth session signing; use a random secret of at least 32 characters |
 | `BETTER_AUTH_URL` | Better Auth application URL, such as `http://localhost:3000` |
 | `RESEND_API_KEY` | Resend contact, event, and transactional email APIs; required to run/build the app |
@@ -100,6 +101,12 @@ same Stripe mode. Configure the Stripe webhook endpoint at
 `invoice.payment_failed`, `customer.subscription.updated`, and
 `customer.subscription.deleted`. Delayed payment methods are not enabled;
 checkout currently accepts card payments only.
+For payment-method updates, create a separate Customer Portal configuration in
+the Stripe Dashboard with payment-method updates enabled and every unrelated
+portal feature disabled. Set
+`STRIPE_PAYMENT_METHOD_PORTAL_CONFIGURATION_ID` to that configuration's ID in
+the server environment. The account page uses only this restricted
+configuration and returns customers to `/account`.
 
 Better Auth is configured in `lib/better-auth.ts`, mounted at
 `/api/auth/[...all]`, and uses the Drizzle singleton in `lib/drizzle.ts`.

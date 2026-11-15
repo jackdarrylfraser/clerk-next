@@ -1212,9 +1212,172 @@ button.text-button {
 .account-details strong {
   min-width: 64px;
 }
+.account-billing {
+  margin: 36px 0 64px;
+}
+.account-billing-heading {
+  margin-bottom: 20px;
+}
+.account-billing-heading h2 {
+  margin: 0 0 8px;
+  font-size: 30px;
+}
+.account-billing-heading p,
+.account-billing-muted,
+.account-customer-id,
+.account-billing-deleted {
+  color: #788076;
+  font-size: 13px;
+}
+.account-billing-customers {
+  display: grid;
+  gap: 20px;
+}
+.account-billing-customer,
+.account-billing-empty {
+  padding: 24px;
+  border: 1px solid #dfe3da;
+  border-radius: 12px;
+  background: #fff;
+}
+.account-billing-customer-heading,
+.account-subscription-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+.account-billing-customer-heading h3,
+.account-subscriptions h4 {
+  margin: 0;
+  font-size: 18px;
+}
+.account-customer-id {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+.account-billing-email-form {
+  display: grid;
+  gap: 10px;
+  margin: 24px 0;
+}
+.account-billing-email-form label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.account-billing-email-form label span {
+  color: #788076;
+  font-size: 12px;
+  font-weight: 400;
+}
+.account-billing-email-controls {
+  display: flex;
+  gap: 10px;
+}
+.account-billing-email-controls input {
+  min-width: 0;
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #dfe3da;
+  border-radius: 5px;
+  color: var(--ink);
+}
+.secondary-button {
+  padding: 10px 14px;
+  border: 1px solid #49624d;
+  border-radius: 5px;
+  background: #fff;
+  color: #49624d;
+  font-size: 12px;
+  font-weight: 700;
+}
+.secondary-button:not(:disabled):hover {
+  background: #f0f3ed;
+}
+.account-subscriptions {
+  padding-top: 20px;
+  border-top: 1px solid #e5e8e0;
+}
+.account-subscriptions h4 {
+  margin-bottom: 12px;
+}
+.account-subscription-list {
+  display: grid;
+  gap: 12px;
+}
+.account-subscription {
+  padding: 16px;
+  border: 1px solid #e5e8e0;
+  border-radius: 8px;
+}
+.account-subscription-top h5 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.account-subscription-price,
+.account-subscription-period {
+  margin: 0;
+  color: #788076;
+  font-size: 13px;
+}
+.account-subscription-status {
+  flex-shrink: 0;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: #eef2ea;
+  color: #49624d;
+  font-size: 11px;
+  font-weight: 700;
+}
+.account-subscription-status.scheduled {
+  background: #fbf2df;
+  color: #806132;
+}
+.account-subscription-status.ended {
+  background: #f0f1ee;
+  color: #788076;
+}
+.account-subscription-period {
+  margin-top: 12px;
+}
+.account-subscription-period + .account-subscription-period {
+  margin-top: 4px;
+}
+.account-subscription-action {
+  margin-top: 14px;
+}
+.account-billing-empty p {
+  margin: 0 0 16px;
+  color: #788076;
+}
+.account-billing-error,
+.account-billing-message {
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.account-billing-error,
+.account-billing-message.error {
+  background: #fbefed;
+  color: #914b40;
+}
+.account-billing-message.success {
+  background: #edf4ed;
+  color: #49624d;
+}
 @media (max-width: 800px) {
   .billing-options {
     grid-template-columns: 1fr;
+  }
+  .account-billing-customer-heading,
+  .account-subscription-top {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .account-billing-email-controls {
+    flex-direction: column;
   }
   .side-panel {
     min-height: 0;
