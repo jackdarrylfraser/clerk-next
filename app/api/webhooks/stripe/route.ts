@@ -11,14 +11,12 @@ import {
 } from "@/lib/stripe/stripe-customers";
 import { processStripeWebhookEvent } from "@/lib/stripe/stripe-webhook";
 import { verifyStripeWebhookEvent } from "@/lib/stripe/stripe-webhook-signature";
-import { stripe } from "@/lib/stripe/stripe";
 
 export async function POST(request: Request): Promise<Response> {
   let event;
   try {
     const rawBody = await request.text();
     event = await verifyStripeWebhookEvent(
-      stripe,
       rawBody,
       request.headers.get("stripe-signature"),
       env.STRIPE_WEBHOOK_SECRET,

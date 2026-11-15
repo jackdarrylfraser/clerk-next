@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { stripe } from "@/lib/stripe/stripe";
 import type { BuiltStripeCatalog } from "./stripe-catalog";
 import { getManagedPriceIdsToDeactivate } from "./stripe-catalog-policy";
 
@@ -8,10 +9,9 @@ type BuiltStripeCatalogReference = Pick<
 >;
 
 export async function activateBuiltStripeCatalog(
-  stripeClient: Pick<Stripe, "prices" | "products">,
   catalog: BuiltStripeCatalogReference,
 ): Promise<string[]> {
-  const price = await stripeClient.prices.retrieve(catalog.priceId);
+  const price = await stripe.prices.retrieve(catalog.priceId);
   const productId =
     typeof price.product === "string" ? price.product : price.product.id;
   if (
@@ -22,14 +22,14 @@ export async function activateBuiltStripeCatalog(
   }
 
   if (!price.active) {
-    await stripeClient.prices.update(price.id, { active: true });
+    await stripe.prices.update(price.id, { active: true });
   }
-  await stripeClient.products.update(catalog.productId, {
+  await stripe.products.update(catalog.productId, {
     default_price: catalog.priceId,
   });
 
   const activePrices: Stripe.Price[] = [];
-  for await (const activePrice of stripeClient.prices.list({
+  for await (const activePrice of stripe.prices.list({
     product: catalog.productId,
     active: true,
     limit: 100,
@@ -43,7 +43,7 @@ export async function activateBuiltStripeCatalog(
     catalog.catalogKey,
   );
   for (const oldPriceId of oldPriceIds) {
-    await stripeClient.prices.update(oldPriceId, { active: false });
+    await stripe.prices.update(oldPriceId, { active: false });
   }
 
   return oldPriceIds;

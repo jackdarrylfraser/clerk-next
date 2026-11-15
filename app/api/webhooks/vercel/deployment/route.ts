@@ -5,7 +5,6 @@ import {
 } from "@/lib/stripe/stripe-catalog-policy";
 import { readBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog";
 import { activateBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog-sync";
-import { stripe } from "@/lib/stripe/stripe";
 import { verifyVercelWebhookSignature } from "@/lib/vercel-webhook-signature";
 
 const vercelEventSchema = z.object({
@@ -75,7 +74,7 @@ export async function POST(request: Request): Promise<Response> {
       throw new Error("The generated Stripe catalog is missing from this deployment");
     }
 
-    const oldPriceIds = await activateBuiltStripeCatalog(stripe, catalog);
+    const oldPriceIds = await activateBuiltStripeCatalog(catalog);
 
     return Response.json({
       received: true,

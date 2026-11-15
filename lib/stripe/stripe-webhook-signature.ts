@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
+import { stripe } from "@/lib/stripe/stripe";
 
 export async function verifyStripeWebhookEvent(
-  stripeClient: Pick<Stripe, "webhooks">,
   rawBody: string,
   signature: string | null,
   secret: string,
@@ -10,5 +10,5 @@ export async function verifyStripeWebhookEvent(
     throw new Error("The Stripe webhook signature is missing");
   }
 
-  return stripeClient.webhooks.constructEventAsync(rawBody, signature, secret);
+  return stripe.webhooks.constructEventAsync(rawBody, signature, secret);
 }

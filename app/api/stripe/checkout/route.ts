@@ -56,7 +56,7 @@ export async function POST(request: Request): Promise<Response> {
   const priceId = catalog.priceId;
 
   try {
-    await activateBuiltStripeCatalog(stripe, catalog);
+    await activateBuiltStripeCatalog(catalog);
 
     const customerId = await getStripeCustomerIdForUser(currentUser.id);
     const checkoutSession = await stripe.checkout.sessions.create({
