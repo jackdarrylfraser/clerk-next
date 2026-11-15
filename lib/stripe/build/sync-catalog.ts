@@ -1,7 +1,7 @@
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import Stripe from "stripe";
-import { createIdempotencyPrefix } from "@outbound-endurance/kv";
+import { createIdempotencyPrefix } from "@outbound-endurance/kv/idempotency-prefix";
 import { IDEMPOTENCY_PREFIXES } from "@/lib/constants";
 import {
   monthlyMembershipDefinition,

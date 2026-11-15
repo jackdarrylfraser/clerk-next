@@ -4,19 +4,34 @@ import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
 import { formatStripeAmount } from "@/lib/stripe/helper/stripe-checkout-policy";
 import { getMonthlyMembershipDetails } from "@/lib/stripe/build/stripe-catalog";
 
-export default async function SubscribePlanPage({
+export default function SubscribePlanPage({
   searchParams,
 }: {
   searchParams: Promise<{ required?: string | string[] }>;
 }) {
+  return (
+    <SubscribeLayout step="plan">
+      <Suspense
+        fallback={
+          <article className="plan-card">
+            <p role="status">Loading membership details...</p>
+          </article>
+        }
+      >
+        <PlanDetails />
+      </Suspense>
+      <Suspense fallback={null}>
+        <SubscriptionRequiredNotice searchParams={searchParams} />
+      </Suspense>
+    </SubscribeLayout>
+  );
+}
+
+async function PlanDetails() {
   const plan = await getMonthlyMembershipDetails();
   const formattedAmount = formatStripeAmount(plan.unitAmount, plan.currency);
 
   return (
-    <SubscribeLayout step="plan">
-      <Suspense fallback={null}>
-        <SubscriptionRequiredNotice searchParams={searchParams} />
-      </Suspense>
       <article className="plan-card">
         <div className="plan-top">
           <div>
@@ -42,7 +57,6 @@ export default async function SubscribePlanPage({
           </Link>
         </div>
       </article>
-    </SubscribeLayout>
   );
 }
 

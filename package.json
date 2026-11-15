@@ -18,10 +18,10 @@
     "stripe:sync": "bun lib/stripe/build/sync-catalog.ts"
   },
   "dependencies": {
-    "@outbound-endurance/kv": "workspace:*",
-    "@outbound-endurance/markdown-engine": "workspace:*",
     "@libsql/client": "^0.18.0",
     "@next/env": "16.4.5",
+    "@outbound-endurance/kv": "workspace:*",
+    "@outbound-endurance/markdown-engine": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.11",
     "better-auth": "^1.7.25",
     "drizzle-orm": "^0.45.4",
@@ -31,6 +31,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "resend": "^6.37.0",
+    "server-only": "^0.0.1",
     "stripe": "^23.1.0",
     "zod": "^4.6.7"
   },

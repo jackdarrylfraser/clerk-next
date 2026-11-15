@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./idempotency-prefix": "./src/idempotency-prefix.ts"
   },
   "dependencies": {
     "@upstash/ratelimit": "^2.2.0",
-    "@upstash/redis": "^1.41.0"
+    "@upstash/redis": "^1.41.0",
+    "server-only": "^0.0.1"
   }
 }
