@@ -2,10 +2,10 @@ import { z } from "zod";
 import { env } from "@/env";
 import {
   isProductionDeploymentPromotion,
-} from "@/lib/stripe-catalog-policy";
-import { readBuiltStripeCatalog } from "@/lib/stripe-catalog";
-import { activateBuiltStripeCatalog } from "@/lib/stripe-catalog-sync";
-import { stripe } from "@/lib/stripe";
+} from "@/lib/stripe/stripe-catalog-policy";
+import { readBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog";
+import { activateBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog-sync";
+import { stripe } from "@/lib/stripe/stripe";
 import { verifyVercelWebhookSignature } from "@/lib/vercel-webhook-signature";
 
 const vercelEventSchema = z.object({

@@ -5,19 +5,19 @@ import {
   getPaidSubscriptionStatus,
 } from "@/lib/server-access";
 import type { PaidSubscriptionStatus } from "@/lib/server-access";
-import { isStripeCustomerOwnedByUser } from "@/lib/stripe-customers";
+import { isStripeCustomerOwnedByUser } from "@/lib/stripe/stripe-customers";
 import {
   canManageStripeSubscription,
   getLatestPeriodEnd,
   getStripeResourceId,
   isCancellationScheduled,
   isSubscriptionOwnedByCustomer,
-} from "@/lib/stripe-account-policy";
-import { stripe } from "@/lib/stripe";
+} from "@/lib/stripe/stripe-account-policy";
+import { stripe } from "@/lib/stripe/stripe";
 import {
   isStripeRequestOriginAllowed,
   readStripeRequestBody,
-} from "@/lib/stripe-request";
+} from "@/lib/stripe/stripe-request";
 
 const requestSchema = z.object({
   customerId: z.string().trim().min(1).max(255),

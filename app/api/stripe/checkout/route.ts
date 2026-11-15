@@ -1,10 +1,10 @@
 import { env } from "@/env";
 import { getCurrentUser } from "@/lib/server-access";
-import { getStripeCustomerIdForUser } from "@/lib/stripe-customers";
-import { stripe } from "@/lib/stripe";
-import { readBuiltStripeCatalog } from "@/lib/stripe-catalog";
-import { activateBuiltStripeCatalog } from "@/lib/stripe-catalog-sync";
-import { isStripeRequestOriginAllowed } from "@/lib/stripe-request";
+import { getStripeCustomerIdForUser } from "@/lib/stripe/stripe-customers";
+import { stripe } from "@/lib/stripe/stripe";
+import { readBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog";
+import { activateBuiltStripeCatalog } from "@/lib/stripe/stripe-catalog-sync";
+import { isStripeRequestOriginAllowed } from "@/lib/stripe/stripe-request";
 
 export async function POST(request: Request): Promise<Response> {
   if (

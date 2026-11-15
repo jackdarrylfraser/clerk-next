@@ -4,8 +4,8 @@ import type Stripe from "stripe";
 import {
   formatStripeAmount,
   getStripeCheckoutPaymentState,
-} from "@/lib/stripe-checkout-policy";
-import { stripe } from "@/lib/stripe";
+} from "@/lib/stripe/stripe-checkout-policy";
+import { stripe } from "@/lib/stripe/stripe";
 
 type CheckoutSuccessPageProps = {
   searchParams: Promise<{ session_id?: string | string[] }>;

@@ -1,12 +1,12 @@
 import "server-only";
 import Stripe from "stripe";
 import { idempotency } from "@/lib/kv";
-import { stripe } from "@/lib/stripe";
-import { getStripeCustomerIdsForUser } from "@/lib/stripe-customers";
+import { stripe } from "@/lib/stripe/stripe";
+import { getStripeCustomerIdsForUser } from "@/lib/stripe/stripe-customers";
 import {
   checkStripeAccess,
   invalidateStripeAccessCache as invalidateAccessCache,
-} from "@/lib/stripe-access-policy";
+} from "@/lib/stripe/stripe-access-policy";
 
 function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
   const parent = invoice.parent;

@@ -52,7 +52,7 @@ address to find, create, or change an app account.
 ## Implementation sequence
 
 1. **Load a billing overview.** Add a server-side helper, such as
-   `lib/stripe-account.ts`, that takes the authenticated Better Auth user ID,
+   `lib/stripe/stripe-account.ts`, that takes the authenticated Better Auth user ID,
    gets only that user's mapped Stripe customer IDs, and loads their customer
    and subscription details from Stripe. Do not search Stripe by email.
 2. **Add the account billing UI.** Update

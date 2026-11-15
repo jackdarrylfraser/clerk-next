@@ -23,7 +23,7 @@ system only after the new access gates and lifecycle handling are in place.
 
 ### 1. Stripe configuration
 
-**Files:** `package.json`, `bun.lock`, `env.ts`, a new `lib/stripe.ts`, and the
+**Files:** `package.json`, `bun.lock`, `env.ts`, a new `lib/stripe/stripe.ts`, and the
 configuration section of `README.md`.
 
 Add the Stripe SDK, validate the server secret, webhook secret, and public
@@ -34,7 +34,7 @@ behavior in this slice.
 
 ### 2. Customer mapping
 
-**Files:** `db/schema.ts`, a new `lib/stripe-customers.ts`, and `drizzle/`.
+**Files:** `db/schema.ts`, a new `lib/stripe/stripe-customers.ts`, and `drizzle/`.
 
 Add a mapping that allows multiple Stripe customers per app user while
 ensuring each Stripe customer maps to at most one user. Add lookup helpers and
@@ -47,15 +47,15 @@ legacy `user_access` table only after the app no longer reads or writes it.
 
 ### 3. Stripe access lookup and cache
 
-**Files:** new `lib/stripe-access-policy.ts`, `lib/stripe-access.test.js`, and
-`lib/stripe-access.ts`.
+**Files:** new `lib/stripe/stripe-access-policy.ts`,
+`lib/stripe/stripe-access.test.js`, and `lib/stripe/stripe-access.ts`.
 
 Implement access from paid invoice period ends. Cache in KV positive
 results only until paid-through expiry; use a short default TTL for denied
 results. Surface Stripe or Redis failures instead of granting from stale
 state.
 
-**Check:** `bun test lib/stripe-access.test.js`.
+**Check:** `bun test lib/stripe/stripe-access.test.js`.
 
 ### 4. Route access through the new rule
 
@@ -95,7 +95,7 @@ states as well as a completed purchase.
 ### 7. Signed webhook and checkout provisioning
 
 **Files:** `app/api/webhooks/stripe/route.ts` and
-`lib/stripe-webhook.ts`.
+`lib/stripe/stripe-webhook.ts`.
 
 Verify the signature over the raw body and make event processing idempotent
 with the shared KV package. First implement only successful subscription
@@ -107,7 +107,7 @@ and an existing user before adding more event types.
 
 ### 8. Lifecycle events and notifications
 
-**Files:** `lib/stripe-webhook.ts`,
+**Files:** `lib/stripe/stripe-webhook.ts`,
 `emails/billing-notification-content.ts`, and its tests.
 
 Add subscription-cycle renewal, failed-payment, newly scheduled cancellation,

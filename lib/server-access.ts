@@ -3,7 +3,7 @@ import { io } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/better-auth";
-import { hasStripeAccess } from "@/lib/stripe-access";
+import { hasStripeAccess } from "@/lib/stripe/stripe-access";
 import { env } from "@/env";
 
 type AuthSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;

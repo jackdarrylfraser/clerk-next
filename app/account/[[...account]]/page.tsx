@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { requirePaidSubscription } from "@/lib/server-access";
 import { SignOutButton } from "@/components/sign-out-button";
 import { BillingManagement } from "@/components/account/billing-management";
-import { getStripeAccountOverview } from "@/lib/stripe-account";
+import { getStripeAccountOverview } from "@/lib/stripe/stripe-account";
 
 export default function AccountPage() {
   return (

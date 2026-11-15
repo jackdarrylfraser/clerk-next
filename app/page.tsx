@@ -5,7 +5,7 @@ import ActivityCard from "@/components/activity-card";
 import { isDevAuthBypassEnabled } from "@/lib/auth";
 import { getMarkdownParamsWithMetadata } from "@/lib/markdown-content";
 import { getCurrentUser } from "@/lib/server-access";
-import { hasStripeAccess } from "@/lib/stripe-access";
+import { hasStripeAccess } from "@/lib/stripe/stripe-access";
 
 const activityDirectory = join(process.cwd(), "content", "self-guided");
 const activitiesPerPage = 5;

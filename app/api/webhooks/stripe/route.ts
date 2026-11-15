@@ -4,14 +4,14 @@ import { sendEmail } from "@/emails/send-email";
 import { user as appUser } from "@/db/schema";
 import { getDb } from "@/lib/drizzle";
 import { idempotency } from "@/lib/kv";
-import { invalidateStripeAccessCache } from "@/lib/stripe-access";
+import { invalidateStripeAccessCache } from "@/lib/stripe/stripe-access";
 import {
   associateStripeCustomerWithUser,
   getStripeCustomerOwner,
-} from "@/lib/stripe-customers";
-import { processStripeWebhookEvent } from "@/lib/stripe-webhook";
-import { verifyStripeWebhookEvent } from "@/lib/stripe-webhook-signature";
-import { stripe } from "@/lib/stripe";
+} from "@/lib/stripe/stripe-customers";
+import { processStripeWebhookEvent } from "@/lib/stripe/stripe-webhook";
+import { verifyStripeWebhookEvent } from "@/lib/stripe/stripe-webhook-signature";
+import { stripe } from "@/lib/stripe/stripe";
 
 export async function POST(request: Request): Promise<Response> {
   let event;

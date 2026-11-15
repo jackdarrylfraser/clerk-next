@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { SubscribeLayout } from "@/components/subscribe/subscribe-layout";
-import { formatStripeAmount } from "@/lib/stripe-checkout-policy";
-import { getMonthlyMembershipDetails } from "@/lib/stripe-catalog";
+import { formatStripeAmount } from "@/lib/stripe/stripe-checkout-policy";
+import { getMonthlyMembershipDetails } from "@/lib/stripe/stripe-catalog";
 
 export default async function SubscribePlanPage({
   searchParams,

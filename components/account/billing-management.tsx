@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import type {
   StripeAccountCustomer,
   StripeAccountSubscription,
-} from "@/lib/stripe-account";
+} from "@/lib/stripe/stripe-account";
 
 interface BillingManagementProps {
   customers: StripeAccountCustomer[];

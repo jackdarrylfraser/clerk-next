@@ -94,7 +94,7 @@ for production. Never commit real values.
 | `RESEND_FROM_EMAIL` | Verified sender for billing emails and `bun run emails:sync` |
 | `DEV_AUTH_BYPASS` | Optional local member-content preview; set to `true` only for development |
 
-The Stripe catalog is declared in `lib/stripe-catalog.ts` and currently sets
+The Stripe catalog is declared in `lib/stripe/stripe-catalog.ts` and currently sets
 the monthly membership to USD $25. `bun run build` first reconciles its Product
 and Price in Stripe and writes a generated catalog used by checkout and the
 subscription pages. The sync preserves existing subscriptions when a Price
