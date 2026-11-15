@@ -34,9 +34,7 @@ export interface StripeWebhookDependencies {
   findUser(userId: string): Promise<StripeCheckoutUser | null>;
   associateCustomer(customerId: string, userId: string): Promise<void>;
   invalidateAccess(userId: string): Promise<void>;
-  findUserForCustomer(
-    customerId: string,
-  ): Promise<StripeLifecycleUser | null>;
+  findUserForCustomer(customerId: string): Promise<StripeLifecycleUser | null>;
   sendLifecycleNotification(
     user: StripeLifecycleUser,
     event: { id: string; type: string },
@@ -133,7 +131,9 @@ async function processCheckoutCompletedEvent(
     async () => {
       const user = await dependencies.findUser(userId);
       if (!user) {
-        throw new Error("Stripe Checkout Session refers to an unknown app user");
+        throw new Error(
+          "Stripe Checkout Session refers to an unknown app user",
+        );
       }
 
       await dependencies.associateCustomer(customerId, user.id);
@@ -149,11 +149,10 @@ async function runIdempotently(
   event: StripeWebhookEvent,
   scope: string,
   operation: () => Promise<{ userId: string }>,
-): Promise<Exclude<IdempotencyRunResult<{ userId: string }>, { status: "error" }>> {
-  const result = await idempotency.run(
-    { scope, key: event.id },
-    operation,
-  );
+): Promise<
+  Exclude<IdempotencyRunResult<{ userId: string }>, { status: "error" }>
+> {
+  const result = await idempotency.run({ scope, key: event.id }, operation);
   if (result.status === "error") {
     throw result.error;
   }
